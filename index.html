@@ -1,0 +1,1352 @@
+// Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDCHUmML-3xe57TJAiZKSTHouFxIiFHGoE",
+            authDomain: "etf-rm.firebaseapp.com",
+            projectId: "etf-rm",
+            storageBucket: "etf-rm.firebasestorage.app",
+            messagingSenderId: "1013121735332",
+            appId: "1:1013121735332:web:2665a687123c2a95416431",
+            measurementId: "G-D8HR00JZBM"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // Cloudinary Config
+        const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/debp1kjtm/image/upload';
+        const CLOUDINARY_UPLOAD_PRESET = 'sql_admin';
+
+        // State
+        const state = {
+            user: null, userData: null, adminConfig: {}, marketData: [],
+            currentView: 'home', tradeType: 'spot', orderSide: 'buy', selectedPair: 'BTCUSDT',
+            chart: null, candleSeries: null, timeframe: '1d', checkCount: 0,
+            currentPaymentAmount: 0, selectedInvestPlan: null, nftTab: 'buy',
+            investRiskFilter: 'low', userNFTs: [], userInvestments: [],
+            marginSide: 'buy', futuresSide: 'buy', marginLeverage: 5, futuresLeverage: 100,
+            indicators: { ma: false, rsi: false, macd: false, bollinger: false, volume: false },
+            marginChart: null, futuresChart: null, marginSeries: null, futuresSeries: null,
+            allNFTs: [
+                { id: 1, name: 'Crypto Dragon #1', description: 'Limited Edition Dragon NFT', price: 2500, holdingDays: 30, dailyProfit: 2.5, image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400', rarity: 'legendary' },
+                { id: 2, name: 'Fire Phoenix', description: 'Rare Phoenix Collection', price: 5000, holdingDays: 60, dailyProfit: 5.0, image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400', rarity: 'epic' },
+                { id: 3, name: 'Nature Spirit', description: 'Common Nature Collection', price: 1200, holdingDays: 15, dailyProfit: 1.2, image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400', rarity: 'common' },
+                { id: 4, name: 'Thunder God', description: 'Epic Thunder Collection', price: 10000, holdingDays: 90, dailyProfit: 12.0, image: 'https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=400', rarity: 'epic' },
+                { id: 5, name: 'Golden Bull', description: 'Bull Market Special', price: 3500, holdingDays: 45, dailyProfit: 3.5, image: 'https://images.unsplash.com/photo-1560167164-616078ea2824?w=400', rarity: 'rare' },
+                { id: 6, name: 'Diamond Hands', description: 'Holder Reward NFT', price: 8000, holdingDays: 120, dailyProfit: 10.0, image: 'https://images.unsplash.com/photo-1614732414444-096e6f3d2d96?w=400', rarity: 'legendary' }
+            ],
+            investPlans: [
+                { id: 1, name: 'Starter Plan', risk: 'low', return: 5, min: 1000, duration: 30, description: 'Perfect for beginners. Low risk with steady returns.', image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=400' },
+                { id: 2, name: 'Savings Plus', risk: 'low', return: 6, min: 5000, duration: 60, description: 'Build your savings with guaranteed returns.', image: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=400' },
+                { id: 3, name: 'Growth Plan', risk: 'medium', return: 8, min: 5000, duration: 60, description: 'Balanced risk-reward for steady growth.', image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400' },
+                { id: 4, name: 'Pro Trader', risk: 'medium', return: 10, min: 25000, duration: 90, description: 'For experienced investors seeking higher returns.', image: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=400' },
+                { id: 5, name: 'Premium Plan', risk: 'high', return: 15, min: 25000, duration: 90, description: 'High returns for risk-takers.', image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400' },
+                { id: 6, name: 'VIP Plan', risk: 'high', return: 20, min: 100000, duration: 180, description: 'Exclusive plan for VIP members. Maximum returns.', image: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=400' }
+            ]
+        };
+
+        auth.onAuthStateChanged(user => {
+            if (user) { state.user = user; initializeApp(); }
+            else { showAuthScreen(); }
+        });
+
+        function showAuthScreen() {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('app-container').classList.add('hidden');
+        }
+
+        function showApp() {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+        }
+
+        async function initializeApp() {
+            // Load user data
+            db.collection('users').doc(state.user.uid).onSnapshot(doc => {
+                if (doc.exists) { 
+                    state.userData = doc.data(); 
+                    updateUI(); 
+                }
+            });
+            
+            // Load admin config
+            db.collection('admin').doc('config').onSnapshot(doc => {
+                if (doc.exists) { 
+                    state.adminConfig = doc.data(); 
+                    updateAdminConfig(); 
+                }
+            });
+            
+            // Load user data
+            loadUserNFTs();
+            loadUserInvestments();
+            loadUserPositions();
+            
+            // Load market data with fast updates
+            await loadMarketData();
+            setInterval(loadMarketData, 100); // 0.1 second updates for fast price movement
+            
+            showApp();
+            
+            // Initialize charts
+            setTimeout(() => {
+                initChart();
+                initMarginChart();
+                initFuturesChart();
+                loadRealChartData('BTCUSDT', '1d');
+            }, 500);
+            
+            renderInvestingPlans();
+            renderNFTs();
+            generateOrderBook();
+            generateFuturesOrderBook();
+        }
+
+        function updateUI() {
+            const data = state.userData;
+            document.getElementById('menu-name').textContent = data.name || 'User';
+            document.getElementById('profile-name').textContent = data.name || 'User';
+            document.getElementById('profile-email').textContent = data.email || '';
+            
+            if (data.avatar) {
+                document.getElementById('menu-avatar').src = data.avatar;
+                document.getElementById('profile-avatar').src = data.avatar;
+                document.getElementById('wallet-avatar').src = data.avatar;
+            }
+            
+            const spot = data.spotBalance || 0, futures = data.futuresBalance || 0, margin = data.marginBalance || 0;
+            const invest = data.investBalance || 0, nft = data.nftBalance || 0;
+            const total = spot + futures + margin + invest + nft;
+            
+            // Update all balance displays
+            document.getElementById('total-balance').textContent = formatCurrency(total);
+            document.getElementById('spot-balance-card').textContent = formatCurrency(spot);
+            document.getElementById('nft-value').textContent = formatCurrency(nft);
+            document.getElementById('invest-value').textContent = formatCurrency(invest);
+            document.getElementById('menu-balance').textContent = formatCurrency(total);
+            document.getElementById('wallet-total').textContent = formatCurrency(total);
+            document.getElementById('spot-balance').textContent = formatCurrency(spot);
+            document.getElementById('futures-balance').textContent = formatCurrency(futures);
+            document.getElementById('margin-balance').textContent = formatCurrency(margin);
+            document.getElementById('nft-balance-display').textContent = formatCurrency(nft);
+            document.getElementById('invest-balance-display').textContent = formatCurrency(invest);
+            document.getElementById('spot-available').textContent = spot.toFixed(2) + ' USDT';
+            document.getElementById('margin-available').textContent = margin.toFixed(2) + ' USDT';
+            document.getElementById('futures-available').textContent = futures.toFixed(2) + ' USDT';
+            document.getElementById('withdraw-available').textContent = formatCurrency(spot);
+            document.getElementById('transfer-available').textContent = spot.toFixed(2);
+            document.getElementById('profile-total').textContent = '₹' + total.toFixed(2);
+            document.getElementById('profile-crypto').textContent = '₹' + (spot + futures).toFixed(2);
+            document.getElementById('profile-invest').textContent = '₹' + invest.toFixed(2);
+        }
+
+        function updateAdminConfig() {
+            const config = state.adminConfig;
+            if (config.btcAddress) document.getElementById('btc-address').textContent = config.btcAddress;
+            if (config.usdtAddress) document.getElementById('usdt-address').textContent = config.usdtAddress;
+        }
+
+        function toggleAuthMode(mode) {
+            document.getElementById('login-form').classList.toggle('hidden', mode !== 'login');
+            document.getElementById('register-form').classList.toggle('hidden', mode !== 'register');
+        }
+
+        async function handleEmailLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            if (!email || !password) { showToast('Please enter email and password', 'error'); return; }
+            try { await auth.signInWithEmailAndPassword(email, password); }
+            catch (error) { showToast(error.message, 'error'); }
+        }
+
+        async function handleRegister() {
+            const name = document.getElementById('reg-name').value;
+            const phone = document.getElementById('reg-phone').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const confirmPassword = document.getElementById('reg-confirm-password').value;
+            if (!name || !phone || !email || !password) { showToast('Please fill all fields', 'error'); return; }
+            if (password !== confirmPassword) { showToast('Passwords do not match', 'error'); return; }
+            if (password.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
+            try {
+                const cred = await auth.createUserWithEmailAndPassword(email, password);
+                await db.collection('users').doc(cred.user.uid).set({
+                    uid: cred.user.uid, name, phone, email,
+                    spotBalance: 0, futuresBalance: 0, marginBalance: 0, investBalance: 0, nftBalance: 0,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showToast('Account created successfully!');
+            } catch (error) { showToast(error.message, 'error'); }
+        }
+
+        function confirmLogout() { document.getElementById('logout-dialog').style.display = 'flex'; }
+        function hideLogoutDialog() { document.getElementById('logout-dialog').style.display = 'none'; }
+        function logout() { hideLogoutDialog(); auth.signOut(); }
+
+        function navigateTo(view) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`view-${view}`).classList.remove('hidden');
+            document.querySelectorAll('.mobile-nav-item').forEach(el => { el.classList.toggle('active', el.dataset.view === view); });
+            state.currentView = view;
+            window.scrollTo(0, 0);
+            history.pushState({ view: view }, '', `#${view}`);
+        }
+
+        window.addEventListener('popstate', function(e) {
+            if (e.state && e.state.view) {
+                const view = e.state.view;
+                document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+                document.getElementById(`view-${view}`).classList.remove('hidden');
+                document.querySelectorAll('.mobile-nav-item').forEach(el => { el.classList.toggle('active', el.dataset.view === view); });
+                state.currentView = view;
+            }
+        });
+
+        function openSideMenu() { document.getElementById('side-menu').classList.add('open'); document.getElementById('menu-overlay').classList.add('open'); }
+        function closeSideMenu() { document.getElementById('side-menu').classList.remove('open'); document.getElementById('menu-overlay').classList.remove('open'); }
+
+        // Market Functions
+        async function loadMarketData() {
+            try {
+                const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&sparkline=false&price_change_percentage=24h');
+                state.marketData = await response.json();
+                renderMarketList();
+                renderTrending();
+            } catch (error) { console.error('Market data load failed'); }
+        }
+
+        function renderMarketList() {
+            const container = document.getElementById('market-list');
+            const filter = state.marketFilter || 'all';
+            const searchTerm = document.getElementById('market-search')?.value?.toLowerCase() || '';
+            
+            let data = state.marketData;
+            
+            // Apply search filter
+            if (searchTerm) {
+                data = data.filter(coin => 
+                    coin.name.toLowerCase().includes(searchTerm) || 
+                    coin.symbol.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (filter === 'gainers') data = data.filter(c => c.price_change_percentage_24h > 0).sort((a,b) => b.price_change_percentage_24h - a.price_change_percentage_24h);
+            if (filter === 'losers') data = data.filter(c => c.price_change_percentage_24h < 0).sort((a,b) => a.price_change_percentage_24h - b.price_change_percentage_24h);
+            if (filter === 'volume') data = data.sort((a,b) => b.total_volume - a.total_volume);
+            
+            container.innerHTML = data.map(coin => `
+                <div class="market-item" onclick="openTrading('${coin.symbol.toUpperCase()}USDT')">
+                    <div class="flex items-center gap-3 flex-1">
+                        <img src="${coin.image}" class="w-10 h-10 rounded-full">
+                        <div>
+                            <p class="font-bold text-sm">${coin.symbol.toUpperCase()}</p>
+                            <p class="text-textGray text-xs">${coin.name}</p>
+                        </div>
+                    </div>
+                    <div class="w-28 text-right">
+                        <p class="font-mono font-bold text-sm price-ticker">$${coin.current_price.toLocaleString()}</p>
+                    </div>
+                    <div class="w-20 text-right">
+                        <span class="${coin.price_change_percentage_24h >= 0 ? 'text-primary' : 'text-danger'} text-sm font-bold px-2 py-1 rounded-lg ${coin.price_change_percentage_24h >= 0 ? 'bg-primary/10' : 'bg-danger/10'}">
+                            ${coin.price_change_percentage_24h >= 0 ? '+' : ''}${coin.price_change_percentage_24h?.toFixed(2) || 0}%
+                        </span>
+                    </div>
+                    <div class="w-20 text-right">
+                        <button onclick="event.stopPropagation(); quickTrade('${coin.symbol.toUpperCase()}USDT')" class="px-3 py-1.5 bg-primary text-black text-xs font-bold rounded-lg hover:bg-primary/80 transition-all">
+                            Trade
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function searchMarket() {
+            renderMarketList();
+        }
+
+        function renderTrending() {
+            const container = document.getElementById('trending-list');
+            const trending = state.marketData.slice(0, 5);
+            container.innerHTML = trending.map(coin => `
+                <div class="glass rounded-lg p-3 flex items-center justify-between cursor-pointer hover:bg-surfaceLight transition-all" onclick="openTrading('${coin.symbol.toUpperCase()}USDT')">
+                    <div class="flex items-center gap-3">
+                        <img src="${coin.image}" class="w-10 h-10 rounded-full">
+                        <div>
+                            <p class="font-bold text-sm">${coin.symbol.toUpperCase()}</p>
+                            <p class="text-textGray text-xs">$${coin.current_price.toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <span class="${coin.price_change_percentage_24h >= 0 ? 'text-primary' : 'text-danger'} text-sm font-bold px-2 py-1 rounded-lg ${coin.price_change_percentage_24h >= 0 ? 'bg-primary/10' : 'bg-danger/10'}">
+                        ${coin.price_change_percentage_24h >= 0 ? '+' : ''}${coin.price_change_percentage_24h?.toFixed(2) || 0}%
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function filterMarket(type) {
+            state.marketFilter = type;
+            document.querySelectorAll('.market-filter').forEach(btn => {
+                const isActive = btn.onclick.toString().includes(type);
+                btn.classList.toggle('active', isActive);
+                btn.classList.toggle('bg-primary', isActive);
+                btn.classList.toggle('text-black', isActive);
+                btn.classList.toggle('bg-surfaceLight', !isActive);
+                btn.classList.toggle('text-textGray', !isActive);
+            });
+            renderMarketList();
+        }
+
+        function quickTrade(pair) {
+            state.selectedPair = pair;
+            navigateTo('trade');
+            document.getElementById('trade-pair-select').value = pair;
+            changeTradingPair();
+        }
+
+        // Chart Functions
+        function initChart() {
+            const chartContainer = document.getElementById('trading-chart');
+            if (!chartContainer) return;
+            
+            state.chart = LightweightCharts.createChart(chartContainer, {
+                layout: { background: { color: '#0b0e11' }, textColor: '#d1d4dc' },
+                grid: { vertLines: { color: '#2b3139' }, horzLines: { color: '#2b3139' } },
+                crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+                rightPriceScale: { borderColor: '#2b3139' },
+                timeScale: { borderColor: '#2b3139', timeVisible: true },
+                width: chartContainer.clientWidth,
+                height: chartContainer.clientHeight
+            });
+            
+            state.candleSeries = state.chart.addCandlestickSeries({
+                upColor: '#00c853', downColor: '#ff3d00', borderUpColor: '#00c853', borderDownColor: '#ff3d00',
+                wickUpColor: '#00c853', wickDownColor: '#ff3d00'
+            });
+            
+            window.addEventListener('resize', () => {
+                if (state.chart) { 
+                    state.chart.applyOptions({ 
+                        width: chartContainer.clientWidth, 
+                        height: chartContainer.clientHeight 
+                    }); 
+                }
+            });
+        }
+
+        function initMarginChart() {
+            const chartContainer = document.getElementById('margin-chart');
+            if (!chartContainer) return;
+            
+            state.marginChart = LightweightCharts.createChart(chartContainer, {
+                layout: { background: { color: '#0b0e11' }, textColor: '#d1d4dc' },
+                grid: { vertLines: { color: '#2b3139' }, horzLines: { color: '#2b3139' } },
+                rightPriceScale: { borderColor: '#2b3139' },
+                timeScale: { borderColor: '#2b3139', timeVisible: true },
+                width: chartContainer.clientWidth,
+                height: chartContainer.clientHeight
+            });
+            
+            state.marginSeries = state.marginChart.addCandlestickSeries({
+                upColor: '#00c853', downColor: '#ff3d00', borderUpColor: '#00c853', borderDownColor: '#ff3d00',
+                wickUpColor: '#00c853', wickDownColor: '#ff3d00'
+            });
+        }
+
+        function initFuturesChart() {
+            const chartContainer = document.getElementById('futures-chart');
+            if (!chartContainer) return;
+            
+            state.futuresChart = LightweightCharts.createChart(chartContainer, {
+                layout: { background: { color: '#0b0e11' }, textColor: '#d1d4dc' },
+                grid: { vertLines: { color: '#2b3139' }, horzLines: { color: '#2b3139' } },
+                rightPriceScale: { borderColor: '#2b3139' },
+                timeScale: { borderColor: '#2b3139', timeVisible: true },
+                width: chartContainer.clientWidth,
+                height: chartContainer.clientHeight
+            });
+            
+            state.futuresSeries = state.futuresChart.addCandlestickSeries({
+                upColor: '#00c853', downColor: '#ff3d00', borderUpColor: '#00c853', borderDownColor: '#ff3d00',
+                wickUpColor: '#00c853', wickDownColor: '#ff3d00'
+            });
+        }
+
+        async function loadRealChartData(symbol, interval) {
+            try {
+                const intervalMap = { 
+                    '1m': '1m', '5m': '5m', '15m': '15m', '30m': '30m', 
+                    '1h': '1h', '4h': '4h', '1d': '1d', '1w': '1w' 
+                };
+                const binanceInterval = intervalMap[interval] || '1d';
+                const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${binanceInterval}&limit=500`);
+                if (!response.ok) throw new Error('Chart data fetch failed');
+                const data = await response.json();
+                const candleData = data.map(item => ({ 
+                    time: item[0] / 1000, 
+                    open: parseFloat(item[1]), 
+                    high: parseFloat(item[2]), 
+                    low: parseFloat(item[3]), 
+                    close: parseFloat(item[4]) 
+                }));
+                
+                // Update all charts
+                if (state.candleSeries) state.candleSeries.setData(candleData);
+                if (state.marginSeries) state.marginSeries.setData(candleData);
+                if (state.futuresSeries) state.futuresSeries.setData(candleData);
+                
+                if (state.chart) state.chart.timeScale().fitContent();
+                if (state.marginChart) state.marginChart.timeScale().fitContent();
+                if (state.futuresChart) state.futuresChart.timeScale().fitContent();
+                
+                if (candleData.length > 0) {
+                    const lastPrice = candleData[candleData.length - 1].close;
+                    document.getElementById('trade-price').textContent = '$' + lastPrice.toLocaleString();
+                    document.getElementById('futures-order-book-price').textContent = '$' + lastPrice.toLocaleString();
+                }
+            } catch (error) { 
+                console.error('Chart data load failed:', error); 
+                generateSampleData(); 
+            }
+        }
+
+        function generateSampleData() {
+            const data = []; 
+            let time = new Date(); 
+            time.setDate(time.getDate() - 100); 
+            let price = 45000;
+            for (let i = 0; i < 100; i++) {
+                const open = price, close = price + (Math.random() - 0.5) * 1000;
+                const high = Math.max(open, close) + Math.random() * 500, low = Math.min(open, close) - Math.random() * 500;
+                data.push({ time: time.getTime() / 1000, open, high, low, close });
+                price = close; 
+                time.setDate(time.getDate() + 1);
+            }
+            if (state.candleSeries) state.candleSeries.setData(data);
+            if (state.marginSeries) state.marginSeries.setData(data);
+            if (state.futuresSeries) state.futuresSeries.setData(data);
+        }
+
+        function changeTradingPair() {
+            const select = document.getElementById('trade-pair-select');
+            state.selectedPair = select.value;
+            loadRealChartData(state.selectedPair, state.timeframe);
+            generateOrderBook();
+            generateFuturesOrderBook();
+        }
+
+        function changeTimeframe(tf) {
+            state.timeframe = tf;
+            document.querySelectorAll('.timeframe-btn').forEach(btn => {
+                const isActive = btn.dataset.tf === tf;
+                btn.classList.toggle('active', isActive);
+                btn.classList.toggle('bg-primary', isActive);
+                btn.classList.toggle('text-white', isActive);
+                btn.classList.toggle('text-textGray', !isActive);
+            });
+            loadRealChartData(state.selectedPair, tf);
+        }
+
+        function toggleIndicator(indicator) {
+            state.indicators[indicator] = !state.indicators[indicator];
+            const btn = document.getElementById(`btn-${indicator}`);
+            if (btn) {
+                btn.classList.toggle('active', state.indicators[indicator]);
+                btn.classList.toggle('bg-primary', state.indicators[indicator]);
+                btn.classList.toggle('text-black', state.indicators[indicator]);
+            }
+            showToast(`${indicator.toUpperCase()} ${state.indicators[indicator] ? 'enabled' : 'disabled'}`);
+        }
+
+        // Trade Type Switching
+        function switchTradeType(type) {
+            state.tradeType = type;
+            document.querySelectorAll('.trading-tab').forEach(tab => { 
+                tab.classList.toggle('active', tab.dataset.type === type); 
+            });
+            
+            // Hide all content
+            document.getElementById('spot-content').classList.add('hidden');
+            document.getElementById('margin-content').classList.add('hidden');
+            document.getElementById('futures-content').classList.add('hidden');
+            
+            // Show selected content
+            document.getElementById(`${type}-content`).classList.remove('hidden');
+            
+            // Update available balance
+            const data = state.userData || {}; 
+            let balance = 0;
+            switch(type) { 
+                case 'spot': balance = data.spotBalance || 0; break; 
+                case 'margin': balance = data.marginBalance || 0; break; 
+                case 'futures': balance = data.futuresBalance || 0; break; 
+            }
+            document.getElementById('spot-available').textContent = balance.toFixed(2) + ' USDT';
+        }
+
+        function setOrderSide(side) {
+            state.orderSide = side;
+            const buyBtn = document.getElementById('spot-btn-buy'), sellBtn = document.getElementById('spot-btn-sell'), placeBtn = document.getElementById('spot-place-order');
+            const symbol = state.selectedPair.replace('USDT', '');
+            if (side === 'buy') {
+                buyBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-primary text-black';
+                sellBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-surfaceLight text-danger border border-danger';
+                placeBtn.className = 'quick-trade-btn buy w-full';
+                placeBtn.innerHTML = `<i class="fas fa-shopping-cart"></i> Buy ${symbol}`;
+            } else {
+                buyBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-surfaceLight text-primary border border-primary';
+                sellBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-danger text-white';
+                placeBtn.className = 'quick-trade-btn sell w-full';
+                placeBtn.innerHTML = `<i class="fas fa-tag"></i> Sell ${symbol}`;
+            }
+        }
+
+        function setAmount(percent) { 
+            const balance = parseFloat(document.getElementById('spot-available').textContent) || 0; 
+            document.getElementById('spot-order-amount').value = (balance * percent / 100).toFixed(4); 
+        }
+
+        async function placeOrder() {
+            const price = parseFloat(document.getElementById('spot-order-price').value);
+            const amount = parseFloat(document.getElementById('spot-order-amount').value);
+            if (!price || !amount) { showToast('Please enter price and amount', 'error'); return; }
+            
+            const btn = document.getElementById('spot-place-order');
+            btn.classList.add('btn-loading');
+            btn.innerHTML = '';
+            
+            try {
+                await db.collection('orders').add({
+                    uid: state.user.uid, pair: state.selectedPair, type: state.tradeType, side: state.orderSide,
+                    price, amount, status: 'open', timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showToast('Order placed successfully!');
+                document.getElementById('spot-order-price').value = '';
+                document.getElementById('spot-order-amount').value = '';
+            } catch (error) { 
+                showToast(error.message, 'error'); 
+            } finally {
+                btn.classList.remove('btn-loading');
+                setOrderSide(state.orderSide);
+            }
+        }
+
+        // Margin Trading Functions
+        function setMarginSide(side) {
+            state.marginSide = side;
+            const buyBtn = document.getElementById('margin-btn-buy'), sellBtn = document.getElementById('margin-btn-sell'), placeBtn = document.getElementById('margin-place-order');
+            if (side === 'buy') {
+                buyBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-primary text-black';
+                sellBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-surfaceLight text-danger border border-danger';
+                placeBtn.className = 'quick-trade-btn buy w-full';
+                placeBtn.innerHTML = `<i class="fas fa-chart-line"></i> Open Long Position`;
+            } else {
+                buyBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-surfaceLight text-primary border border-primary';
+                sellBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-danger text-white';
+                placeBtn.className = 'quick-trade-btn sell w-full';
+                placeBtn.innerHTML = `<i class="fas fa-chart-line"></i> Open Short Position`;
+            }
+        }
+
+        function updateMarginLeverage(val) {
+            state.marginLeverage = val;
+            document.getElementById('margin-leverage-display').textContent = val + 'x';
+            updateMarginRequired();
+        }
+
+        function updateMarginRequired() {
+            const amount = parseFloat(document.getElementById('margin-order-amount').value) || 0;
+            const price = parseFloat(document.getElementById('margin-order-price').value) || 0;
+            const total = amount * price;
+            const required = total / state.marginLeverage;
+            document.getElementById('margin-required').textContent = required.toFixed(2) + ' USDT';
+        }
+
+        async function placeMarginOrder() {
+            const price = parseFloat(document.getElementById('margin-order-price').value);
+            const amount = parseFloat(document.getElementById('margin-order-amount').value);
+            if (!price || !amount) { showToast('Please enter price and amount', 'error'); return; }
+            
+            const marginRequired = (price * amount) / state.marginLeverage;
+            const marginBalance = state.userData.marginBalance || 0;
+            
+            if (marginRequired > marginBalance) {
+                showToast('Insufficient margin balance', 'error');
+                return;
+            }
+            
+            try {
+                await db.collection('marginPositions').add({
+                    uid: state.user.uid, pair: state.selectedPair, side: state.marginSide,
+                    price, amount, leverage: state.marginLeverage, margin: marginRequired,
+                    status: 'open', timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                await db.collection('users').doc(state.user.uid).update({
+                    marginBalance: firebase.firestore.FieldValue.increment(-marginRequired)
+                });
+                showToast('Margin position opened!');
+                loadUserPositions();
+            } catch (error) { showToast(error.message, 'error'); }
+        }
+
+        // Futures Trading Functions
+        function setFuturesSide(side) {
+            state.futuresSide = side;
+            const buyBtn = document.getElementById('futures-btn-buy'), sellBtn = document.getElementById('futures-btn-sell'), placeBtn = document.getElementById('futures-place-order');
+            if (side === 'buy') {
+                buyBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-primary text-black';
+                sellBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-surfaceLight text-danger border border-danger';
+                placeBtn.className = 'quick-trade-btn buy w-full';
+                placeBtn.innerHTML = `<i class="fas fa-rocket"></i> Open Long`;
+            } else {
+                buyBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-surfaceLight text-primary border border-primary';
+                sellBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-danger text-white';
+                placeBtn.className = 'quick-trade-btn sell w-full';
+                placeBtn.innerHTML = `<i class="fas fa-rocket"></i> Open Short`;
+            }
+        }
+
+        function updateFuturesLeverage(val) {
+            state.futuresLeverage = val;
+            document.getElementById('futures-leverage-display').textContent = val + 'x';
+            updateFuturesMargin();
+        }
+
+        function setFuturesLeverage(val) {
+            document.getElementById('futures-leverage').value = val;
+            updateFuturesLeverage(val);
+        }
+
+        function updateFuturesMargin() {
+            const amount = parseFloat(document.getElementById('futures-order-amount').value) || 0;
+            const price = parseFloat(document.getElementById('futures-order-price').value) || 0;
+            const total = amount * price;
+            const margin = total / state.futuresLeverage;
+            document.getElementById('futures-margin').textContent = margin.toFixed(2) + ' USDT';
+            
+            // Calculate liquidation price (simplified)
+            const entryPrice = price || parseFloat(document.getElementById('trade-price').textContent.replace('$', '').replace(',', '')) || 0;
+            const liqPrice = state.futuresSide === 'buy' 
+                ? entryPrice * (1 - 0.9 / state.futuresLeverage)
+                : entryPrice * (1 + 0.9 / state.futuresLeverage);
+            document.getElementById('futures-liq-price').textContent = '$' + liqPrice.toFixed(2);
+        }
+
+        async function placeFuturesOrder() {
+            const price = parseFloat(document.getElementById('futures-order-price').value);
+            const amount = parseFloat(document.getElementById('futures-order-amount').value);
+            if (!price || !amount) { showToast('Please enter price and amount', 'error'); return; }
+            
+            const margin = (price * amount) / state.futuresLeverage;
+            const futuresBalance = state.userData.futuresBalance || 0;
+            
+            if (margin > futuresBalance) {
+                showToast('Insufficient futures balance', 'error');
+                return;
+            }
+            
+            try {
+                await db.collection('futuresPositions').add({
+                    uid: state.user.uid, pair: state.selectedPair, side: state.futuresSide,
+                    price, amount, leverage: state.futuresLeverage, margin,
+                    status: 'open', timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                await db.collection('users').doc(state.user.uid).update({
+                    futuresBalance: firebase.firestore.FieldValue.increment(-margin)
+                });
+                showToast('Futures position opened!');
+                loadUserPositions();
+            } catch (error) { showToast(error.message, 'error'); }
+        }
+
+        async function loadUserPositions() {
+            // Load margin positions
+            const marginSnapshot = await db.collection('marginPositions').where('uid', '==', state.user.uid).where('status', '==', 'open').get();
+            const marginPositions = marginSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            const marginContainer = document.getElementById('margin-positions-list');
+            if (marginPositions.length === 0) {
+                marginContainer.innerHTML = '<p class="text-textGray text-center py-8">No open margin positions</p>';
+            } else {
+                marginContainer.innerHTML = marginPositions.map(pos => `
+                    <div class="position-card">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold">${pos.pair}</span>
+                            <span class="px-2 py-1 rounded text-xs font-bold ${pos.side === 'buy' ? 'bg-primary/20 text-primary' : 'bg-danger/20 text-danger'}">${pos.side === 'buy' ? 'LONG' : 'SHORT'} ${pos.leverage}x</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div><span class="text-textGray">Entry:</span> <span class="font-mono">$${pos.price}</span></div>
+                            <div><span class="text-textGray">Size:</span> <span class="font-mono">${pos.amount}</span></div>
+                            <div><span class="text-textGray">Margin:</span> <span class="font-mono">$${pos.margin?.toFixed(2)}</span></div>
+                            <div><span class="text-textGray">PnL:</span> <span class="font-mono text-primary">+0.00</span></div>
+                        </div>
+                        <button onclick="closePosition('margin', '${pos.id}')" class="w-full mt-3 py-2 bg-danger/20 text-danger rounded-lg text-sm font-bold hover:bg-danger/30 transition-all">Close Position</button>
+                    </div>
+                `).join('');
+            }
+            
+            // Load futures positions
+            const futuresSnapshot = await db.collection('futuresPositions').where('uid', '==', state.user.uid).where('status', '==', 'open').get();
+            const futuresPositions = futuresSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            const futuresContainer = document.getElementById('futures-positions-list');
+            if (futuresPositions.length === 0) {
+                futuresContainer.innerHTML = '<p class="text-textGray text-center py-8">No open futures positions</p>';
+            } else {
+                futuresContainer.innerHTML = futuresPositions.map(pos => `
+                    <div class="position-card">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold">${pos.pair}</span>
+                            <span class="px-2 py-1 rounded text-xs font-bold ${pos.side === 'buy' ? 'bg-primary/20 text-primary' : 'bg-danger/20 text-danger'}">${pos.side === 'buy' ? 'LONG' : 'SHORT'} ${pos.leverage}x</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div><span class="text-textGray">Entry:</span> <span class="font-mono">$${pos.price}</span></div>
+                            <div><span class="text-textGray">Contracts:</span> <span class="font-mono">${pos.amount}</span></div>
+                            <div><span class="text-textGray">Margin:</span> <span class="font-mono">$${pos.margin?.toFixed(2)}</span></div>
+                            <div><span class="text-textGray">PnL:</span> <span class="font-mono text-primary">+0.00</span></div>
+                        </div>
+                        <button onclick="closePosition('futures', '${pos.id}')" class="w-full mt-3 py-2 bg-danger/20 text-danger rounded-lg text-sm font-bold hover:bg-danger/30 transition-all">Close Position</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function closePosition(type, id) {
+            try {
+                await db.collection(`${type}Positions`).doc(id).update({
+                    status: 'closed', closedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showToast('Position closed!');
+                loadUserPositions();
+            } catch (error) { showToast(error.message, 'error'); }
+        }
+
+        function generateOrderBook() {
+            // This is for display only now
+        }
+
+        function generateFuturesOrderBook() {
+            const sellContainer = document.getElementById('futures-order-book-sell');
+            const buyContainer = document.getElementById('futures-order-book-buy');
+            let basePrice = 45000, sellHTML = '', buyHTML = '';
+            for (let i = 5; i > 0; i--) {
+                const price = basePrice + (i * 10), amount = (Math.random() * 2).toFixed(4), total = (price * amount).toFixed(2);
+                sellHTML += `<div class="flex justify-between text-danger py-0.5"><span>${price.toFixed(2)}</span><span>${amount}</span><span>${total}</span></div>`;
+            }
+            sellContainer.innerHTML = sellHTML;
+            for (let i = 1; i <= 5; i++) {
+                const price = basePrice - (i * 10), amount = (Math.random() * 2).toFixed(4), total = (price * amount).toFixed(2);
+                buyHTML += `<div class="flex justify-between text-primary py-0.5"><span>${price.toFixed(2)}</span><span>${amount}</span><span>${total}</span></div>`;
+            }
+            buyContainer.innerHTML = buyHTML;
+        }
+
+        function openTrading(coinId) { 
+            state.selectedPair = coinId; 
+            navigateTo('trade'); 
+            document.getElementById('trade-pair-select').value = coinId;
+            changeTradingPair();
+        }
+
+        // Wallet Functions
+        function switchWalletTab(tab) {
+            document.querySelectorAll('.wallet-tab').forEach(t => {
+                const isActive = t.textContent.toLowerCase().includes(tab);
+                t.classList.toggle('border-primary', isActive); t.classList.toggle('text-white', isActive);
+                t.classList.toggle('border-transparent', !isActive); t.classList.toggle('text-textGray', !isActive);
+            });
+            document.querySelectorAll('.wallet-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`wallet-${tab}`).classList.remove('hidden');
+            if (tab === 'nft') loadWalletNFTs();
+            if (tab === 'invest') loadWalletInvestments();
+        }
+
+        // Transfer Functions
+        function updateTransferTo() {
+            const from = document.getElementById('transfer-from').value;
+            const toSelect = document.getElementById('transfer-to');
+            toSelect.innerHTML = '';
+            ['spot', 'futures', 'margin', 'nft', 'invest'].filter(x => x !== from).forEach(opt => {
+                toSelect.innerHTML += `<option value="${opt}">${opt.charAt(0).toUpperCase() + opt.slice(1)} Account</option>`;
+            });
+            updateTransferAvailable();
+        }
+
+        function updateTransferAvailable() {
+            const from = document.getElementById('transfer-from').value;
+            const balance = state.userData ? (state.userData[`${from}Balance`] || 0) : 0;
+            document.getElementById('transfer-available').textContent = balance.toFixed(2);
+        }
+
+        function swapTransferAccounts() {
+            const from = document.getElementById('transfer-from'), to = document.getElementById('transfer-to');
+            const temp = from.value; from.value = to.value; to.value = temp; 
+            updateTransferTo();
+        }
+
+        async function executeTransfer() {
+            const from = document.getElementById('transfer-from').value, to = document.getElementById('transfer-to').value;
+            const amount = parseFloat(document.getElementById('transfer-amount').value);
+            if (!amount || amount <= 0) { showToast('Enter valid amount', 'error'); return; }
+            const balances = { spot: state.userData.spotBalance || 0, futures: state.userData.futuresBalance || 0, margin: state.userData.marginBalance || 0, nft: state.userData.nftBalance || 0, invest: state.userData.investBalance || 0 };
+            if (balances[from] < amount) { showToast('Insufficient balance', 'error'); return; }
+            try {
+                const updates = {};
+                updates[`${from}Balance`] = firebase.firestore.FieldValue.increment(-amount);
+                updates[`${to}Balance`] = firebase.firestore.FieldValue.increment(amount);
+                await db.collection('users').doc(state.user.uid).update(updates);
+                await db.collection('transfers').add({ uid: state.user.uid, from, to, amount, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                showToast('Transfer successful!'); 
+                document.getElementById('transfer-amount').value = '';
+            } catch (error) { showToast(error.message, 'error'); }
+        }
+
+        // Invest Functions
+        function filterInvestByRisk(risk) {
+            state.investRiskFilter = risk;
+            document.querySelectorAll('.risk-tab').forEach(tab => {
+                tab.classList.remove('active', 'low', 'medium', 'high');
+                if (tab.dataset.risk === risk) tab.classList.add('active', risk);
+                else tab.classList.add('bg-surfaceLight', 'text-textGray');
+            });
+            renderInvestingPlans();
+        }
+
+        function renderInvestingPlans() {
+            const container = document.getElementById('investing-list');
+            const filtered = state.investPlans.filter(plan => plan.risk === state.investRiskFilter);
+            container.innerHTML = filtered.map(plan => `
+                <div class="invest-card-premium" onclick="openInvestModal(${plan.id})">
+                    <div class="flex gap-4 p-4">
+                        <img src="${plan.image}" class="w-28 h-28 rounded-xl object-cover">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <h3 class="font-bold text-lg">${plan.name}</h3>
+                                <span class="px-2 py-0.5 rounded-lg text-xs font-bold ${plan.risk === 'low' ? 'bg-primary text-black' : plan.risk === 'medium' ? 'bg-secondary text-black' : 'bg-danger text-white'}">${plan.risk.toUpperCase()}</span>
+                            </div>
+                            <p class="text-textGray text-sm mb-3 line-clamp-2">${plan.description}</p>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-primary font-bold text-2xl">${plan.return}%</p>
+                                    <p class="text-textGray text-xs">Monthly Return</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-textGray text-xs">Min: ₹${plan.min.toLocaleString()}</p>
+                                    <p class="text-textGray text-xs">${plan.duration} Days</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-4 pb-4">
+                        <button class="w-full py-3 bg-primary text-black font-bold rounded-xl hover:bg-primary/80 transition-all">
+                            <i class="fas fa-chart-line mr-2"></i>Invest Now
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openInvestModal(planId) {
+            const plan = state.investPlans.find(p => p.id === planId);
+            if (!plan) return;
+            state.selectedInvestPlan = plan;
+            document.getElementById('invest-details').innerHTML = `
+                <img src="${plan.image}" class="w-full h-36 rounded-xl object-cover mb-3">
+                <h3 class="font-bold text-xl">${plan.name}</h3>
+                <p class="text-textGray text-sm mt-1">${plan.description}</p>
+                <div class="flex justify-between mt-3 bg-surface p-3 rounded-lg">
+                    <span class="text-primary font-bold text-lg">${plan.return}% Returns</span>
+                    <span class="text-textGray">${plan.duration} Days</span>
+                </div>
+            `;
+            document.getElementById('invest-min').textContent = `Min: ₹${plan.min.toLocaleString()}`;
+            document.getElementById('invest-amount').value = ''; 
+            document.getElementById('invest-returns').textContent = '₹0.00';
+            document.getElementById('invest-modal').style.display = 'flex';
+        }
+
+        function closeInvestModal() { document.getElementById('invest-modal').style.display = 'none'; state.selectedInvestPlan = null; }
+
+        document.getElementById('invest-amount')?.addEventListener('input', function() {
+            const amount = parseFloat(this.value) || 0;
+            if (state.selectedInvestPlan && amount > 0) {
+                const returns = amount * (state.selectedInvestPlan.return / 100);
+                document.getElementById('invest-returns').textContent = '₹' + returns.toFixed(2);
+            }
+        });
+
+        async function submitInvestment() {
+            const amount = parseFloat(document.getElementById('invest-amount').value);
+            const duration = parseInt(document.getElementById('invest-duration').value);
+            if (!amount || amount < state.selectedInvestPlan.min) { showToast(`Minimum investment is ₹${state.selectedInvestPlan.min}`, 'error'); return; }
+            const investBalance = state.userData.investBalance || 0;
+            if (amount > investBalance) { showToast('Insufficient invest balance. Please deposit first.', 'error'); return; }
+            try {
+                await db.collection('investments').add({
+                    uid: state.user.uid, userName: state.userData.name, planId: state.selectedInvestPlan.id, planName: state.selectedInvestPlan.name,
+                    amount: amount, duration: duration, return: state.selectedInvestPlan.return,
+                    expectedReturns: amount * (state.selectedInvestPlan.return / 100), status: 'active',
+                    startDate: firebase.firestore.FieldValue.serverTimestamp(),
+                    endDate: new Date(Date.now() + duration * 24 * 60 * 60 * 1000)
+                });
+                await db.collection('users').doc(state.user.uid).update({ investBalance: firebase.firestore.FieldValue.increment(-amount) });
+                showToast('Investment successful!'); 
+                closeInvestModal();
+                loadUserInvestments();
+            } catch (error) { showToast(error.message, 'error'); }
+        }
+
+        // NFT Functions
+        function switchNFTTab(tab) {
+            state.nftTab = tab;
+            document.querySelectorAll('.nft-tab').forEach(t => { t.classList.toggle('active', t.dataset.tab === tab); });
+            renderNFTs();
+        }
+
+        function renderNFTs() {
+            const container = document.getElementById('nft-list');
+            if (state.nftTab === 'buy') {
+                container.innerHTML = state.allNFTs.map(nft => `
+                    <div class="nft-card-premium" onclick="buyNFT(${nft.id})">
+                        <div class="nft-image-container">
+                            <img src="${nft.image}" class="feature-image">
+                        </div>
+                        <div class="p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <h3 class="font-bold text-sm">${nft.name}</h3>
+                                <span class="px-2 py-0.5 rounded-lg text-xs font-bold ${nft.rarity === 'legendary' ? 'bg-purple-500' : nft.rarity === 'epic' ? 'bg-orange-500' : 'bg-blue-500'} text-white">${nft.rarity}</span>
+                            </div>
+                            <p class="text-textGray text-xs mb-3 line-clamp-2">${nft.description}</p>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-primary font-bold text-lg">₹${nft.price.toLocaleString()}</span>
+                            </div>
+                            <div class="flex justify-between text-xs text-textGray bg-surface p-2 rounded-lg">
+                                <span><i class="fas fa-clock mr-1"></i>${nft.holdingDays}d</span>
+                                <span class="text-primary"><i class="fas fa-chart-line mr-1"></i>+₹${nft.dailyProfit}/day</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                if (state.userNFTs.length === 0) {
+                    container.innerHTML = `<div class="col-span-2 text-center py-12"><i class="fas fa-image text-5xl text-textGray mb-4"></i><p class="text-textGray">You don't own any NFTs yet</p><button onclick="switchNFTTab('buy')" class="mt-4 px-6 py-2 bg-primary text-black font-bold rounded-lg">Browse NFTs</button></div>`;
+                } else {
+                    container.innerHTML = state.userNFTs.map(nft => `
+                        <div class="nft-card-premium">
+                            <div class="nft-image-container">
+                                <img src="${nft.image}" class="feature-image">
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-bold text-sm mb-1">${nft.name}</h3>
+                                <p class="text-textGray text-xs mb-3">Purchased: ${nft.purchaseDate?.toDate().toLocaleDateString() || 'N/A'}</p>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-primary font-bold">₹${nft.price.toLocaleString()}</span>
+                                    <button onclick="sellNFT('${nft.id}')" class="px-4 py-2 bg-danger/20 text-danger rounded-lg text-xs font-bold hover:bg-danger/30 transition-all">Sell</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+        }
+
+        async function loadUserNFTs() {
+            try {
+                const snapshot = await db.collection('userNFTs').where('uid', '==', state.user.uid).where('status', '==', 'owned').get();
+                state.userNFTs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const nftBalance = state.userNFTs.reduce((sum, nft) => sum + (nft.price || 0), 0);
+                await db.collection('users').doc(state.user.uid).update({ nftBalance });
+                if (state.nftTab === 'sell') renderNFTs();
+            } catch (error) { console.error('Error loading user NFTs:', error); }
+        }
+
+        function buyNFT(nftId) {
+            const nft = state.allNFTs.find(n => n.id === nftId);
+            if (!nft) return;
+            state.selectedNFT = nft;
+            document.getElementById('deposit-amount-input').value = nft.price;
+            updateDepositAmount();
+            openPay();
+        }
+
+        async function sellNFT(nftId) {
+            if (!confirm('Are you sure you want to sell this NFT?')) return;
+            try {
+                const nft = state.userNFTs.find(n => n.id === nftId);
+                if (!nft) return;
+                const salePrice = nft.price * 0.8;
+                await db.collection('users').doc(state.user.uid).update({ spotBalance: firebase.firestore.FieldValue.increment(salePrice) });
+                await db.collection('userNFTs').doc(nftId).update({ status: 'sold', soldAt: firebase.firestore.FieldValue.serverTimestamp(), salePrice: salePrice });
+                showToast('NFT sold successfully!'); 
+                loadUserNFTs();
+            } catch (error) { showToast(error.message, 'error'); }
+        }
+
+        async function loadUserInvestments() {
+            try {
+                const snapshot = await db.collection('investments').where('uid', '==', state.user.uid).where('status', '==', 'active').get();
+                state.userInvestments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } catch (error) { console.error('Error loading investments:', error); }
+        }
+
+        function loadWalletNFTs() {
+            const container = document.getElementById('wallet-nft-list');
+            if (state.userNFTs.length === 0) { container.innerHTML = '<p class="text-textGray text-center col-span-2 py-8">No NFTs in your wallet</p>'; return; }
+            container.innerHTML = state.userNFTs.map(nft => `
+                <div class="glass rounded-xl p-3 hover:border-primary/30 transition-all">
+                    <img src="${nft.image}" class="w-full h-32 rounded-lg object-cover mb-2">
+                    <h4 class="font-bold text-sm">${nft.name}</h4>
+                    <p class="text-primary text-sm">₹${nft.price.toLocaleString()}</p>
+                </div>
+            `).join('');
+        }
+
+        function loadWalletInvestments() {
+            const container = document.getElementById('wallet-invest-list');
+            if (state.userInvestments.length === 0) { container.innerHTML = '<p class="text-textGray text-center py-8">No active investments</p>'; return; }
+            container.innerHTML = state.userInvestments.map(inv => {
+                const startDate = inv.startDate?.toDate() || new Date();
+                const daysElapsed = Math.floor((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+                const dailyProfit = (inv.amount * (inv.return / 100)) / 30;
+                const currentProfit = dailyProfit * daysElapsed;
+                return `
+                    <div class="glass rounded-xl p-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-bold">${inv.planName}</h4>
+                                <p class="text-textGray text-xs">Started: ${startDate.toLocaleDateString()}</p>
+                            </div>
+                            <span class="px-3 py-1 bg-primary/20 text-primary text-xs rounded-full font-bold">Active</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div class="bg-surface p-2 rounded-lg">
+                                <p class="text-textGray text-xs">Invested</p>
+                                <p class="font-mono font-bold">₹${inv.amount.toLocaleString()}</p>
+                            </div>
+                            <div class="bg-surface p-2 rounded-lg">
+                                <p class="text-textGray text-xs">Daily Profit</p>
+                                <p class="font-mono font-bold text-primary">+₹${dailyProfit.toFixed(2)}</p>
+                            </div>
+                        </div>
+                        <div class="bg-surface p-2 rounded-lg mb-2">
+                            <p class="text-textGray text-xs">Current Profit</p>
+                            <p class="font-mono font-bold text-primary text-lg">+₹${currentProfit.toFixed(2)}</p>
+                        </div>
+                        <div class="bg-surfaceLight rounded-full h-2">
+                            <div class="bg-primary h-2 rounded-full transition-all" style="width: ${Math.min((daysElapsed / inv.duration) * 100, 100)}%"></div>
+                        </div>
+                        <p class="text-textGray text-xs mt-2 text-center">${daysElapsed} / ${inv.duration} days</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Payment Functions
+        function openPay() {
+            state.checkCount = 0;
+            document.getElementById('pay-modal').style.display = 'flex';
+            document.getElementById('txid').value = '';
+            document.getElementById('crypto-options').classList.remove('open');
+            document.getElementById('crypto-arrow').style.transform = 'rotate(0deg)';
+            const btn = document.getElementById('v-btn');
+            btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>VERIFY PAYMENT';
+            btn.classList.remove('processing', 'success', 'error');
+            updateDepositAmount();
+        }
+
+        function updateDepositAmount() {
+            const amount = parseFloat(document.getElementById('deposit-amount-input').value) || 0;
+            state.currentPaymentAmount = amount;
+            document.getElementById('p-amt').innerText = '₹' + amount.toLocaleString();
+        }
+
+        function closePay() { document.getElementById('pay-modal').style.display = 'none'; }
+
+        function toggleCryptoOptions() {
+            const options = document.getElementById('crypto-options');
+            const arrow = document.getElementById('crypto-arrow');
+            options.classList.toggle('open');
+            arrow.style.transform = options.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+
+        function copyAddress(elementId) {
+            navigator.clipboard.writeText(document.getElementById(elementId).textContent);
+            showToast('Address copied!');
+        }
+
+        function openPaymentApp(app) {
+            const amount = state.currentPaymentAmount;
+            const upiId = state.adminConfig.upi || 'admin@upi';
+            const upiLink = `upi://pay?pa=${upiId}&pn=TrendingStore&am=${amount}&cu=INR`;
+            
+            // Try to open the app
+            window.location.href = upiLink;
+            
+            // Also open specific apps if available
+            setTimeout(() => {
+                if (app === 'gpay') {
+                    window.open(`https://pay.google.com/gp/w/u/0/h/send?amount=${amount}`, '_blank');
+                }
+            }, 500);
+        }
+
+        async function verifyLogic() {
+            const btn = document.getElementById('v-btn');
+            const txid = document.getElementById('txid').value;
+            const amount = parseFloat(document.getElementById('deposit-amount-input').value) || 0;
+            
+            if (!amount || amount < 500) { showToast('Minimum deposit is ₹500', 'error'); return; }
+            if (!txid) { showToast('Please enter Transaction ID / UTR', 'error'); return; }
+            
+            btn.classList.add('processing');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>PROCESSING...';
+            
+            try {
+                await db.collection('payments').add({
+                    uid: state.user.uid, userName: state.userData.name, userEmail: state.userData.email,
+                    amount: amount, txid: txid, status: 'pending', type: 'deposit',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                setTimeout(() => { 
+                    btn.classList.remove('processing');
+                    btn.classList.add('success');
+                    btn.innerHTML = '<i class="fas fa-check mr-2"></i>SUBMITTED FOR REVIEW'; 
+                    showToast('Payment submitted for verification', 'success'); 
+                }, 1500);
+            } catch (error) { 
+                btn.classList.remove('processing');
+                btn.classList.add('error');
+                btn.innerHTML = '<i class="fas fa-times mr-2"></i>ERROR'; 
+                showToast(error.message, 'error'); 
+            }
+        }
+
+        // Withdrawal Functions
+        function openModal(type) { 
+            document.getElementById(`modal-${type}`).style.display = 'flex'; 
+            if (type === 'withdraw') updateWithdrawBalance();
+        }
+        
+        function closeModal(type) { document.getElementById(`modal-${type}`).style.display = 'none'; }
+
+        function updateWithdrawBalance() {
+            const account = document.getElementById('withdraw-account').value;
+            const balance = state.userData ? (state.userData[`${account}Balance`] || 0) : 0;
+            document.getElementById('withdraw-available').textContent = formatCurrency(balance);
+        }
+
+        async function submitWithdraw() {
+            const amount = parseFloat(document.getElementById('withdraw-amount').value);
+            const account = document.getElementById('withdraw-account').value;
+            const upi = document.getElementById('withdraw-upi').value;
+            const bank = document.getElementById('withdraw-bank').value;
+            
+            if (!amount || amount < 500) { showToast('Minimum withdrawal is ₹500', 'error'); return; }
+            if (!upi) { showToast('Please enter UPI ID', 'error'); return; }
+            
+            const balance = state.userData[`${account}Balance`] || 0;
+            if (amount > balance) { showToast('Insufficient balance', 'error'); return; }
+            
+            const btn = document.getElementById('withdraw-btn');
+            btn.classList.add('btn-loading');
+            btn.innerHTML = '';
+            
+            try {
+                await db.collection('withdrawals').add({
+                    uid: state.user.uid, userName: state.userData.name, amount, account, upi, bank,
+                    status: 'pending', timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                await db.collection('users').doc(state.user.uid).update({ 
+                    [`${account}Balance`]: firebase.firestore.FieldValue.increment(-amount) 
+                });
+                showToast('Withdrawal request submitted!'); 
+                closeModal('withdraw'); 
+                document.getElementById('withdraw-amount').value = '';
+            } catch (error) { 
+                showToast(error.message, 'error'); 
+            } finally {
+                btn.classList.remove('btn-loading');
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Request Withdrawal';
+            }
+        }
+
+        // History Functions
+        function switchHistoryTab(type) {
+            document.querySelectorAll('.history-tab').forEach(t => {
+                const isActive = t.textContent.toLowerCase().includes(type) || (type === 'all' && t.textContent === 'All');
+                t.classList.toggle('border-primary', isActive); 
+                t.classList.toggle('text-white', isActive);
+                t.classList.toggle('border-transparent', !isActive); 
+                t.classList.toggle('text-textGray', !isActive);
+            });
+            loadHistory(type);
+        }
+
+        async function loadHistory(type) {
+            const container = document.getElementById('history-content');
+            container.innerHTML = '<div class="text-center py-8"><div class="loader mx-auto"></div></div>';
+            try {
+                let deposits = [], withdrawals = [], transfers = [];
+                
+                if (type === 'all' || type === 'deposit' || type === 'pending') {
+                    const depositSnap = await db.collection('payments').where('uid', '==', state.user.uid).orderBy('timestamp', 'desc').limit(20).get();
+                    deposits = depositSnap.docs.map(d => ({ ...d.data(), id: d.id, type: 'deposit' }));
+                }
+                if (type === 'all' || type === 'withdraw' || type === 'pending') {
+                    const withdrawSnap = await db.collection('withdrawals').where('uid', '==', state.user.uid).orderBy('timestamp', 'desc').limit(20).get();
+                    withdrawals = withdrawSnap.docs.map(d => ({ ...d.data(), id: d.id, type: 'withdraw' }));
+                }
+                if (type === 'all' || type === 'transfer') {
+                    const transferSnap = await db.collection('transfers').where('uid', '==', state.user.uid).orderBy('timestamp', 'desc').limit(20).get();
+                    transfers = transferSnap.docs.map(d => ({ ...d.data(), id: d.id, type: 'transfer' }));
+                }
+                
+                let allTransactions = [...deposits, ...withdrawals, ...transfers];
+                
+                if (type === 'pending') {
+                    allTransactions = allTransactions.filter(t => t.status === 'pending');
+                }
+                
+                allTransactions.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                
+                if (allTransactions.length === 0) { 
+                    container.innerHTML = '<div class="text-center py-12"><i class="fas fa-inbox text-4xl text-textGray mb-3"></i><p class="text-textGray">No records found</p></div>'; 
+                    return; 
+                }
+                
+                container.innerHTML = allTransactions.map(data => {
+                    const date = data.timestamp?.toDate().toLocaleString() || 'Pending';
+                    const status = data.status || 'completed';
+                    const statusClass = status === 'approved' || status === 'completed' ? 'completed' : status === 'rejected' ? 'rejected' : 'pending';
+                    
+                    if (data.type === 'transfer') return `
+                        <div class="transaction-card">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-secondary/10 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-exchange-alt text-secondary"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold">Transfer</p>
+                                        <p class="text-textGray text-xs">${data.from} → ${data.to}</p>
+                                    </div>
+                                </div>
+                                <span class="font-mono font-bold text-secondary">₹${data.amount}</span>
+                            </div>
+                            <p class="text-textGray text-xs mt-2">${date}</p>
+                        </div>
+                    `;
+                    
+                    return `
+                        <div class="transaction-card">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 ${data.type === 'deposit' ? 'bg-primary/10' : 'bg-danger/10'} rounded-full flex items-center justify-center">
+                                        <i class="fas ${data.type === 'deposit' ? 'fa-arrow-down text-primary' : 'fa-arrow-up text-danger'}"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold capitalize">${data.type}</p>
+                                        <p class="text-textGray text-xs">${date}</p>
+                                        ${data.txid ? `<p class="text-textGray text-xs">ID: ${data.txid}</p>` : ''}
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="font-mono font-bold ${data.type === 'deposit' ? 'text-primary' : 'text-danger'}">${data.type === 'deposit' ? '+' : '-'}₹${data.amount}</span>
+                                    <span class="status-badge ${statusClass} block mt-1">${status}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) { 
+                container.innerHTML = '<p class="text-danger text-center py-8">Error loading history</p>'; 
+            }
+        }
+
+        // Avatar Upload with Cloudinary
+        async function uploadToCloudinary(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            
+            try {
+                const response = await fetch(CLOUDINARY_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                return data.secure_url;
+            } catch (error) {
+                console.error('Cloudinary upload failed:', error);
+                return null;
+            }
+        }
+
+        async function updateAvatar(input) {
+            const file = input.files[0]; 
+            if (!file) return;
+            
+            try {
+                // Upload to Cloudinary
+                const cloudinaryUrl = await uploadToCloudinary(file);
+                
+                // Also upload to Firebase Storage as backup
+                const ref = storage.ref(`avatars/${state.user.uid}`);
+                await ref.put(file);
+                const firebaseUrl = await ref.getDownloadURL();
+                
+                // Use Cloudinary URL primarily, fallback to Firebase
+                const finalUrl = cloudinaryUrl || firebaseUrl;
+                
+                // Save to localStorage for persistence
+                localStorage.setItem(`avatar_${state.user.uid}`, finalUrl);
+                
+                await db.collection('users').doc(state.user.uid).update({ avatar: finalUrl });
+                
+                // Update all avatar images
+                document.getElementById('menu-avatar').src = finalUrl;
+                document.getElementById('profile-avatar').src = finalUrl;
+                document.getElementById('wallet-avatar').src = finalUrl;
+                
+                showToast('Avatar updated!');
+            } catch (error) { 
+                showToast(error.message, 'error'); 
+            }
+        }
+        
+        async function updateMenuAvatar(input) { await updateAvatar(input); }
+        async function updateWalletAvatar(input) { await updateAvatar(input); }
+
+        // Load saved avatar on init
+        function loadSavedAvatar() {
+            const savedAvatar = localStorage.getItem(`avatar_${state.user?.uid}`);
+            if (savedAvatar) {
+                document.getElementById('menu-avatar').src = savedAvatar;
+                document.getElementById('profile-avatar').src = savedAvatar;
+                document.getElementById('wallet-avatar').src = savedAvatar;
+            }
+        }
+
+        function formatCurrency(amount) { 
+            return '₹' + (amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); 
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast' + (type === 'error' ? ' error' : '');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        window.onload = () => { 
+            setTimeout(() => { 
+                document.getElementById('loader').classList.add('hidden'); 
+                loadSavedAvatar();
+            }, 1000); 
+        };
+    </script>
+</body>
+</html>
