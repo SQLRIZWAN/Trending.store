@@ -1087,22 +1087,24 @@
 
     <script>
         // ==========================================
-        // 🔥 FIREBASE CONFIGURATION - UPDATE THIS WITH YOUR NEW CONFIG
-        // ==========================================
-        const firebaseConfig = {
-            apiKey: "YOUR_NEW_API_KEY",
-            authDomain: "your-new-project.firebaseapp.com",
-            projectId: "your-new-project",
-            storageBucket: "your-new-project.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef123456"
-        };
+// 🔥 FIREBASE CONFIGURATION - NEW CONFIG UPDATED
+// ==========================================
+const firebaseConfig = {
+    apiKey: "AIzaSyAozV8jcau0GuIKBPCMFAbChm75O9VE1Rs",
+    authDomain: "treding-store-2.firebaseapp.com",
+    databaseURL: "https://treding-store-2-default-rtdb.firebaseio.com",
+    projectId: "treding-store-2",
+    storageBucket: "treding-store-2.firebasestorage.app",
+    messagingSenderId: "2938541914",
+    appId: "1:2938541914:web:7fe53d76a34ec044c90563",
+    measurementId: "G-9YWCKFZKB1"
+};
         
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        const storage = firebase.storage();
+// Initialize Firebase (Compat version - for your HTML setup)
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
 
         // ==========================================
         // ☁️ CLOUDINARY CONFIGURATION
