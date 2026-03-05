@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Trending Store - Pro Trading</title>
+    
+    <meta name="description" content="Professional cryptocurrency trading platform with real-time TradingView charts, live position tracking, and atomic balance management.">
+    <meta name="theme-color" content="#0b0e11">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics-compat.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00c853',
+                        secondary: '#ffd600',
+                        danger: '#ff3d00',
+                        gold: '#ffd700',
+                        bgDeep: '#0b0e11',
+                        surface: '#151a21',
+                        surfaceLight: '#1e2329',
+                        border: '#2b3139',
+                        textGray: '#848e9c',
+                        trade: '#00c853',
+                        tradeRed: '#ff3d00'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #0b0e11; color: #eaecef; font-family: 'Inter', sans-serif; overflow-x: hidden; font-size: 14px; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #0b0e11; }
+        ::-webkit-scrollbar-thumb { background: #2b3139; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00c853; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        .btn-animated { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+        .btn-animated:active { transform: scale(0.95); }
+        
+        .glass { background: rgba(21, 26, 33, 0.95); backdrop-filter: blur(20px); border: 1px solid #2b3139; }
+        .side-menu { position: fixed; top: 0; right: -320px; width: 320px; height: 100vh; background: #151a21; border-left: 1px solid #2b3139; z-index: 1000; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; }
+        .side-menu.open { right: 0; }
+        .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 999; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .menu-overlay.open { opacity: 1; visibility: visible; }
+        
+        .input-trade { background: #0b0e11; border: 1px solid #2b3139; color: #eaecef; padding: 8px 12px; border-radius: 4px; width: 100%; font-family: 'JetBrains Mono', monospace; transition: all 0.2s; }
+        .input-trade:focus { outline: none; border-color: #00c853; }
+        
+        .mobile-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #151a21; border-top: 1px solid #2b3139; display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; }
+        .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #848e9c; font-size: 10px; transition: all 0.2s; padding: 4px 8px; border-radius: 8px; }
+        .mobile-nav-item.active { color: #00c853; }
+        
+        .market-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #2b3139; cursor: pointer; transition: background 0.2s; }
+        .market-item:hover { background: #1e2329; }
+        
+        .loader { width: 40px; height: 40px; border: 3px solid #2b3139; border-top-color: #00c853; border-radius: 50%; animation: spin 1s linear infinite; }
+        
+        .toast { position: fixed; top: 20px; right: 20px; background: #151a21; border: 1px solid #00c853; color: #00c853; padding: 12px 20px; border-radius: 8px; z-index: 10000; transform: translateX(400px); transition: transform 0.3s ease; }
+        .toast.show { transform: translateX(0); }
+        .toast.error { border-color: #ff3d00; color: #ff3d00; }
+        
+        #pay-modal, #withdraw-modal, #invest-modal, #forgot-password-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .pay-box { background: #151a21; padding: 25px; border: 1px solid #2b3139; border-radius: 16px; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
+        
+        .feature-card { background: linear-gradient(145deg, #151a21, #1e2329); border: 1px solid #2b3139; border-radius: 16px; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; }
+        .feature-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,200,83,0.2); }
+        
+        .position-card { background: #0b0e11; border: 1px solid #2b3139; border-radius: 8px; padding: 12px; margin-bottom: 8px; transition: all 0.3s; }
+        .position-card.profit { border-left: 3px solid #00c853; }
+        .position-card.loss { border-left: 3px solid #ff3d00; }
+        
+        .tab-active { color: #00c853 !important; font-weight: 700; position: relative; }
+        .tab-active::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 20px; height: 3px; background: #00c853; border-radius: 2px; }
+        
+        .long-gradient { background: linear-gradient(135deg, #00c853 0%, #00a844 100%); }
+        .short-gradient { background: linear-gradient(135deg, #ff4757 0%, #ff3838 100%); }
+        .buy-gradient { background: linear-gradient(135deg, #00c853 0%, #00a844 100%); }
+        .sell-gradient { background: linear-gradient(135deg, #ff4757 0%, #ff3838 100%); }
+        
+        .live-price { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+        .price-up { color: #00c853; }
+        .price-down { color: #ff3d00; }
+        
+        #tradingview-chart { width: 100%; height: 400px; }
+        
+        @media (max-width: 768px) { 
+            .desktop-only { display: none !important; } 
+            .main-content { padding-bottom: 80px; } 
+            #tradingview-chart { height: 300px; }
+        }
+        @media (min-width: 769px) { 
+            .mobile-only { display: none !important; } 
+        }
+        
+        .skeleton { background: linear-gradient(90deg, #1e2329 25%, #2b3139 50%, #1e2329 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; }
+        @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        
+        .p-btn { background: #1a1a1a; margin: 8px 0; padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 15px; color: white; text-decoration: none; border: 1px solid #333; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .p-btn:hover { background: #252525; border-color: #00c853; }
+        .p-btn img { width: 25px; height: 25px; border-radius: 5px; }
+        
+        .v-input { width: 100%; padding: 12px; background: #000; border: 1px solid #444; color: #00ff88; border-radius: 10px; margin: 10px 0; font-weight: bold; }
+        .v-btn { background: #00ff88; color: black; border: none; padding: 14px; width: 100%; border-radius: 10px; font-weight: 900; cursor: pointer; transition: all 0.3s; }
+        .v-btn:hover { background: #00cc6a; }
+        .v-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        .referral-code { background: linear-gradient(135deg, #1e2329, #151a21); border: 2px dashed #00c853; border-radius: 12px; padding: 16px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: bold; color: #00c853; letter-spacing: 2px; }
+        
+        .trading-tab { position: relative; transition: all 0.3s ease; }
+        .trading-tab.active { color: #00c853; font-weight: 600; }
+        .trading-tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: #00c853; }
+    </style>
+</head>
+<body>
+    <!-- Optimized Fast Loading Screen -->
+    <div id="loader" class="fixed inset-0 bg-bgDeep z-[10001] flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="loader mb-4"></div>
+        <h2 class="text-primary font-bold text-lg">Trending Store</h2>
+        <p class="text-textGray text-xs mt-2" id="loading-text">Initializing...</p>
+    </div>
+
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="fixed inset-0 bg-bgDeep z-[1000] flex items-center justify-center p-4 hidden">
+        <div class="w-full max-w-md glass rounded-2xl p-6 animate-fade-in">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-store text-2xl text-primary"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-white">Welcome</h1>
+                <p class="text-textGray text-sm mt-1">Professional Trading Platform</p>
+            </div>
+            
+            <div id="login-form" class="space-y-4">
+                <div>
+                    <label class="text-xs text-textGray uppercase font-semibold mb-2 block">Email</label>
+                    <input type="email" id="login-email" class="input-trade" placeholder="Enter your email">
+                </div>
+                <div>
+                    <label class="text-xs text-textGray uppercase font-semibold mb-2 block">Password</label>
+                    <input type="password" id="login-password" class="input-trade" placeholder="Enter password">
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="remember-me" class="w-4 h-4 accent-primary rounded">
+                        <label for="remember-me" class="text-sm text-textGray">Remember me</label>
+                    </div>
+                    <button onclick="showForgotPasswordModal()" class="text-sm text-primary hover:underline">Forgot Password?</button>
+                </div>
+                <button onclick="handleEmailLogin()" class="btn-animated w-full bg-primary text-black font-bold py-3 rounded-lg mt-6">Login</button>
+                <p class="text-center text-textGray text-sm mt-4">Don't have an account? <span onclick="toggleAuthMode('register')" class="text-primary cursor-pointer font-semibold">Register</span></p>
+            </div>
+            
+            <div id="register-form" class="space-y-4 hidden">
+                <div><label class="text-xs text-textGray uppercase font-semibold mb-2 block">Full Name <span class="text-danger">*</span></label><input type="text" id="reg-name" class="input-trade" placeholder="Enter your name"></div>
+                <div><label class="text-xs text-textGray uppercase font-semibold mb-2 block">Phone Number <span class="text-danger">*</span></label><input type="tel" id="reg-phone" class="input-trade" placeholder="+91 00000 00000" maxlength="13"></div>
+                <div><label class="text-xs text-textGray uppercase font-semibold mb-2 block">Email <span class="text-danger">*</span></label><input type="email" id="reg-email" class="input-trade" placeholder="Enter your email"></div>
+                <div><label class="text-xs text-textGray uppercase font-semibold mb-2 block">Password <span class="text-danger">*</span></label><input type="password" id="reg-password" class="input-trade" placeholder="Min 6 characters" minlength="6"></div>
+                <div><label class="text-xs text-textGray uppercase font-semibold mb-2 block">Confirm Password <span class="text-danger">*</span></label><input type="password" id="reg-confirm-password" class="input-trade" placeholder="Confirm password"></div>
+                <div><label class="text-xs text-textGray uppercase font-semibold mb-2 block">Referral Code (Optional)</label><input type="text" id="reg-referral" class="input-trade" placeholder="Enter referral code"></div>
+                <button onclick="handleRegister()" class="btn-animated w-full bg-primary text-black font-bold py-3 rounded-lg mt-6">Create Account</button>
+                <p class="text-center text-textGray text-sm mt-6">Already have an account? <span onclick="toggleAuthMode('login')" class="text-primary cursor-pointer font-semibold">Login</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgot-password-modal">
+        <div class="pay-box">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold">Reset Password</h3>
+                <button onclick="closeForgotPasswordModal()" class="w-8 h-8 rounded-lg bg-surfaceLight flex items-center justify-center">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="forgot-step-1">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-lock-open text-2xl text-primary"></i>
+                    </div>
+                    <p class="text-textGray text-sm">Enter your email address and we'll send you a link to reset your password.</p>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-textGray text-xs mb-2 block">Email Address</label>
+                        <input type="email" id="forgot-email" class="input-trade" placeholder="Enter your registered email">
+                    </div>
+                    <button onclick="sendPasswordReset()" id="send-reset-btn" class="btn-animated w-full bg-primary text-black font-bold py-3 rounded-lg">Send Reset Link</button>
+                </div>
+            </div>
+
+            <div id="forgot-step-2" class="hidden text-center">
+                <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-envelope text-2xl text-primary"></i>
+                </div>
+                <h4 class="font-bold text-lg mb-2">Check Your Email</h4>
+                <p class="text-textGray text-sm mb-4">We've sent a password reset link to <span id="reset-email-display" class="text-white"></span></p>
+                <button onclick="closeForgotPasswordModal()" class="w-full bg-surfaceLight text-white font-bold py-3 rounded-lg">Back to Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app-container" class="hidden min-h-screen">
+        <!-- Header -->
+        <header class="sticky top-0 z-50 glass border-b border-border">
+            <div class="flex items-center justify-between px-4 py-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-primary rounded flex items-center justify-center">
+                        <i class="fas fa-store text-black"></i>
+                    </div>
+                    <span class="font-bold text-lg">Trending Store</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="openNotifications()" class="btn-animated w-10 h-10 rounded-lg bg-surfaceLight flex items-center justify-center relative">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span id="notif-badge" class="absolute top-0 right-0 bg-danger text-white text-xs w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
+                    </button>
+                    <button onclick="openSideMenu()" class="btn-animated w-10 h-10 rounded-lg bg-surfaceLight flex items-center justify-center">
+                        <i class="fas fa-bars text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Notification Panel -->
+        <div id="notification-panel" class="fixed inset-0 bg-black/90 z-[10001] hidden flex-col">
+            <div class="p-4 border-b border-border flex items-center justify-between">
+                <h2 class="text-xl font-bold">Notifications</h2>
+                <button onclick="closeNotifications()" class="w-10 h-10 rounded-lg bg-surfaceLight flex items-center justify-center">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="notification-list" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+        </div>
+
+        <!-- Side Menu -->
+        <div id="menu-overlay" class="menu-overlay" onclick="closeSideMenu()"></div>
+        <div id="side-menu" class="side-menu">
+            <div class="p-4 border-b border-border">
+                <div class="flex items-center gap-3 mb-4">
+                    <img id="menu-avatar" src="https://via.placeholder.com/50" class="w-14 h-14 rounded-full border-2 border-primary object-cover">
+                    <div class="flex-1">
+                        <p id="menu-name" class="font-semibold text-sm">User</p>
+                        <p id="menu-balance" class="text-primary text-xs font-mono">₹0.00</p>
+                    </div>
+                    <button onclick="closeSideMenu()" class="w-8 h-8 rounded-lg bg-surfaceLight flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <nav class="p-4 space-y-2">
+                <button onclick="navigateTo('home'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-home w-5"></i><span>Dashboard</span></button>
+                <button onclick="navigateTo('market'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-chart-bar w-5"></i><span>Markets</span></button>
+                <button onclick="navigateTo('trade'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-exchange-alt w-5"></i><span>Trade</span></button>
+                <button onclick="navigateTo('investing'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-chart-pie w-5"></i><span>Investing</span></button>
+                <button onclick="navigateTo('nft'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-image w-5"></i><span>NFT Marketplace</span></button>
+                <button onclick="navigateTo('wallet'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-wallet w-5"></i><span>Wallet</span></button>
+                <button onclick="navigateTo('referral'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-users w-5 text-secondary"></i><span>Refer & Earn</span></button>
+                <button onclick="navigateTo('profile'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-user w-5"></i><span>Profile</span></button>
+            </nav>
+            <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-surface">
+                <button onclick="confirmLogout()" class="btn-animated w-full bg-danger/10 text-danger border border-danger/20 font-semibold py-3 rounded-lg flex items-center justify-center gap-2"><i class="fas fa-power-off"></i>Logout</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Home View -->
+            <div id="view-home" class="view-section animate-fade-in">
+                <div class="grid grid-cols-2 gap-3 p-4">
+                    <div class="glass rounded-xl p-4">
+                        <p class="text-textGray text-xs mb-1">Spot Balance</p>
+                        <h2 id="spot-balance-display" class="text-xl font-bold font-mono text-primary">₹0.00</h2>
+                    </div>
+                    <div class="glass rounded-xl p-4">
+                        <p class="text-textGray text-xs mb-1">Futures Balance</p>
+                        <h2 id="futures-balance-display" class="text-xl font-bold font-mono text-secondary">₹0.00</h2>
+                    </div>
+                    <div class="glass rounded-xl p-4 col-span-2 bg-gradient-to-r from-primary/20 to-transparent border-primary/30">
+                        <p class="text-textGray text-xs mb-1">Total Balance</p>
+                        <h2 id="total-balance-display" class="text-3xl font-bold font-mono text-primary">₹0.00</h2>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 px-4 mb-6">
+                    <button onclick="openPay()" class="btn-animated flex-1 bg-primary text-black font-bold py-3 rounded-lg"><i class="fas fa-arrow-down mr-2"></i>Deposit</button>
+                    <button onclick="openWithdrawModal()" class="btn-animated flex-1 bg-surfaceLight border border-border text-white font-bold py-3 rounded-lg"><i class="fas fa-arrow-up mr-2"></i>Withdraw</button>
+                </div>
+
+                <div class="px-4 mb-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold">Trending Markets</h3>
+                        <button onclick="navigateTo('market')" class="text-primary text-sm">View All</button>
+                    </div>
+                    <div id="trending-list" class="space-y-2"></div>
+                </div>
+
+                <!-- Live Positions Summary -->
+                <div id="home-positions" class="px-4 mb-4 hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-primary">Open Positions</h3>
+                        <span class="text-xs text-textGray" id="open-positions-count">0 Active</span>
+                    </div>
+                    <div id="home-positions-list" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- Market View -->
+            <div id="view-market" class="view-section hidden animate-fade-in">
+                <div class="sticky top-[57px] bg-bgDeep z-40 border-b border-border p-3">
+                    <div class="relative mb-3">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-textGray"></i>
+                        <input type="text" id="market-search" class="search-box pl-10 w-full bg-surface border border-border rounded-lg p-3 text-white" placeholder="Search cryptocurrency..." oninput="debouncedMarketSearch()">
+                    </div>
+                    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                        <button onclick="filterMarket('all')" class="market-filter active px-4 py-2 rounded-full text-sm font-medium bg-primary text-black whitespace-nowrap">All</button>
+                        <button onclick="filterMarket('gainers')" class="market-filter px-4 py-2 rounded-full text-sm font-medium bg-surfaceLight text-textGray whitespace-nowrap">Top Gainers</button>
+                        <button onclick="filterMarket('losers')" class="market-filter px-4 py-2 rounded-full text-sm font-medium bg-surfaceLight text-textGray whitespace-nowrap">Top Losers</button>
+                    </div>
+                </div>
+                <div class="p-2">
+                    <div class="flex items-center justify-between text-textGray text-xs px-2 py-2 border-b border-border">
+                        <span class="flex-1">Pair</span>
+                        <span class="w-24 text-right">Price</span>
+                        <span class="w-20 text-right">24h</span>
+                    </div>
+                    <div id="market-list" class="divide-y divide-border"></div>
+                    <div id="market-loading" class="hidden flex justify-center py-8">
+                        <div class="loader"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Trade View with Real TradingView -->
+            <div id="view-trade" class="view-section hidden animate-fade-in pb-20">
+                <!-- Trading Mode Tabs -->
+                <div class="px-4 py-3 border-b border-border sticky top-0 bg-bgDeep z-40">
+                    <div class="flex gap-6 overflow-x-auto no-scrollbar">
+                        <button onclick="switchTradingMode('spot')" id="mode-spot" class="tab-active whitespace-nowrap text-sm">Spot</button>
+                        <button onclick="switchTradingMode('futures')" id="mode-futures" class="text-textGray whitespace-nowrap text-sm">Futures</button>
+                        <button onclick="switchTradingMode('margin')" id="mode-margin" class="text-textGray whitespace-nowrap text-sm">Margin</button>
+                    </div>
+                </div>
+
+                <!-- Pair Header -->
+                <div class="px-4 py-3 bg-bgDeep">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-2 cursor-pointer" onclick="showPairSelector()">
+                            <h1 id="current-pair-display" class="text-xl font-bold text-white">BTC/USDT</h1>
+                            <i class="fas fa-chevron-down text-textGray text-sm"></i>
+                        </div>
+                        <div class="text-right">
+                            <div id="current-market-price" class="text-2xl font-bold font-mono text-primary">$0.00</div>
+                            <div id="price-change-display" class="text-sm text-primary">0.00%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real TradingView Chart -->
+                <div class="w-full bg-bgDeep border-y border-border">
+                    <div id="tradingview-chart"></div>
+                </div>
+
+                <!-- Order Form & Order Book -->
+                <div class="p-4 bg-bgDeep">
+                    <div class="flex gap-4">
+                        <!-- LEFT: Order Form -->
+                        <div class="flex-1 space-y-3">
+                            <div class="flex gap-2 mb-2">
+                                <button onclick="setOrderSide('buy')" id="side-buy" class="flex-1 py-2 rounded-lg font-bold text-sm bg-primary text-black">Buy</button>
+                                <button onclick="setOrderSide('sell')" id="side-sell" class="flex-1 py-2 rounded-lg font-bold text-sm bg-surfaceLight text-textGray">Sell</button>
+                            </div>
+
+                            <div class="bg-surface rounded-lg p-3 border border-border">
+                                <div class="text-xs text-textGray mb-1">Price (USDT)</div>
+                                <input type="number" id="trade-price-input" class="bg-transparent text-white font-bold w-full outline-none" placeholder="0.00">
+                            </div>
+
+                            <div class="bg-surface rounded-lg p-3 border border-border">
+                                <div class="text-xs text-textGray mb-1">Quantity</div>
+                                <input type="number" id="trade-quantity-input" class="bg-transparent text-white font-bold w-full outline-none" placeholder="0.00" oninput="calculateTradingTotal()">
+                            </div>
+
+                            <div>
+                                <input type="range" id="amount-slider" min="0" max="100" value="0" class="w-full h-2 bg-surfaceLight rounded-lg appearance-none cursor-pointer accent-primary" oninput="updateTradingSlider(this.value)">
+                                <div class="flex justify-between text-xs text-textGray mt-1">
+                                    <span>0%</span>
+                                    <span id="slider-percentage">0%</span>
+                                    <span>100%</span>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between text-xs">
+                                <span class="text-textGray">Available:</span>
+                                <span id="available-balance" class="font-mono">0.00 USDT</span>
+                            </div>
+
+                            <div class="flex justify-between text-xs">
+                                <span class="text-textGray">Total:</span>
+                                <span id="order-total" class="font-mono">0.00 USDT</span>
+                            </div>
+
+                            <button id="place-order-btn" onclick="placeOrder()" class="w-full py-4 rounded-lg font-bold text-lg shadow-lg active:scale-95 transition-transform buy-gradient text-white">
+                                Buy BTC
+                            </button>
+                        </div>
+
+                        <!-- RIGHT: Order Book -->
+                        <div class="w-32 hidden sm:block">
+                            <div class="text-[10px] text-textGray mb-1 flex justify-between">
+                                <span>Price</span>
+                                <span>Qty</span>
+                            </div>
+                            <div id="orderbook-asks" class="space-y-1 mb-2"></div>
+                            <div id="orderbook-current" class="text-center py-2 font-bold text-lg border-y border-border my-2">--</div>
+                            <div id="orderbook-bids" class="space-y-1"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Positions Section - LIVE TRACKING -->
+                <div class="bg-surface border-t border-border mt-4">
+                    <div class="flex gap-6 px-4 pt-4 text-sm border-b border-border overflow-x-auto no-scrollbar">
+                        <button onclick="switchPositionTab('positions')" id="tab-positions" class="font-semibold text-white border-b-2 border-primary pb-3">Positions (<span id="positions-count">0</span>)</button>
+                        <button onclick="switchPositionTab('orders')" id="tab-orders" class="text-textGray pb-3">Open Orders (<span id="orders-count">0</span>)</button>
+                        <button onclick="switchPositionTab('history')" id="tab-history" class="text-textGray pb-3">History</button>
+                    </div>
+
+                    <div id="positions-content" class="p-4 space-y-3 min-h-[200px]">
+                        <!-- Live positions will appear here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other views remain similar but optimized -->
+            <div id="view-wallet" class="view-section hidden animate-fade-in">
+                <div class="p-4">
+                    <div class="glass rounded-xl p-6 text-center mb-6">
+                        <h2 class="text-3xl font-bold font-mono mb-2" id="wallet-total">₹0.00</h2>
+                        <p class="text-textGray text-sm mb-4">Total Balance</p>
+                        <div class="flex gap-3 justify-center">
+                            <button onclick="openPay()" class="btn-animated px-6 py-2 bg-primary text-black font-bold rounded-lg">Deposit</button>
+                            <button onclick="openWithdrawModal()" class="btn-animated px-6 py-2 bg-surfaceLight border border-border text-white font-bold rounded-lg">Withdraw</button>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3" id="wallet-accounts">
+                        <!-- Account balances -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Mobile Bottom Navigation -->
+        <nav class="mobile-nav mobile-only">
+            <button onclick="navigateTo('home')" class="mobile-nav-item active" data-view="home"><i class="fas fa-home text-lg"></i><span>Home</span></button>
+            <button onclick="navigateTo('market')" class="mobile-nav-item" data-view="market"><i class="fas fa-chart-bar text-lg"></i><span>Markets</span></button>
+            <button onclick="navigateTo('trade')" class="mobile-nav-item" data-view="trade"><i class="fas fa-exchange-alt text-lg"></i><span>Trade</span></button>
+            <button onclick="navigateTo('wallet')" class="mobile-nav-item" data-view="wallet"><i class="fas fa-wallet text-lg"></i><span>Wallet</span></button>
+        </nav>
+    </div>
+
+    <!-- Modals -->
+    <div id="pay-modal">
+        <div class="pay-box">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-primary">Deposit Funds</h3>
+                <button onclick="closePay()" class="text-textGray"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-textGray text-xs block mb-1">Amount (₹)</label>
+                    <input type="number" id="deposit-amount" class="v-input" placeholder="Min ₹500">
+                </div>
+                <button onclick="submitDeposit()" id="deposit-btn" class="v-btn">Submit Deposit Request</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="withdraw-modal">
+        <div class="pay-box">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-danger">Withdraw Funds</h3>
+                <button onclick="closeWithdrawModal()" class="text-textGray"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-textGray text-xs block mb-1">From Account</label>
+                    <select id="withdraw-account" class="input-trade" onchange="updateWithdrawAvailable()">
+                        <option value="spot">Spot Account</option>
+                        <option value="futures">Futures Account</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-textGray text-xs block mb-1">Amount (₹)</label>
+                    <input type="number" id="withdraw-amount" class="v-input" placeholder="Enter amount">
+                    <p class="text-textGray text-xs mt-1">Available: <span id="withdraw-available" class="text-primary">₹0.00</span></p>
+                </div>
+                <div>
+                    <label class="text-textGray text-xs block mb-1">UPI ID</label>
+                    <input type="text" id="withdraw-upi" class="input-trade" placeholder="name@upi">
+                </div>
+                <button onclick="submitWithdraw()" id="withdraw-btn" class="v-btn bg-danger">Request Withdrawal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pair Selector -->
+    <div id="pair-selector-modal" class="fixed inset-0 bg-black/90 z-[2000] hidden flex-col">
+        <div class="p-4 border-b border-border flex items-center justify-between">
+            <h3 class="font-bold text-lg">Select Trading Pair</h3>
+            <button onclick="closePairSelector()" class="w-8 h-8 rounded-lg bg-surfaceLight flex items-center justify-center"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="p-4">
+            <input type="text" id="pair-search-input" class="input-trade mb-4" placeholder="Search pair..." oninput="filterPairs()">
+            <div id="pairs-list" class="space-y-2 max-h-[60vh] overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // ==========================================
+        // CONFIGURATION
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAozV8jcau0GuIKBPCMFAbChm75O9VE1Rs",
+            authDomain: "treding-store-2.firebaseapp.com",
+            projectId: "treding-store-2",
+            storageBucket: "treding-store-2.firebasestorage.app",
+            messagingSenderId: "2938541914",
+            appId: "1:2938541914:web:7fe53d76a34ec044c90563"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // Enable persistence for offline support
+        db.enablePersistence({ synchronizeTabs: true }).catch(console.error);
+
+        // ==========================================
+        // STATE MANAGEMENT
+        // ==========================================
+        const state = {
+            user: null,
+            userData: null,
+            currentView: 'home',
+            tradingMode: 'spot', // spot, futures, margin
+            orderSide: 'buy',
+            selectedPair: { id: 'bitcoin', symbol: 'BTCUSDT', name: 'Bitcoin' },
+            currentPrice: 0,
+            priceChange: 0,
+            positions: [],
+            orders: [],
+            chartWidget: null,
+            isLoading: false,
+            processing: {
+                order: false,
+                deposit: false,
+                withdraw: false
+            }
+        };
+
+        // ==========================================
+        // INITIALIZATION - FAST LOADING FIX
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Hide loader after max 3 seconds regardless
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                if (loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.remove(), 500);
+                }
+            }, 2000);
+        });
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                state.user = user;
+                initApp();
+            } else {
+                showAuth();
+            }
+        });
+
+        async function initApp() {
+            try {
+                document.getElementById('loading-text').textContent = 'Loading your data...';
+                
+                // Load user data
+                const userDoc = await db.collection('users').doc(state.user.uid).get();
+                if (!userDoc.exists) {
+                    // Create new user doc if missing
+                    await db.collection('users').doc(state.user.uid).set({
+                        uid: state.user.uid,
+                        email: state.user.email,
+                        spotBalance: 0,
+                        futuresBalance: 0,
+                        marginBalance: 0,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    state.userData = { spotBalance: 0, futuresBalance: 0, marginBalance: 0 };
+                } else {
+                    state.userData = userDoc.data();
+                }
+
+                // Real-time listener for balance updates
+                db.collection('users').doc(state.user.uid).onSnapshot(doc => {
+                    if (doc.exists) {
+                        state.userData = doc.data();
+                        updateUI();
+                    }
+                });
+
+                // Load initial data in parallel
+                await Promise.all([
+                    loadMarketData(),
+                    loadPositions(),
+                    loadOpenOrders()
+                ]);
+
+                // Start live position tracking
+                startLivePositionTracking();
+                
+                // Setup TradingView
+                initTradingView();
+
+                showApp();
+                
+            } catch (error) {
+                console.error('Init error:', error);
+                showToast('Error loading app. Please refresh.', 'error');
+            }
+        }
+
+        function showAuth() {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('app-container').classList.add('hidden');
+        }
+
+        function showApp() {
+            document.getElementById('loader').style.opacity = '0';
+            setTimeout(() => document.getElementById('loader').remove(), 500);
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+            updateUI();
+        }
+
+        // ==========================================
+        // TRADINGVIEW INTEGRATION
+        // ==========================================
+        function initTradingView() {
+            const container = document.getElementById('tradingview-chart');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            const script = document.createElement('script');
+            script.src = 'https://s3.tradingview.com/tv.js';
+            script.onload = () => {
+                createTradingViewWidget();
+            };
+            document.head.appendChild(script);
+        }
+
+        function createTradingViewWidget() {
+            if (typeof TradingView === 'undefined') return;
+            
+            const symbol = state.selectedPair.symbol.replace('USDT', '');
+            
+            state.chartWidget = new TradingView.widget({
+                autosize: true,
+                symbol: `BINANCE:${symbol}USDT`,
+                interval: '15',
+                timezone: 'exchange',
+                theme: 'dark',
+                style: '1',
+                locale: 'en',
+                toolbar_bg: '#0b0e11',
+                enable_publishing: false,
+                hide_top_toolbar: false,
+                hide_legend: true,
+                save_image: false,
+                container_id: 'tradingview-chart',
+                backgroundColor: '#0b0e11',
+                gridColor: '#1e2329',
+                textColor: '#848e9c',
+                borderColor: '#2b3139'
+            });
+        }
+
+        // ==========================================
+        // AUTHENTICATION
+        // ==========================================
+        async function handleEmailLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            if (!email || !password) {
+                showToast('Please enter email and password', 'error');
+                return;
+            }
+            
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function handleRegister() {
+            const name = document.getElementById('reg-name').value.trim();
+            const phone = document.getElementById('reg-phone').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const confirm = document.getElementById('reg-confirm-password').value;
+            
+            if (!name || !phone || !email || !password) {
+                showToast('Please fill all required fields', 'error');
+                return;
+            }
+            
+            if (password !== confirm) {
+                showToast('Passwords do not match', 'error');
+                return;
+            }
+            
+            try {
+                const cred = await auth.createUserWithEmailAndPassword(email, password);
+                await db.collection('users').doc(cred.user.uid).set({
+                    uid: cred.user.uid,
+                    name,
+                    phone,
+                    email,
+                    spotBalance: 0,
+                    futuresBalance: 0,
+                    marginBalance: 0,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showToast('Account created successfully!');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        function toggleAuthMode(mode) {
+            document.getElementById('login-form').classList.toggle('hidden', mode !== 'login');
+            document.getElementById('register-form').classList.toggle('hidden', mode !== 'register');
+        }
+
+        // ==========================================
+        // TRADING FUNCTIONS - ATOMIC & LIVE
+        // ==========================================
+        async function placeOrder() {
+            if (state.processing.order) return;
+            
+            const price = parseFloat(document.getElementById('trade-price-input').value) || state.currentPrice;
+            const quantity = parseFloat(document.getElementById('trade-quantity-input').value);
+            const side = state.orderSide;
+            const mode = state.tradingMode;
+            
+            if (!quantity || quantity <= 0) {
+                showToast('Please enter valid quantity', 'error');
+                return;
+            }
+            
+            const total = price * quantity;
+            const balanceKey = mode + 'Balance';
+            const availableBalance = state.userData[balanceKey] || 0;
+            
+            if (total > availableBalance) {
+                showToast(`Insufficient ${mode} balance. Need ₹${total.toFixed(2)}`, 'error');
+                return;
+            }
+            
+            state.processing.order = true;
+            const btn = document.getElementById('place-order-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            try {
+                // ATOMIC TRANSACTION: Deduct balance immediately
+                await db.runTransaction(async (transaction) => {
+                    const userRef = db.collection('users').doc(state.user.uid);
+                    const userDoc = await transaction.get(userRef);
+                    
+                    if (!userDoc.exists) throw new Error('User not found');
+                    
+                    const currentBalance = userDoc.data()[balanceKey] || 0;
+                    if (currentBalance < total) throw new Error('Insufficient balance');
+                    
+                    transaction.update(userRef, {
+                        [balanceKey]: currentBalance - total,
+                        lastTradeAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                });
+                
+                // Create position/order
+                const positionData = {
+                    uid: state.user.uid,
+                    pair: state.selectedPair.symbol,
+                    pairId: state.selectedPair.id,
+                    side: side,
+                    mode: mode,
+                    entryPrice: price,
+                    quantity: quantity,
+                    total: total,
+                    status: 'open',
+                    unrealizedPnl: 0,
+                    realizedPnl: 0,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                const docRef = await db.collection('positions').add(positionData);
+                
+                showToast(`${side.toUpperCase()} position opened at ₹${price}`);
+                
+                // Clear inputs
+                document.getElementById('trade-quantity-input').value = '';
+                document.getElementById('amount-slider').value = 0;
+                updateTradingSlider(0);
+                
+                // Refresh positions immediately
+                await loadPositions();
+                
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                state.processing.order = false;
+                btn.disabled = false;
+                updateOrderButton();
+            }
+        }
+
+        async function closePosition(positionId) {
+            if (!confirm('Close this position?')) return;
+            
+            try {
+                const position = state.positions.find(p => p.id === positionId);
+                if (!position) return;
+                
+                // Calculate P&L
+                const currentPrice = state.currentPrice || position.entryPrice;
+                const pnl = position.side === 'buy' || position.side === 'long' 
+                    ? (currentPrice - position.entryPrice) * position.quantity
+                    : (position.entryPrice - currentPrice) * position.quantity;
+                
+                const finalAmount = position.total + pnl;
+                const balanceKey = position.mode + 'Balance';
+                
+                // ATOMIC CLOSE: Update balance and position status
+                await db.runTransaction(async (transaction) => {
+                    const userRef = db.collection('users').doc(state.user.uid);
+                    const userDoc = await transaction.get(userRef);
+                    
+                    if (!userDoc.exists) throw new Error('User not found');
+                    
+                    const currentBalance = userDoc.data()[balanceKey] || 0;
+                    
+                    transaction.update(userRef, {
+                        [balanceKey]: currentBalance + finalAmount
+                    });
+                    
+                    const posRef = db.collection('positions').doc(positionId);
+                    transaction.update(posRef, {
+                        status: 'closed',
+                        closePrice: currentPrice,
+                        realizedPnl: pnl,
+                        closedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                });
+                
+                const pnlText = pnl >= 0 ? `Profit: +₹${pnl.toFixed(2)}` : `Loss: ₹${Math.abs(pnl).toFixed(2)}`;
+                showToast(`Position closed! ${pnlText}`, pnl >= 0 ? 'success' : 'error');
+                
+                await loadPositions();
+                updateUI();
+                
+            } catch (error) {
+                showToast('Close failed: ' + error.message, 'error');
+            }
+        }
+
+        // ==========================================
+        // LIVE POSITION TRACKING
+        // ==========================================
+        function startLivePositionTracking() {
+            // Update P&L every 2 seconds
+            setInterval(() => {
+                if (state.positions.length > 0 && state.currentPrice > 0) {
+                    updateLivePnL();
+                }
+            }, 2000);
+            
+            // Listen to Firestore for position updates
+            db.collection('positions')
+                .where('uid', '==', state.user.uid)
+                .where('status', '==', 'open')
+                .onSnapshot(snapshot => {
+                    state.positions = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    renderPositions();
+                    updateHomePositions();
+                });
+        }
+
+        function updateLivePnL() {
+            const positionsContent = document.getElementById('positions-content');
+            if (!positionsContent || state.currentView !== 'trade') return;
+            
+            state.positions.forEach(pos => {
+                const pnl = calculatePnL(pos);
+                const pnlEl = document.getElementById(`pnl-${pos.id}`);
+                const totalEl = document.getElementById(`total-${pos.id}`);
+                
+                if (pnlEl) {
+                    pnlEl.textContent = `${pnl >= 0 ? '+' : ''}₹${pnl.toFixed(2)}`;
+                    pnlEl.className = `font-bold ${pnl >= 0 ? 'text-primary' : 'text-danger'}`;
+                }
+                if (totalEl) {
+                    const currentValue = pos.total + pnl;
+                    totalEl.textContent = `₹${currentValue.toFixed(2)}`;
+                }
+            });
+        }
+
+        function calculatePnL(position) {
+            if (!state.currentPrice) return position.unrealizedPnl || 0;
+            
+            if (position.side === 'buy' || position.side === 'long') {
+                return (state.currentPrice - position.entryPrice) * position.quantity;
+            } else {
+                return (position.entryPrice - state.currentPrice) * position.quantity;
+            }
+        }
+
+        async function loadPositions() {
+            try {
+                const snapshot = await db.collection('positions')
+                    .where('uid', '==', state.user.uid)
+                    .where('status', '==', 'open')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                state.positions = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                renderPositions();
+                updateHomePositions();
+                
+            } catch (error) {
+                console.error('Load positions error:', error);
+            }
+        }
+
+        function renderPositions() {
+            const container = document.getElementById('positions-content');
+            const countEl = document.getElementById('positions-count');
+            
+            if (countEl) countEl.textContent = state.positions.length;
+            
+            if (state.positions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-chart-line text-4xl text-textGray mb-3"></i>
+                        <p class="text-textGray">No open positions</p>
+                        <button onclick="navigateTo('market')" class="mt-3 text-primary text-sm">Start Trading</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = state.positions.map(pos => {
+                const pnl = calculatePnL(pos);
+                const pnlPercent = (pnl / pos.total) * 100;
+                const isProfit = pnl >= 0;
+                
+                return `
+                    <div class="position-card ${isProfit ? 'profit' : 'loss'} animate-fade-in">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <span class="font-bold text-white">${pos.pair}</span>
+                                <span class="ml-2 text-xs px-2 py-0.5 rounded ${pos.side === 'buy' || pos.side === 'long' ? 'bg-primary text-black' : 'bg-danger text-white'}">
+                                    ${pos.side.toUpperCase()}
+                                </span>
+                                <span class="text-xs text-textGray ml-1">${pos.mode}</span>
+                            </div>
+                            <button onclick="closePosition('${pos.id}')" class="text-xs bg-danger/20 text-danger px-3 py-1 rounded hover:bg-danger hover:text-white transition-colors">
+                                Close
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2 text-xs mb-2">
+                            <div>
+                                <span class="text-textGray">Entry:</span>
+                                <span class="ml-1 font-mono">₹${pos.entryPrice.toFixed(2)}</span>
+                            </div>
+                            <div>
+                                <span class="text-textGray">Current:</span>
+                                <span class="ml-1 font-mono">₹${state.currentPrice.toFixed(2)}</span>
+                            </div>
+                            <div>
+                                <span class="text-textGray">Qty:</span>
+                                <span class="ml-1 font-mono">${pos.quantity}</span>
+                            </div>
+                            <div>
+                                <span class="text-textGray">Invested:</span>
+                                <span class="ml-1 font-mono">₹${pos.total.toFixed(2)}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center pt-2 border-t border-border">
+                            <span class="text-textGray text-xs">Unrealized P&L</span>
+                            <div class="text-right">
+                                <div id="pnl-${pos.id}" class="font-bold ${isProfit ? 'text-primary' : 'text-danger'}">
+                                    ${isProfit ? '+' : ''}₹${pnl.toFixed(2)}
+                                </div>
+                                <div class="text-xs ${isProfit ? 'text-primary' : 'text-danger'}">
+                                    ${pnlPercent.toFixed(2)}%
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-2 text-xs text-textGray">
+                            Current Value: <span id="total-${pos.id}" class="font-mono text-white">₹${(pos.total + pnl).toFixed(2)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateHomePositions() {
+            const container = document.getElementById('home-positions');
+            const list = document.getElementById('home-positions-list');
+            const count = document.getElementById('open-positions-count');
+            
+            if (!container || !list) return;
+            
+            if (state.positions.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+            
+            container.classList.remove('hidden');
+            if (count) count.textContent = `${state.positions.length} Active`;
+            
+            // Show only top 2 positions on home
+            const topPositions = state.positions.slice(0, 2);
+            list.innerHTML = topPositions.map(pos => {
+                const pnl = calculatePnL(pos);
+                const isProfit = pnl >= 0;
+                return `
+                    <div class="glass rounded-lg p-3 cursor-pointer" onclick="navigateTo('trade')">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="font-bold text-sm">${pos.pair}</span>
+                                <span class="text-xs text-textGray ml-2">${pos.side.toUpperCase()}</span>
+                            </div>
+                            <span class="${isProfit ? 'text-primary' : 'text-danger'} font-bold text-sm">
+                                ${isProfit ? '+' : ''}₹${pnl.toFixed(2)}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ==========================================
+        // MARKET DATA & UI
+        // ==========================================
+        async function loadMarketData() {
+            try {
+                // Fetch top 500 coins
+                const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h');
+                const data = await response.json();
+                
+                state.marketData = data.map(coin => ({
+                    id: coin.id,
+                    symbol: coin.symbol.toUpperCase() + 'USDT',
+                    name: coin.name,
+                    price: coin.current_price,
+                    change: coin.price_change_percentage_24h,
+                    image: coin.image,
+                    volume: coin.total_volume
+                }));
+                
+                renderMarketList();
+                renderTrending();
+                
+                // Update current price if selected pair exists
+                const currentCoin = state.marketData.find(c => c.id === state.selectedPair.id);
+                if (currentCoin) {
+                    state.currentPrice = currentCoin.price;
+                    state.priceChange = currentCoin.change;
+                    updatePriceDisplay();
+                }
+                
+            } catch (error) {
+                console.error('Market data error:', error);
+            }
+        }
+
+        function renderMarketList() {
+            const container = document.getElementById('market-list');
+            const search = document.getElementById('market-search')?.value.toLowerCase() || '';
+            
+            let data = state.marketData;
+            if (search) {
+                data = data.filter(c => c.name.toLowerCase().includes(search) || c.symbol.toLowerCase().includes(search));
+            }
+            
+            // Apply filters
+            const filter = state.marketFilter || 'all';
+            if (filter === 'gainers') data = data.filter(c => c.change > 0).sort((a, b) => b.change - a.change);
+            if (filter === 'losers') data = data.filter(c => c.change < 0).sort((a, b) => a.change - b.change);
+            
+            container.innerHTML = data.map(coin => `
+                <div class="market-item" onclick="selectPair('${coin.id}', '${coin.symbol}', '${coin.name}')">
+                    <div class="flex items-center gap-3 flex-1">
+                        <img src="${coin.image}" class="w-8 h-8 rounded-full">
+                        <div>
+                            <p class="font-bold text-sm">${coin.symbol.replace('USDT', '')}</p>
+                            <p class="text-textGray text-xs">${coin.name}</p>
+                        </div>
+                    </div>
+                    <div class="w-24 text-right">
+                        <p class="font-mono font-bold text-sm">$${coin.price.toLocaleString()}</p>
+                    </div>
+                    <div class="w-20 text-right">
+                        <span class="${coin.change >= 0 ? 'text-primary' : 'text-danger'} text-sm font-bold">
+                            ${coin.change >= 0 ? '+' : ''}${coin.change?.toFixed(2) || 0}%
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderTrending() {
+            const container = document.getElementById('trending-list');
+            const trending = state.marketData.slice(0, 5);
+            
+            container.innerHTML = trending.map(coin => `
+                <div class="glass rounded-lg p-3 flex items-center justify-between cursor-pointer" onclick="selectPair('${coin.id}', '${coin.symbol}', '${coin.name}')">
+                    <div class="flex items-center gap-3">
+                        <img src="${coin.image}" class="w-8 h-8 rounded-full">
+                        <div>
+                            <p class="font-bold text-sm">${coin.symbol.replace('USDT', '')}</p>
+                            <p class="text-textGray text-xs">$${coin.price.toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <span class="${coin.change >= 0 ? 'text-primary' : 'text-danger'} text-sm font-bold">
+                        ${coin.change >= 0 ? '+' : ''}${coin.change?.toFixed(2) || 0}%
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function selectPair(id, symbol, name) {
+            state.selectedPair = { id, symbol, name };
+            document.getElementById('current-pair-display').textContent = symbol;
+            
+            const coin = state.marketData.find(c => c.id === id);
+            if (coin) {
+                state.currentPrice = coin.price;
+                updatePriceDisplay();
+            }
+            
+            // Recreate TradingView chart with new symbol
+            initTradingView();
+            
+            closePairSelector();
+            if (state.currentView !== 'trade') navigateTo('trade');
+        }
+
+        function updatePriceDisplay() {
+            const priceEl = document.getElementById('current-market-price');
+            const changeEl = document.getElementById('price-change-display');
+            const bookPrice = document.getElementById('orderbook-current');
+            
+            if (priceEl) {
+                priceEl.textContent = '$' + state.currentPrice.toLocaleString();
+                priceEl.className = 'text-2xl font-bold font-mono ' + (state.priceChange >= 0 ? 'text-primary' : 'text-danger');
+            }
+            if (changeEl) {
+                changeEl.textContent = (state.priceChange >= 0 ? '+' : '') + state.priceChange.toFixed(2) + '%';
+                changeEl.className = 'text-sm ' + (state.priceChange >= 0 ? 'text-primary' : 'text-danger');
+            }
+            if (bookPrice) bookPrice.textContent = '$' + state.currentPrice.toFixed(2);
+            
+            // Update order book simulation
+            updateOrderBook();
+        }
+
+        function updateOrderBook() {
+            const asks = document.getElementById('orderbook-asks');
+            const bids = document.getElementById('orderbook-bids');
+            if (!asks || !bids) return;
+            
+            // Generate fake order book around current price
+            let askHtml = '';
+            let bidHtml = '';
+            
+            for (let i = 1; i <= 5; i++) {
+                const askPrice = state.currentPrice * (1 + i * 0.001);
+                const bidPrice = state.currentPrice * (1 - i * 0.001);
+                const qty = (Math.random() * 2 + 0.1).toFixed(4);
+                
+                askHtml += `<div class="flex justify-between text-xs text-danger"><span>${askPrice.toFixed(2)}</span><span>${qty}</span></div>`;
+                bidHtml += `<div class="flex justify-between text-xs text-primary"><span>${bidPrice.toFixed(2)}</span><span>${qty}</span></div>`;
+            }
+            
+            asks.innerHTML = askHtml;
+            bids.innerHTML = bidHtml;
+        }
+
+        // ==========================================
+        // UI HELPERS
+        // ==========================================
+        function switchTradingMode(mode) {
+            state.tradingMode = mode;
+            
+            ['spot', 'futures', 'margin'].forEach(m => {
+                const btn = document.getElementById(`mode-${m}`);
+                if (m === mode) {
+                    btn.classList.add('tab-active');
+                    btn.classList.remove('text-textGray');
+                } else {
+                    btn.classList.remove('tab-active');
+                    btn.classList.add('text-textGray');
+                }
+            });
+            
+            updateOrderButton();
+            updateAvailableBalance();
+        }
+
+        function setOrderSide(side) {
+            state.orderSide = side;
+            
+            const buyBtn = document.getElementById('side-buy');
+            const sellBtn = document.getElementById('side-sell');
+            const mainBtn = document.getElementById('place-order-btn');
+            
+            if (side === 'buy') {
+                buyBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-primary text-black';
+                sellBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-surfaceLight text-textGray';
+                mainBtn.className = 'w-full py-4 rounded-lg font-bold text-lg shadow-lg active:scale-95 transition-transform buy-gradient text-white';
+                mainBtn.textContent = state.tradingMode === 'spot' ? 'Buy ' + state.selectedPair.symbol.replace('USDT', '') : 'Long ' + state.selectedPair.symbol.replace('USDT', '');
+            } else {
+                buyBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-surfaceLight text-textGray';
+                sellBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-danger text-white';
+                mainBtn.className = 'w-full py-4 rounded-lg font-bold text-lg shadow-lg active:scale-95 transition-transform sell-gradient text-white';
+                mainBtn.textContent = state.tradingMode === 'spot' ? 'Sell ' + state.selectedPair.symbol.replace('USDT', '') : 'Short ' + state.selectedPair.symbol.replace('USDT', '');
+            }
+        }
+
+        function updateOrderButton() {
+            setOrderSide(state.orderSide);
+        }
+
+        function calculateTradingTotal() {
+            const price = parseFloat(document.getElementById('trade-price-input').value) || state.currentPrice;
+            const qty = parseFloat(document.getElementById('trade-quantity-input').value) || 0;
+            const total = price * qty;
+            
+            document.getElementById('order-total').textContent = total.toFixed(2) + ' USDT';
+            
+            // Update slider percentage based on available balance
+            const balanceKey = state.tradingMode + 'Balance';
+            const available = state.userData?.[balanceKey] || 0;
+            if (available > 0 && price > 0) {
+                const maxQty = available / price;
+                const percentage = Math.min((qty / maxQty) * 100, 100);
+                document.getElementById('amount-slider').value = percentage;
+                document.getElementById('slider-percentage').textContent = percentage.toFixed(0) + '%';
+            }
+        }
+
+        function updateTradingSlider(value) {
+            document.getElementById('slider-percentage').textContent = value + '%';
+            
+            const balanceKey = state.tradingMode + 'Balance';
+            const available = state.userData?.[balanceKey] || 0;
+            const price = parseFloat(document.getElementById('trade-price-input').value) || state.currentPrice;
+            
+            if (price > 0) {
+                const qty = (available * value / 100) / price;
+                document.getElementById('trade-quantity-input').value = qty.toFixed(6);
+                calculateTradingTotal();
+            }
+        }
+
+        function updateAvailableBalance() {
+            const balanceKey = state.tradingMode + 'Balance';
+            const balance = state.userData?.[balanceKey] || 0;
+            document.getElementById('available-balance').textContent = balance.toFixed(2) + ' USDT';
+        }
+
+        function switchPositionTab(tab) {
+            // Update UI tabs
+            document.getElementById('tab-positions').className = tab === 'positions' ? 'font-semibold text-white border-b-2 border-primary pb-3' : 'text-textGray pb-3';
+            document.getElementById('tab-orders').className = tab === 'orders' ? 'font-semibold text-white border-b-2 border-primary pb-3' : 'text-textGray pb-3';
+            document.getElementById('tab-history').className = tab === 'history' ? 'font-semibold text-white border-b-2 border-primary pb-3' : 'text-textGray pb-3';
+            
+            if (tab === 'positions') {
+                renderPositions();
+            } else if (tab === 'orders') {
+                renderOpenOrders();
+            } else {
+                renderOrderHistory();
+            }
+        }
+
+        async function loadOpenOrders() {
+            // In this simplified version, open orders are positions that are pending
+            // For now, show message
+        }
+
+        function renderOpenOrders() {
+            document.getElementById('positions-content').innerHTML = '<p class="text-textGray text-center py-4">No pending orders</p>';
+        }
+
+        async function renderOrderHistory() {
+            try {
+                const snapshot = await db.collection('positions')
+                    .where('uid', '==', state.user.uid)
+                    .where('status', '==', 'closed')
+                    .orderBy('closedAt', 'desc')
+                    .limit(20)
+                    .get();
+                
+                const history = snapshot.docs.map(doc => doc.data());
+                const container = document.getElementById('positions-content');
+                
+                if (history.length === 0) {
+                    container.innerHTML = '<p class="text-textGray text-center py-4">No trade history</p>';
+                    return;
+                }
+                
+                container.innerHTML = history.map(trade => {
+                    const isProfit = trade.realizedPnl >= 0;
+                    return `
+                        <div class="position-card ${isProfit ? 'profit' : 'loss'}">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="font-bold">${trade.pair}</span>
+                                    <span class="text-xs text-textGray ml-2">${trade.side.toUpperCase()}</span>
+                                </div>
+                                <span class="${isProfit ? 'text-primary' : 'text-danger'} font-bold">
+                                    ${isProfit ? '+' : ''}₹${trade.realizedPnl?.toFixed(2) || 0}
+                                </span>
+                            </div>
+                            <div class="text-xs text-textGray mt-1">
+                                ${trade.closedAt?.toDate().toLocaleDateString() || ''} | Qty: ${trade.quantity}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('History error:', error);
+            }
+        }
+
+        // ==========================================
+        // WALLET & FINANCE
+        // ==========================================
+        function updateUI() {
+            if (!state.userData) return;
+            
+            const spot = state.userData.spotBalance || 0;
+            const futures = state.userData.futuresBalance || 0;
+            const margin = state.userData.marginBalance || 0;
+            const total = spot + futures + margin;
+            
+            // Update all balance displays
+            const elements = {
+                'spot-balance-display': '₹' + spot.toFixed(2),
+                'futures-balance-display': '₹' + futures.toFixed(2),
+                'total-balance-display': '₹' + total.toFixed(2),
+                'menu-balance': '₹' + total.toFixed(2),
+                'wallet-total': '₹' + total.toFixed(2),
+                'menu-name': state.userData.name || 'User'
+            };
+            
+            Object.entries(elements).forEach(([id, value]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            });
+            
+            // Update wallet accounts list
+            const walletAccounts = document.getElementById('wallet-accounts');
+            if (walletAccounts) {
+                walletAccounts.innerHTML = `
+                    <div class="glass rounded-xl p-4 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Spot Account</p>
+                                <p class="text-textGray text-xs">For spot trading</p>
+                            </div>
+                        </div>
+                        <span class="font-mono font-bold">₹${spot.toFixed(2)}</span>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center text-secondary">
+                                <i class="fas fa-rocket"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Futures Account</p>
+                                <p class="text-textGray text-xs">For futures trading</p>
+                            </div>
+                        </div>
+                        <span class="font-mono font-bold">₹${futures.toFixed(2)}</span>
+                    </div>
+                `;
+            }
+            
+            updateAvailableBalance();
+        }
+
+        async function submitDeposit() {
+            if (state.processing.deposit) return;
+            
+            const amount = parseFloat(document.getElementById('deposit-amount').value);
+            if (!amount || amount < 500) {
+                showToast('Minimum deposit ₹500', 'error');
+                return;
+            }
+            
+            state.processing.deposit = true;
+            const btn = document.getElementById('deposit-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            try {
+                await db.collection('deposits').add({
+                    uid: state.user.uid,
+                    amount: amount,
+                    status: 'pending',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                showToast('Deposit request submitted!');
+                closePay();
+                document.getElementById('deposit-amount').value = '';
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                state.processing.deposit = false;
+                btn.disabled = false;
+                btn.textContent = 'Submit Deposit Request';
+            }
+        }
+
+        async function submitWithdraw() {
+            if (state.processing.withdraw) return;
+            
+            const amount = parseFloat(document.getElementById('withdraw-amount').value);
+            const account = document.getElementById('withdraw-account').value;
+            const upi = document.getElementById('withdraw-upi').value.trim();
+            
+            if (!amount || amount < 500) {
+                showToast('Minimum withdrawal ₹500', 'error');
+                return;
+            }
+            
+            const balanceKey = account + 'Balance';
+            if (amount > (state.userData[balanceKey] || 0)) {
+                showToast('Insufficient balance', 'error');
+                return;
+            }
+            
+            if (!upi) {
+                showToast('Enter UPI ID', 'error');
+                return;
+            }
+            
+            state.processing.withdraw = true;
+            const btn = document.getElementById('withdraw-btn');
+            btn.disabled = true;
+            
+            try {
+                // Atomic deduction
+                await db.runTransaction(async (transaction) => {
+                    const userRef = db.collection('users').doc(state.user.uid);
+                    const userDoc = await transaction.get(userRef);
+                    const current = userDoc.data()[balanceKey] || 0;
+                    
+                    if (current < amount) throw new Error('Insufficient balance');
+                    
+                    transaction.update(userRef, {
+                        [balanceKey]: current - amount
+                    });
+                });
+                
+                await db.collection('withdrawals').add({
+                    uid: state.user.uid,
+                    amount: amount,
+                    account: account,
+                    upi: upi,
+                    status: 'pending',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                showToast('Withdrawal request submitted!');
+                closeWithdrawModal();
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                state.processing.withdraw = false;
+                btn.disabled = false;
+            }
+        }
+
+        function updateWithdrawAvailable() {
+            const account = document.getElementById('withdraw-account').value;
+            const balance = state.userData?.[account + 'Balance'] || 0;
+            document.getElementById('withdraw-available').textContent = '₹' + balance.toFixed(2);
+        }
+
+        // ==========================================
+        // NAVIGATION & MODALS
+        // ==========================================
+        function navigateTo(view) {
+            // Close all modals first
+            closeSideMenu();
+            
+            // Hide all views
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            
+            // Show target view
+            const target = document.getElementById(`view-${view}`);
+            if (target) {
+                target.classList.remove('hidden');
+                state.currentView = view;
+            }
+            
+            // Update nav
+            document.querySelectorAll('.mobile-nav-item').forEach(el => {
+                el.classList.toggle('active', el.dataset.view === view);
+            });
+            
+            // View specific actions
+            if (view === 'trade') {
+                setTimeout(() => {
+                    initTradingView();
+                    loadPositions();
+                }, 100);
+            } else if (view === 'home') {
+                updateHomePositions();
+            }
+            
+            window.scrollTo(0, 0);
+        }
+
+        function openSideMenu() {
+            document.getElementById('side-menu').classList.add('open');
+            document.getElementById('menu-overlay').classList.add('open');
+        }
+
+        function closeSideMenu() {
+            document.getElementById('side-menu').classList.remove('open');
+            document.getElementById('menu-overlay').classList.remove('open');
+        }
+
+        function openNotifications() {
+            document.getElementById('notification-panel').classList.remove('hidden');
+        }
+
+        function closeNotifications() {
+            document.getElementById('notification-panel').classList.add('hidden');
+        }
+
+        function openPay() {
+            document.getElementById('pay-modal').style.display = 'flex';
+        }
+
+        function closePay() {
+            document.getElementById('pay-modal').style.display = 'none';
+        }
+
+        function openWithdrawModal() {
+            document.getElementById('withdraw-modal').style.display = 'flex';
+            updateWithdrawAvailable();
+        }
+
+        function closeWithdrawModal() {
+            document.getElementById('withdraw-modal').style.display = 'none';
+        }
+
+        function showPairSelector() {
+            document.getElementById('pair-selector-modal').classList.remove('hidden');
+            document.getElementById('pair-selector-modal').classList.add('flex');
+            renderPairsList();
+        }
+
+        function closePairSelector() {
+            document.getElementById('pair-selector-modal').classList.add('hidden');
+            document.getElementById('pair-selector-modal').classList.remove('flex');
+        }
+
+        function renderPairsList() {
+            const container = document.getElementById('pairs-list');
+            const search = document.getElementById('pair-search-input')?.value.toLowerCase() || '';
+            
+            let pairs = state.marketData || [];
+            if (search) {
+                pairs = pairs.filter(p => p.name.toLowerCase().includes(search) || p.symbol.toLowerCase().includes(search));
+            }
+            
+            container.innerHTML = pairs.slice(0, 50).map(coin => `
+                <div class="flex items-center justify-between p-3 bg-surface rounded-lg cursor-pointer hover:bg-surfaceLight" onclick="selectPair('${coin.id}', '${coin.symbol}', '${coin.name}')">
+                    <div class="flex items-center gap-3">
+                        <img src="${coin.image}" class="w-8 h-8 rounded-full">
+                        <div>
+                            <div class="font-bold">${coin.symbol}</div>
+                            <div class="text-xs text-textGray">${coin.name}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-mono">$${coin.price}</div>
+                        <div class="text-xs ${coin.change >= 0 ? 'text-primary' : 'text-danger'}">${coin.change >= 0 ? '+' : ''}${coin.change?.toFixed(2)}%</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterPairs() {
+            renderPairsList();
+        }
+
+        function filterMarket(type) {
+            state.marketFilter = type;
+            document.querySelectorAll('.market-filter').forEach(btn => {
+                btn.classList.remove('active', 'bg-primary', 'text-black');
+                btn.classList.add('bg-surfaceLight', 'text-textGray');
+            });
+            event.target.classList.add('active', 'bg-primary', 'text-black');
+            event.target.classList.remove('bg-surfaceLight', 'text-textGray');
+            renderMarketList();
+        }
+
+        function debouncedMarketSearch() {
+            clearTimeout(window.searchTimeout);
+            window.searchTimeout = setTimeout(renderMarketList, 300);
+        }
+
+        // ==========================================
+        // UTILITIES
+        // ==========================================
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + (type === 'error' ? 'error' : '');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function confirmLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                auth.signOut();
+            }
+        }
+
+        function showForgotPasswordModal() {
+            document.getElementById('forgot-password-modal').style.display = 'flex';
+        }
+
+        function closeForgotPasswordModal() {
+            document.getElementById('forgot-password-modal').style.display = 'none';
+        }
+
+        async function sendPasswordReset() {
+            const email = document.getElementById('forgot-email').value;
+            if (!email) {
+                showToast('Enter your email', 'error');
+                return;
+            }
+            
+            try {
+                await auth.sendPasswordResetEmail(email);
+                document.getElementById('forgot-step-1').classList.add('hidden');
+                document.getElementById('forgot-step-2').classList.remove('hidden');
+                document.getElementById('reset-email-display').textContent = email;
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Refresh market data every 10 seconds
+        setInterval(loadMarketData, 10000);
+        
+        // Prevent double-tap zoom on mobile
+        document.addEventListener('dblclick', function(event) {
+            event.preventDefault();
+        }, { passive: false });
+    </script>
+</body>
+      </html>
