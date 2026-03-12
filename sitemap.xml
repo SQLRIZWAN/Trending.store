@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Main Sitemap -->
+  <sitemap>
+    <loc>https://treding.store/sitemap-main.xml</loc>
+    <lastmod>2026-03-12</lastmod>
+  </sitemap>
+
+  <!-- News Sitemap -->
+  <sitemap>
+    <loc>https://treding.store/sitemap-news.xml</loc>
+    <lastmod>2026-03-12</lastmod>
+  </sitemap>
+
+  <!-- Images Sitemap -->
+  <sitemap>
+    <loc>https://treding.store/sitemap-images.xml</loc>
+    <lastmod>2026-03-12</lastmod>
+  </sitemap>
+
+</sitemapindex>
