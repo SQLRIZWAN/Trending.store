@@ -5730,26 +5730,18 @@
             const durationSelect = document.getElementById('invest-duration');
             let options = [];
             if (cat === 'daily') {
-                // Daily plans: 1-30 days granular
-                options = [1,2,3,4,5,6,7,10,14,21,planDuration].filter((v,i,a) => v <= planDuration && a.indexOf(v) === i).sort((a,b)=>a-b);
-            } else if (cat === 'shortterm') {
-                options = [7,14,21,30,45,60,planDuration].filter((v,i,a) => v <= planDuration && a.indexOf(v) === i).sort((a,b)=>a-b);
-            } else if (cat === 'midterm') {
-                options = [30,45,60,90,120,planDuration].filter((v,i,a) => v <= planDuration && a.indexOf(v) === i).sort((a,b)=>a-b);
+                // Daily section: only 1 day (24h)
+                options = [1];
             } else {
-                // Long term
-                options = [30,60,90,120,180,270,365,planDuration].filter((v,i,a) => v <= planDuration && a.indexOf(v) === i).sort((a,b)=>a-b);
+                // All other categories: only the admin-set plan duration
+                options = [planDuration];
             }
-            // Ensure max plan duration is always an option
-            if (!options.includes(planDuration)) options.push(planDuration);
-            options.sort((a,b)=>a-b);
 
             durationSelect.innerHTML = options.map(d => {
-                const label = d === 1 ? '1 Day' : d === planDuration ? `${d} Days (Max)` : `${d} Days`;
+                const label = d === 1 ? '1 Day (24h)' : `${d} Days`;
                 return `<option value="${d}">${label}</option>`;
             }).join('');
-            // Default to plan's max duration
-            durationSelect.value = planDuration;
+            durationSelect.value = options[0];
 
             document.getElementById('invest-min').textContent = `Min: ₹${planMin.toLocaleString()}${planMax > 0 ? ' | Max: ₹' + planMax.toLocaleString() : ''}`;
             document.getElementById('invest-amount').value = '';
