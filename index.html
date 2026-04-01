@@ -5195,7 +5195,13 @@
             
             state.currentView = view;
             window.scrollTo(0, 0);
-            
+
+            // Stop investment countdown when leaving wallet
+            if (view !== 'wallet' && window._invCountdownTimer) {
+                clearInterval(window._invCountdownTimer);
+                window._invCountdownTimer = null;
+            }
+
             // FIX REFRESH: Current page sessionStorage mein save karo
             // Taaki refresh pe same page dikhe
             try { sessionStorage.setItem('lastView', view); } catch(e) {}
@@ -8079,18 +8085,42 @@
                     const estimatedEarned = avgDailyProfit * daysElapsed;
                     const totalEarned = (inv.totalReturned > 0 ? inv.totalReturned : estimatedEarned);
 
-                    const endDate = inv.endDate?.toDate ? inv.endDate.toDate() : new Date(inv.endDate || Date.now());
-                    const daysLeft = Math.max(0, Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+                    const endMs   = inv.endDate?.toDate ? inv.endDate.toDate().getTime()
+                                  : inv.endDate?.seconds ? inv.endDate.seconds * 1000
+                                  : new Date(inv.endDate || Date.now()).getTime();
+                    const startMs = startDate.getTime();
+                    const totalMs = endMs - startMs;
+                    const daysLeft = Math.max(0, Math.ceil((endMs - Date.now()) / (1000 * 60 * 60 * 24)));
                     const progress = Math.min(100, (daysElapsed / duration) * 100);
-                    return ` 
-                        <div class="rounded-xl p-4 mb-2" style="background:linear-gradient(135deg,#151a21,#0b0e11);border:1px solid #d4af37;"> 
-                            <div class="flex justify-between items-start mb-3"> 
-                                <div> 
-                                    <h4 class="font-bold text-sm">${inv.planName}</h4> 
-                                    <p class="text-textGray text-xs">Started: ${inv.purchaseDate || 'N/A'}</p> 
-                                </div> 
+                    const durationLabel = duration <= 1 ? '1 Day (24h)' : duration + ' Days';
+                    return `
+                        <div class="rounded-xl p-4 mb-2" style="background:linear-gradient(135deg,#151a21,#0b0e11);border:1px solid #d4af37;">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h4 class="font-bold text-sm">${inv.planName}</h4>
+                                    <p class="text-textGray text-xs">Started: ${inv.purchaseDate || 'N/A'}</p>
+                                </div>
                                 <span class="px-2 py-1 text-xs rounded font-bold" style="${isMatured ? 'background:#d4af37;color:#000' : 'background:rgba(212,175,55,0.15);color:#d4af37'}">${isMatured ? '✓ Matured' : '● Active'}</span>
                             </div>
+
+                            <!-- Live countdown timer -->
+                            <div class="rounded-xl p-3 mb-3 text-center" style="background:rgba(212,175,55,0.07);border:1px solid rgba(212,175,55,0.2);">
+                                <div class="flex justify-between items-center mb-1">
+                                    <div class="text-center flex-1">
+                                        <p class="text-textGray text-xs mb-1">Elapsed</p>
+                                        <p class="font-mono font-bold text-sm text-white inv-elapsed" data-start="${startMs}" data-end="${endMs}">--:--:--</p>
+                                    </div>
+                                    <div class="text-textGray text-lg px-2">|</div>
+                                    <div class="text-center flex-1">
+                                        <p class="text-textGray text-xs mb-1">Remaining</p>
+                                        <p class="font-mono font-bold text-sm inv-remaining" data-end="${endMs}" style="color:#d4af37;">--:--:--</p>
+                                    </div>
+                                </div>
+                                <div class="w-full bg-surface rounded-full h-1.5 mt-2">
+                                    <div class="h-1.5 rounded-full inv-progress-bar" data-start="${startMs}" data-end="${endMs}" style="width:${progress}%;background:linear-gradient(90deg,#d4af37,#ffd700);transition:width 1s linear;"></div>
+                                </div>
+                            </div>
+
                             <div class="grid grid-cols-2 gap-2 text-xs mb-3">
                                 <div class="bg-surface rounded-lg p-2">
                                     <p class="text-textGray mb-1">Invested</p>
@@ -8109,27 +8139,68 @@
                                     <p class="font-bold text-primary">₹${totalEarned.toFixed(2)}</p>
                                 </div>
                                 <div class="bg-surface rounded-lg p-2 col-span-2 flex justify-between items-center">
-                                    <span class="text-textGray">Duration: ${duration} days</span>
+                                    <span class="text-textGray">Duration: ${durationLabel}</span>
                                     <span class="font-bold ${daysLeft === 0 ? 'text-primary' : 'text-white'}">${daysLeft === 0 ? '✓ Done' : daysLeft + 'd left'}</span>
                                 </div>
                             </div>
-                            <div class="mb-3">
-                                <div class="flex justify-between text-xs text-textGray mb-1">
-                                    <span>Progress</span><span>${Math.round(progress)}%</span>
-                                </div>
-                                <div class="w-full bg-surface rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full" style="width:${progress}%;background:linear-gradient(90deg,#d4af37,#ffd700)"></div>
-                                </div>
-                            </div>
-                            ${isMatured ? `<button onclick="withdrawInvestment('${inv.id}',${inv.amount},${inv.totalReturned || totalEarned})" class="w-full font-bold py-2 rounded-lg text-sm text-black" style="background:linear-gradient(135deg,#d4af37,#ffd700)"><i class="fas fa-arrow-up mr-1"></i>Withdraw Returns</button>` : `<button onclick="requestEarlyWithdraw('${inv.id}')" class="w-full font-bold py-2 rounded-lg text-sm border" style="border-color:rgba(212,175,55,0.4);color:#d4af37;"><i class="fas fa-clock mr-1"></i>Early Withdraw (fee applies)</button>`}
-                        </div> 
-                    `; 
-                }).join(''); 
-            } catch (error) { 
-                container.innerHTML = '<p class="text-danger text-center">Error loading investments</p>'; 
-            } 
+                            ${isMatured ? `<button onclick="withdrawInvestment('${inv.id}')" class="w-full font-bold py-2 rounded-lg text-sm text-black" style="background:linear-gradient(135deg,#d4af37,#ffd700)"><i class="fas fa-arrow-up mr-1"></i>Withdraw Returns</button>` : `<button onclick="requestEarlyWithdraw('${inv.id}')" class="w-full font-bold py-2 rounded-lg text-sm border" style="border-color:rgba(212,175,55,0.4);color:#d4af37;"><i class="fas fa-clock mr-1"></i>Early Withdraw (fee applies)</button>`}
+                        </div>
+                    `;
+                }).join('');
+
+                // Start live countdown for all investment cards
+                startInvestmentCountdowns();
+
+            } catch (error) {
+                container.innerHTML = '<p class="text-danger text-center">Error loading investments</p>';
+            }
         }
-        
+
+        // Format milliseconds → "HH:MM:SS" or "Xd Xh Xm"
+        function _fmtCountdown(ms) {
+            if (ms <= 0) return '00:00:00';
+            const totalSec = Math.floor(ms / 1000);
+            const d = Math.floor(totalSec / 86400);
+            const h = Math.floor((totalSec % 86400) / 3600);
+            const m = Math.floor((totalSec % 3600) / 60);
+            const s = totalSec % 60;
+            if (d > 0) return `${d}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m`;
+            return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }
+
+        function startInvestmentCountdowns() {
+            if (window._invCountdownTimer) clearInterval(window._invCountdownTimer);
+            window._invCountdownTimer = setInterval(() => {
+                const now = Date.now();
+                // Elapsed timers
+                document.querySelectorAll('.inv-elapsed').forEach(el => {
+                    const start = parseInt(el.dataset.start) || 0;
+                    const end   = parseInt(el.dataset.end)   || 0;
+                    const elapsed = Math.min(now - start, end - start);
+                    el.textContent = _fmtCountdown(Math.max(0, elapsed));
+                });
+                // Remaining timers
+                document.querySelectorAll('.inv-remaining').forEach(el => {
+                    const end = parseInt(el.dataset.end) || 0;
+                    const rem = end - now;
+                    if (rem <= 0) {
+                        el.textContent = 'Done!';
+                        el.style.color = '#00c853';
+                    } else {
+                        el.textContent = _fmtCountdown(rem);
+                    }
+                });
+                // Progress bars
+                document.querySelectorAll('.inv-progress-bar').forEach(el => {
+                    const start = parseInt(el.dataset.start) || 0;
+                    const end   = parseInt(el.dataset.end)   || 0;
+                    const total = end - start;
+                    const pct   = total > 0 ? Math.min(100, ((now - start) / total) * 100) : 100;
+                    el.style.width = pct + '%';
+                });
+            }, 1000);
+        }
+
         // Auto-process investments whose endDate has passed
         async function processMaturedInvestments(investments) {
             const now = Date.now();
