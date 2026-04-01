@@ -5720,8 +5720,8 @@
                         <p class="font-bold text-sm" style="color:#d4af37;">${maxRate}%</p>
                     </div>
                     <div class="rounded-lg p-2 text-center bg-surface">
-                        <p class="text-textGray text-xs">Max Duration</p>
-                        <p class="text-white font-bold text-sm">${planDuration}d</p>
+                        <p class="text-textGray text-xs">Duration</p>
+                        <p class="text-white font-bold text-sm">${cat === 'daily' ? '1 Day' : planDuration + 'd'}</p>
                     </div>
                 </div>
             `;
@@ -8046,13 +8046,21 @@
         async function loadWalletInvestments() { 
             const container = document.getElementById('wallet-invest-list'); 
             try { 
-                const snapshot = await db.collection('investments').where('uid', '==', state.user.uid).where('status', 'in', ['active', 'matured']).get(); 
-                const investments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
-                if (investments.length === 0) { 
-                    container.innerHTML = '<p class="text-textGray text-center py-8">No active investments</p>'; 
-                    return; 
-                } 
-                container.innerHTML = investments.map(inv => {
+                const snapshot = await db.collection('investments').where('uid', '==', state.user.uid).where('status', 'in', ['active', 'matured']).get();
+                const investments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Auto-withdraw any investments whose time is up
+                await processMaturedInvestments(investments);
+
+                // Re-fetch after auto-withdraw (some may now be 'withdrawn')
+                const freshSnap = await db.collection('investments').where('uid', '==', state.user.uid).where('status', 'in', ['active', 'matured']).get();
+                const activeInvestments = freshSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                if (activeInvestments.length === 0) {
+                    container.innerHTML = '<p class="text-textGray text-center py-8">No active investments</p>';
+                    return;
+                }
+                container.innerHTML = activeInvestments.map(inv => {
                     const isMatured = inv.status === 'matured';
                     const startDate = inv.startDate?.toDate ? inv.startDate.toDate() : new Date(inv.startDate || Date.now());
                     const daysElapsed = Math.max(0, Math.floor((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
@@ -8123,6 +8131,75 @@
             } 
         }
         
+        // Auto-process investments whose endDate has passed
+        async function processMaturedInvestments(investments) {
+            const now = Date.now();
+            const matured = investments.filter(inv => {
+                if (inv.status !== 'active') return false;
+                const end = inv.endDate?.toDate ? inv.endDate.toDate().getTime()
+                          : inv.endDate?.seconds ? inv.endDate.seconds * 1000
+                          : new Date(inv.endDate || 0).getTime();
+                return end > 0 && now >= end;
+            });
+            if (matured.length === 0) return;
+
+            for (const inv of matured) {
+                try {
+                    const principal = inv.amount || 0;
+                    const minRate = inv.minReturnRate || 5;
+                    const maxRate = inv.maxReturnRate || 15;
+                    const avgRate = (minRate + maxRate) / 2;
+                    const duration = inv.duration || 30;
+                    // Use server-set totalReturned if available, else calculate
+                    const profit = inv.totalReturned > 0 ? inv.totalReturned
+                                 : principal * (avgRate / 100);
+                    const total = principal + profit;
+
+                    await db.runTransaction(async (t) => {
+                        const invRef = db.collection('investments').doc(inv.id);
+                        const invDoc = await t.get(invRef);
+                        if (!invDoc.exists || invDoc.data().status !== 'active') return;
+                        if (invDoc.data().uid !== state.user.uid) return;
+
+                        t.update(invRef, {
+                            status: 'withdrawn',
+                            totalReturned: profit,
+                            autoWithdrawn: true,
+                            withdrawnAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+
+                        const userRef = db.collection('users').doc(state.user.uid);
+                        if (inv.usedInvestBalance) {
+                            t.update(userRef, { spotBalance: firebase.firestore.FieldValue.increment(total) });
+                        } else {
+                            t.update(userRef, {
+                                investBalance: firebase.firestore.FieldValue.increment(-principal),
+                                spotBalance: firebase.firestore.FieldValue.increment(total)
+                            });
+                        }
+                    });
+
+                    // Notification
+                    await db.collection('notifications').add({
+                        uid: state.user.uid, type: 'investment',
+                        title: '✅ Investment Matured!',
+                        message: `${inv.planName}: ₹${principal.toLocaleString()} + ₹${profit.toFixed(2)} profit = ₹${total.toFixed(2)} credited to Spot wallet.`,
+                        read: false,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    }).catch(() => {});
+
+                    showToast(`✅ ${inv.planName} matured! ₹${total.toFixed(2)} → Spot wallet`);
+                } catch (e) {
+                    console.log('Auto-withdraw error (non-critical):', e.message);
+                }
+            }
+
+            if (matured.length > 0) {
+                await loadUserInvestments();
+                loadWalletInvestments();
+            }
+        }
+
         async function withdrawInvestment(investId) {
             // BAL-03 FIX: Never trust client-passed earned amount. Read from Firestore.
             // SEC-04 FIX: Verify investment belongs to current user inside transaction.
