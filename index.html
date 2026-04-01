@@ -1921,9 +1921,9 @@
                     </select>
                 </div>
                 <div class="bg-surface p-3 rounded-lg">
-                    <p class="text-textGray text-xs">Expected Returns (Variable)</p>
+                    <p class="text-textGray text-xs">Estimated Return</p>
                     <p id="invest-returns" class="text-primary font-bold text-lg">₹0.00</p>
-                    <p class="text-textGray text-xs mt-1">*Based on market performance (5-15% estimated)</p>
+                    <p id="invest-returns-daily" class="text-textGray text-xs mt-1"></p>
                 </div>
             </div>
             <button id="invest-confirm-btn" onclick="submitInvestment()" class="v-btn mt-4">CONFIRM INVESTMENT</button>
@@ -4979,11 +4979,11 @@
                         <div class="flex gap-2 mb-3">
                             <div class="flex-1 rounded-lg p-2 text-center" style="background:rgba(0,200,83,0.08);border:1px solid rgba(0,200,83,0.2)">
                                 <p class="text-textGray text-xs">Min Return</p>
-                                <p class="text-primary font-bold text-sm">${minRate}% p.a.</p>
+                                <p class="text-primary font-bold text-sm">${minRate}%</p>
                             </div>
                             <div class="flex-1 rounded-lg p-2 text-center" style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2)">
                                 <p class="text-textGray text-xs">Max Return</p>
-                                <p class="font-bold text-sm" style="color:#d4af37;">${maxRate}% p.a.</p>
+                                <p class="font-bold text-sm" style="color:#d4af37;">${maxRate}%</p>
                             </div>
                         </div>
                         <div class="flex justify-between text-xs text-textGray mb-3">
@@ -5016,13 +5016,31 @@
         
         function updateInvestReturns() {
             const amount = parseFloat(document.getElementById('invest-amount').value) || 0;
-            const duration = parseInt(document.getElementById('invest-duration').value) || 30;
+            const duration = parseInt(document.getElementById('invest-duration').value) || 1;
             const plan = state.selectedInvestPlan;
-            const minRate = (plan?.minReturnRate || 5) / 100;
-            const maxRate = (plan?.maxReturnRate || 15) / 100;
-            const minReturn = amount * minRate * (duration / 365);
-            const maxReturn = amount * maxRate * (duration / 365);
-            document.getElementById('invest-returns').textContent = `₹${minReturn.toFixed(0)} - ₹${maxReturn.toFixed(0)} (${(plan?.minReturnRate||5)}%-${(plan?.maxReturnRate||15)}% p.a.)`;
+            const minRate = plan?.minReturnRate || 5;
+            const maxRate = plan?.maxReturnRate || 15;
+
+            // Total return = amount × rate% (plan rate is total % for the duration)
+            const minReturn = amount * minRate / 100;
+            const maxReturn = amount * maxRate / 100;
+
+            const returnsEl = document.getElementById('invest-returns');
+            const dailyEl   = document.getElementById('invest-returns-daily');
+
+            if (amount <= 0) {
+                returnsEl.textContent = '₹0.00';
+                if (dailyEl) dailyEl.textContent = '';
+                return;
+            }
+
+            returnsEl.textContent = `₹${minReturn.toFixed(2)} – ₹${maxReturn.toFixed(2)}`;
+
+            // Sub-line: rate% over duration + daily breakdown
+            const minDaily = minReturn / duration;
+            const maxDaily = maxReturn / duration;
+            const durationLabel = duration <= 1 ? '1 day' : `${duration} days`;
+            if (dailyEl) dailyEl.textContent = `${minRate}%–${maxRate}% over ${durationLabel}  •  ₹${minDaily.toFixed(2)}–₹${maxDaily.toFixed(2)}/day`;
         }
         
         async function submitInvestment() {
