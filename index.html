@@ -6084,17 +6084,23 @@
                 return false;
             }
             const upiId = state.adminConfig?.upi || 'admin@upi';
-            const upiLink = `upi://pay?pa=${encodeURIComponent(upiId)}&am=${amount}&cu=INR&tn=TredingStore`;
+            const params = `pa=${encodeURIComponent(upiId)}&am=${amount}&cu=INR&tn=TredingStore`;
 
-            // Create a real anchor element and click it —
-            // this is the only reliable way to open UPI apps on Android Chrome/PWA
-            const a = document.createElement('a');
-            a.href = upiLink;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            // App-specific deep links (most reliable on Android)
+            let upiLink;
+            if (method === 'gpay') {
+                upiLink = `tez://upi/pay?${params}`;
+            } else if (method === 'ppay') {
+                upiLink = `phonepe://pay?${params}`;
+            } else {
+                upiLink = `paytmmp://pay?${params}`;
+            }
 
-            return false;
+            // Set href on the actual clicked button, then allow default anchor navigation —
+            // returning true lets the browser follow the link naturally (most reliable on Android PWA)
+            const btnId = method === 'gpay' ? 'gpay' : method === 'ppay' ? 'ppay' : 'paytm';
+            document.getElementById(btnId).href = upiLink;
+            return true;
         }
         
         function switchNFTTab(tab, btn) { 
