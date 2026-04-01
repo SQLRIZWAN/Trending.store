@@ -1708,48 +1708,106 @@
             </div>
 
             <div id="inr-section">
-                <div class="mb-4 text-left">
-                    <label class="text-textGray text-xs mb-1 block">Enter Amount (INR)</label>
-                    <div class="relative">
-                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary font-bold">₹</span>
-                        <input type="number" id="deposit-amount" class="v-input" style="text-align: left; padding-left: 30px;" placeholder="Min ₹500" oninput="updateDepositLinks()">
-                    </div>
-                    <p class="text-textGray text-xs mt-1">Min: ₹500 | Daily Limit: <span id="daily-deposit-limit">₹10,000</span></p>
+
+                <!-- Step Indicator -->
+                <div class="flex items-center justify-center mb-5 px-2">
+                    <div id="dep-dot-1" class="w-8 h-8 rounded-full bg-primary text-black flex items-center justify-center text-sm font-bold shrink-0">1</div>
+                    <div id="dep-line-12" class="flex-1 h-0.5 bg-primary mx-1"></div>
+                    <div id="dep-dot-2" class="w-8 h-8 rounded-full bg-surface text-textGray flex items-center justify-center text-sm font-bold shrink-0">2</div>
+                    <div id="dep-line-23" class="flex-1 h-0.5 bg-border mx-1"></div>
+                    <div id="dep-dot-3" class="w-8 h-8 rounded-full bg-surface text-textGray flex items-center justify-center text-sm font-bold shrink-0">3</div>
+                </div>
+                <div class="flex justify-between text-xs text-textGray mb-4 px-1">
+                    <span>Amount</span><span class="mr-3">Payment</span><span>Verify</span>
                 </div>
 
-                <div class="bg-surface p-3 rounded-lg mb-4 text-left">
-                    <p class="text-textGray text-xs mb-2">Quick Select:</p>
-                    <div class="grid grid-cols-4 gap-2">
-                        <button onclick="setDepositAmount(500)" class="bg-surfaceLight hover:bg-primary hover:text-black text-xs py-2 rounded transition-colors">₹500</button>
-                        <button onclick="setDepositAmount(1000)" class="bg-surfaceLight hover:bg-primary hover:text-black text-xs py-2 rounded transition-colors">₹1K</button>
-                        <button onclick="setDepositAmount(5000)" class="bg-surfaceLight hover:bg-primary hover:text-black text-xs py-2 rounded transition-colors">₹5K</button>
-                        <button onclick="setDepositAmount(10000)" class="bg-surfaceLight hover:bg-primary hover:text-black text-xs py-2 rounded transition-colors">₹10K</button>
+                <!-- Step 1: Enter Amount -->
+                <div id="dep-step-1">
+                    <div class="mb-3 text-left">
+                        <label class="text-textGray text-xs mb-1 block">Enter Amount (INR)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary font-bold">₹</span>
+                            <input type="number" id="deposit-amount" class="v-input" style="text-align: left; padding-left: 30px;" placeholder="Min ₹500" oninput="updateDepositLinks()">
+                        </div>
+                        <p class="text-textGray text-xs mt-1">Min: ₹500 | Daily Limit: <span id="daily-deposit-limit">₹10,000</span></p>
                     </div>
+                    <div class="bg-surface p-3 rounded-lg mb-5 text-left">
+                        <p class="text-textGray text-xs mb-2">Quick Select:</p>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button onclick="setDepositAmount(500)"  class="bg-surfaceLight hover:bg-primary hover:text-black text-xs py-2 rounded transition-colors">₹500</button>
+                            <button onclick="setDepositAmount(1000)" class="bg-surfaceLight hover:bg-primary hover:text-black text-xs py-2 rounded transition-colors">₹1K</button>
+                            <button onclick="setDepositAmount(5000)" class="bg-surfaceLight hover:bg-primary hover:text-black text-xs py-2 rounded transition-colors">₹5K</button>
+                            <button onclick="setDepositAmount(10000)" class="bg-surfaceLight hover:bg-primary hover:text-black text-xs py-2 rounded transition-colors">₹10K</button>
+                        </div>
+                    </div>
+                    <button onclick="goToDepStep(2)" class="v-btn">Continue <i class="fas fa-arrow-right ml-2"></i></button>
                 </div>
 
-                <p id="p-amt" style="color:#00ff88; font-weight:900; margin-bottom:15px; font-size:1.2rem;"></p>
-                
-                <a id="gpay" href="#" class="p-btn" onclick="return handlePaymentClick('gpay')">
-                    <img src="https://img.icons8.com/color/48/google-pay.png" alt="Google Pay" onerror="this.style.display='none'"> Google Pay
-                </a>
-                <a id="ppay" href="#" class="p-btn" onclick="return handlePaymentClick('ppay')">
-                    <img src="https://img.icons8.com/color/48/phone-pe.png" alt="PhonePe" onerror="this.style.display='none'"> PhonePe
-                </a>
-                <a id="paytm" href="#" class="p-btn" onclick="return handlePaymentClick('paytm')">
-                    <img src="https://img.icons8.com/color/48/paytm.png" alt="Paytm" onerror="this.style.display='none'"> Paytm
-                </a>
+                <!-- Step 2: Choose Payment -->
+                <div id="dep-step-2" class="hidden">
+                    <div class="flex items-center mb-4">
+                        <button onclick="goToDepStep(1)" class="w-8 h-8 rounded-lg bg-surfaceLight flex items-center justify-center text-textGray hover:text-white shrink-0">
+                            <i class="fas fa-arrow-left text-xs"></i>
+                        </button>
+                        <p class="flex-1 text-center text-primary font-bold text-xl" id="dep-amt-display">₹0</p>
+                    </div>
 
-                <div class="border-t border-border my-4 pt-4">
-                    <p class="text-textGray text-xs mb-2">After Payment, Submit Details:</p>
+                    <p class="text-textGray text-xs mb-3 text-left font-semibold">Choose Payment App:</p>
+                    <a id="gpay" href="#" class="p-btn" onclick="return handlePaymentClick('gpay')">
+                        <img src="https://img.icons8.com/color/48/google-pay.png" alt="Google Pay" onerror="this.style.display='none'"> Google Pay
+                    </a>
+                    <a id="ppay" href="#" class="p-btn" onclick="return handlePaymentClick('ppay')">
+                        <img src="https://img.icons8.com/color/48/phone-pe.png" alt="PhonePe" onerror="this.style.display='none'"> PhonePe
+                    </a>
+                    <a id="paytm" href="#" class="p-btn" onclick="return handlePaymentClick('paytm')">
+                        <img src="https://img.icons8.com/color/48/paytm.png" alt="Paytm" onerror="this.style.display='none'"> Paytm
+                    </a>
+
+                    <div class="border-t border-border mt-4 pt-4 mb-5">
+                        <p class="text-textGray text-xs mb-2 text-left">Or pay manually via UPI:</p>
+                        <div class="flex items-center gap-2 bg-surface p-3 rounded-lg mb-2">
+                            <i class="fas fa-university text-primary text-sm"></i>
+                            <span class="text-sm font-mono flex-1 text-white" id="dep-upi-display">loading...</span>
+                            <button onclick="copyDepositUPI()" class="px-3 py-1 bg-primary text-black text-xs rounded font-bold shrink-0">
+                                <i class="fas fa-copy mr-1"></i>Copy
+                            </button>
+                        </div>
+                        <p class="text-textGray text-xs">Send exactly <span class="text-primary font-bold" id="dep-amt-exact">₹0</span> to above UPI ID</p>
+                    </div>
+
+                    <button onclick="goToDepStep(3)" class="v-btn">I've Paid <i class="fas fa-check ml-2"></i></button>
+                </div>
+
+                <!-- Step 3: Submit Proof -->
+                <div id="dep-step-3" class="hidden">
+                    <div class="flex items-center mb-4">
+                        <button onclick="goToDepStep(2)" class="w-8 h-8 rounded-lg bg-surfaceLight flex items-center justify-center text-textGray hover:text-white shrink-0">
+                            <i class="fas fa-arrow-left text-xs"></i>
+                        </button>
+                        <p class="flex-1 text-center font-semibold text-sm">Submit Payment Proof</p>
+                    </div>
+
+                    <div class="bg-surface p-3 rounded-lg mb-4 flex items-center justify-between">
+                        <span class="text-textGray text-xs">Amount</span>
+                        <span class="text-primary font-bold" id="dep-amt-confirm">₹0</span>
+                    </div>
+
                     <input type="text" id="txid" class="v-input mb-3" placeholder="Enter UTR / Transaction ID" style="text-align: left;">
-                    
+
                     <label class="text-textGray text-xs mb-2 block">Upload Payment Screenshot <span class="text-danger">*</span></label>
-                    <div class="file-upload-area mb-3" onclick="document.getElementById('inr-screenshot').click()" id="inr-upload-area">
+                    <div class="file-upload-area mb-4" onclick="document.getElementById('inr-screenshot').click()" id="inr-upload-area">
                         <input type="file" id="inr-screenshot" class="hidden" accept="image/*" onchange="handleINRScreenshot(this)">
                         <i class="fas fa-image text-2xl text-textGray mb-1"></i>
                         <p id="inr-file-text" class="text-textGray text-xs">Click to upload screenshot</p>
                     </div>
+
+                    <button onclick="verifyLogic()" id="v-btn" class="v-btn">
+                        <span id="v-btn-text">VERIFY PAYMENT</span>
+                        <i id="v-btn-icon" class="fas fa-check ml-2"></i>
+                    </button>
                 </div>
+
+                <p id="p-amt" class="hidden"></p>
             </div>
 
             <div id="usdt-section" class="hidden">
@@ -1775,7 +1833,7 @@
                 <div class="border-t border-border my-4 pt-4">
                     <p class="text-textGray text-xs mb-2">After Transfer, Submit Details:</p>
                     <input type="text" id="usdt-txid" class="v-input mb-3" placeholder="Enter Transaction Hash / TxID" style="text-align: left;">
-                    
+
                     <label class="text-textGray text-xs mb-2 block">Upload Transaction Screenshot <span class="text-danger">*</span></label>
                     <div class="file-upload-area mb-3" onclick="document.getElementById('usdt-screenshot').click()" id="usdt-upload-area">
                         <input type="file" id="usdt-screenshot" class="hidden" accept="image/*" onchange="handleUSDTScreenshot(this)">
@@ -1783,14 +1841,14 @@
                         <p id="usdt-file-text" class="text-textGray text-xs">Click to upload screenshot</p>
                     </div>
                 </div>
+
+                <button onclick="verifyLogic()" class="v-btn mb-3">
+                    <span>VERIFY PAYMENT</span>
+                    <i class="fas fa-check ml-2"></i>
+                </button>
             </div>
 
-            <button onclick="verifyLogic()" id="v-btn" class="v-btn">
-                <span id="v-btn-text">VERIFY PAYMENT</span>
-                <i id="v-btn-icon" class="fas fa-check ml-2"></i>
-            </button>
-            
-            <button onclick="closePay()" style="color:#ff3d00; border:none; background:none; margin-top:15px; font-weight:bold; cursor:pointer; width: 100%;">
+            <button onclick="closePay()" style="color:#ff3d00; border:none; background:none; margin-top:10px; font-weight:bold; cursor:pointer; width: 100%;">
                 CANCEL
             </button>
         </div>
@@ -5909,24 +5967,26 @@
             // BUG-G3 FIX: Do NOT call markNotificationsAsRead here — back button triggers this
             // and would mark notifications as read even if user never saw them.
         }
-        function openPay() { 
+        function openPay() {
             // Check limits before opening
             const kycStatus = state.userData?.kycStatus || 'unverified';
             const limit = state.dailyLimits[kycStatus].deposit;
             document.getElementById('daily-deposit-limit').textContent = '₹' + limit.toLocaleString();
-            
+
             // BUG-D1 FIX: Always reset to INR tab on open to prevent stale USDT highlight
             switchPaymentType('inr');
-            
-            // Reset form
+
+            // Reset form fields
             document.getElementById('deposit-amount').value = '';
             document.getElementById('txid').value = '';
             document.getElementById('usdt-amount').value = '';
             document.getElementById('usdt-txid').value = '';
-            document.getElementById('p-amt').textContent = '';
             resetFileUploads();
-            
-            document.getElementById('pay-modal').style.display = 'flex'; 
+
+            // Always start at step 1
+            goToDepStep(1);
+
+            document.getElementById('pay-modal').style.display = 'flex';
         }
         
         function resetFileUploads() {
@@ -6031,22 +6091,51 @@
             updateDepositLinks(); 
         }
         
-        function updateDepositLinks() { 
-            const amount = document.getElementById('deposit-amount').value; 
-            state.currentPaymentAmount = amount; 
-            if (amount && amount >= 500) { 
-                document.getElementById('p-amt').innerText = '₹' + amount; 
-                const upiId = state.adminConfig.upi || 'admin@upi'; 
-                const upiLink = `upi://pay?pa=${upiId}&am=${amount}&cu=INR`; 
-                document.getElementById('gpay').href = upiLink; 
-                document.getElementById('ppay').href = upiLink; 
-                document.getElementById('paytm').href = upiLink; 
-            } else { 
-                document.getElementById('p-amt').innerText = 'Minimum ₹500 required'; 
-                document.getElementById('gpay').href = '#'; 
-                document.getElementById('ppay').href = '#'; 
-                document.getElementById('paytm').href = '#'; 
-            } 
+        function updateDepositLinks() {
+            const amount = document.getElementById('deposit-amount').value;
+            state.currentPaymentAmount = amount;
+        }
+
+        function goToDepStep(step) {
+            const amount = parseFloat(document.getElementById('deposit-amount').value);
+            if (step === 2) {
+                if (!amount || amount < 500) {
+                    showToast('Please enter amount (Min ₹500)', 'error');
+                    return;
+                }
+            }
+            // Show/hide steps
+            [1, 2, 3].forEach(s => {
+                document.getElementById(`dep-step-${s}`).classList.toggle('hidden', s !== step);
+            });
+            // Update step dots & lines
+            const dot1 = document.getElementById('dep-dot-1');
+            const dot2 = document.getElementById('dep-dot-2');
+            const dot3 = document.getElementById('dep-dot-3');
+            const line12 = document.getElementById('dep-line-12');
+            const line23 = document.getElementById('dep-line-23');
+            const activeClass = 'bg-primary text-black';
+            const inactiveClass = 'bg-surface text-textGray';
+            dot1.className = `w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${step >= 1 ? activeClass : inactiveClass}`;
+            dot2.className = `w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${step >= 2 ? activeClass : inactiveClass}`;
+            dot3.className = `w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${step >= 3 ? activeClass : inactiveClass}`;
+            line12.className = `flex-1 h-0.5 mx-1 ${step >= 2 ? 'bg-primary' : 'bg-border'}`;
+            line23.className = `flex-1 h-0.5 mx-1 ${step >= 3 ? 'bg-primary' : 'bg-border'}`;
+
+            if (step === 2 && amount >= 500) {
+                const upiId = state.adminConfig?.upi || 'admin@upi';
+                document.getElementById('dep-amt-display').textContent = '₹' + amount.toLocaleString();
+                document.getElementById('dep-upi-display').textContent = upiId;
+                document.getElementById('dep-amt-exact').textContent = '₹' + amount.toLocaleString();
+            }
+            if (step === 3) {
+                document.getElementById('dep-amt-confirm').textContent = '₹' + (amount || 0).toLocaleString();
+            }
+        }
+
+        function copyDepositUPI() {
+            const upiId = state.adminConfig?.upi || 'admin@upi';
+            navigator.clipboard.writeText(upiId).then(() => showToast('UPI ID copied!'));
         }
         
         function handleINRScreenshot(input) { 
@@ -6079,14 +6168,9 @@
         
         function handlePaymentClick(method) {
             const amount = parseFloat(document.getElementById('deposit-amount').value);
-            if (!amount || amount < 500) {
-                showToast('Please enter amount (Min ₹500)', 'error');
-                return false;
-            }
             const upiId = state.adminConfig?.upi || 'admin@upi';
             const params = `pa=${encodeURIComponent(upiId)}&am=${amount}&cu=INR&tn=TredingStore`;
 
-            // App-specific deep links (most reliable on Android)
             let upiLink;
             if (method === 'gpay') {
                 upiLink = `tez://upi/pay?${params}`;
@@ -6096,8 +6180,7 @@
                 upiLink = `paytmmp://pay?${params}`;
             }
 
-            // Set href on the actual clicked button, then allow default anchor navigation —
-            // returning true lets the browser follow the link naturally (most reliable on Android PWA)
+            // Set href and let browser follow naturally (most reliable on Android PWA)
             const btnId = method === 'gpay' ? 'gpay' : method === 'ppay' ? 'ppay' : 'paytm';
             document.getElementById(btnId).href = upiLink;
             return true;
