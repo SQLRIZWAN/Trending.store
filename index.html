@@ -6930,8 +6930,11 @@
         }
         
         // Trading functions with REAL data and Security
-        function switchTradingMode(mode) { 
-            state.currentTradingMode = mode; 
+        function switchTradingMode(mode) {
+            state.currentTradingMode = mode;
+            // Reset to positions tab so Orders/Trades/Assets don't show stale data from previous mode
+            state.activePositionTab = 'positions';
+            switchPositionTab('positions', null);
             ['futures', 'spot', 'margin'].forEach(m => { 
                 const tab = document.getElementById(`mode-${m}`); 
                 if (tab) { 
@@ -7287,7 +7290,8 @@
         
         function updatePositionsPnL(currentPrice) {
             // PERF-02 FIX: Throttle full DOM re-renders via requestAnimationFrame instead of every 100ms WS tick
-            if (state.currentView === 'trade' && !state._pnlRafPending) {
+            // Only re-render if on positions tab — don't overwrite Orders/Trades/Assets
+            if (state.currentView === 'trade' && !state._pnlRafPending && (!state.activePositionTab || state.activePositionTab === 'positions')) {
                 state._pnlRafPending = true;
                 requestAnimationFrame(() => {
                     state._pnlRafPending = false;
@@ -7296,9 +7300,12 @@
             }
         }
         
-        function renderPositions() { 
-            const container = document.getElementById('positions-content'); 
-            const showCurrentOnly = document.getElementById('show-current-pair')?.checked; 
+        function renderPositions() {
+            // Don't overwrite Orders/Trades/Assets tab content when they are active
+            if (state.activePositionTab && state.activePositionTab !== 'positions') return;
+
+            const container = document.getElementById('positions-content');
+            const showCurrentOnly = document.getElementById('show-current-pair')?.checked;
             let positions = state.positions || [];
             
             // FIX 4: Filter positions by current trading mode (futures/spot/margin)
@@ -7508,6 +7515,9 @@
         async function switchPositionTab(tab, btn) {
             const tabs = ['positions', 'orders', 'trades', 'assets'];
 
+            // Track active tab so renderPositions() / updatePositionsPnL() don't overwrite other tabs
+            state.activePositionTab = tab;
+
             // Reset all tabs styling + show/hide filter bar
             tabs.forEach(t => {
                 const tabBtn = document.getElementById(`pos-tab-${t}`);
@@ -7524,7 +7534,6 @@
             const filterBar = document.getElementById('position-filter-bar');
             if (filterBar) filterBar.style.display = tab === 'positions' ? '' : 'none';
 
-            const container = document.getElementById('positions-content');
             if (tab === 'positions') {
                 renderPositions();
             } else if (tab === 'orders') {
@@ -8055,8 +8064,14 @@
                     const isMatured = inv.status === 'matured';
                     const startDate = inv.startDate?.toDate ? inv.startDate.toDate() : new Date(inv.startDate || Date.now());
                     const daysElapsed = Math.max(0, Math.floor((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
-                    const dailyReturnRate = inv.returnRate || inv.dailyRate || (0.001 + (inv.amount > 10000 ? 0.001 : 0)); // DB rate use karo
-                    const dailyProfit = inv.amount * dailyReturnRate;
+                    // Use stored annual % rates (e.g. minReturnRate=5 means 5% p.a.)
+                    // Daily rate = annualRate / 100 / 365
+                    const minAnnualRate = (inv.minReturnRate || 5) / 100;
+                    const maxAnnualRate = (inv.maxReturnRate || 15) / 100;
+                    const avgDailyRate = ((minAnnualRate + maxAnnualRate) / 2) / 365;
+                    const minDailyProfit = inv.amount * minAnnualRate / 365;
+                    const maxDailyProfit = inv.amount * maxAnnualRate / 365;
+                    const dailyProfit = inv.amount * avgDailyRate;
                     const totalEarned = dailyProfit * daysElapsed;
                     const endDate = inv.endDate?.toDate ? inv.endDate.toDate() : new Date(inv.endDate || Date.now());
                     const daysLeft = Math.max(0, Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
@@ -8077,7 +8092,7 @@
                                 </div>
                                 <div class="bg-surface rounded-lg p-2">
                                     <p class="text-textGray mb-1">Daily Profit</p>
-                                    <p class="font-bold text-primary">+₹${dailyProfit.toFixed(2)}</p>
+                                    <p class="font-bold text-primary text-xs">₹${minDailyProfit.toFixed(2)}–₹${maxDailyProfit.toFixed(2)}</p>
                                 </div>
                                 <div class="bg-surface rounded-lg p-2">
                                     <p class="text-textGray mb-1">Total Earned</p>
