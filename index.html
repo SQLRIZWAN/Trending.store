@@ -6077,13 +6077,24 @@
             navigator.clipboard.writeText(document.getElementById(elementId).textContent).then(() => showToast('Address copied!')); 
         }
         
-        function handlePaymentClick(method) { 
-            const amount = document.getElementById('deposit-amount').value; 
-            if (!amount || amount < 500) { 
-                showToast('Please enter amount (Min ₹500)', 'error'); 
-                return false; 
-            } 
-            return true; 
+        function handlePaymentClick(method) {
+            const amount = parseFloat(document.getElementById('deposit-amount').value);
+            if (!amount || amount < 500) {
+                showToast('Please enter amount (Min ₹500)', 'error');
+                return false;
+            }
+            const upiId = state.adminConfig?.upi || 'admin@upi';
+            const upiLink = `upi://pay?pa=${encodeURIComponent(upiId)}&am=${amount}&cu=INR&tn=TredingStore`;
+
+            // Direct navigation — most reliable way to trigger UPI app on mobile
+            window.location.href = upiLink;
+
+            // Fallback: if app doesn't open in 1.5s, show manual instructions
+            setTimeout(() => {
+                showToast('If app did not open, copy UPI ID and pay manually', 'error');
+            }, 1500);
+
+            return false; // prevent default anchor navigation
         }
         
         function switchNFTTab(tab, btn) { 

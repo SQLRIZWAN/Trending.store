@@ -10,9 +10,13 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #0b0e11; color: #eaecef; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; text-align: center; }
         .card { background: #151a21; border: 1px solid #2b3139; border-radius: 20px; padding: 40px 32px; max-width: 360px; width: 100%; }
-        .icon { font-size: 64px; margin-bottom: 20px; }
-        .title { font-size: 22px; font-weight: 700; color: #d4af37; margin-bottom: 10px; }
-        .subtitle { color: #848e9c; font-size: 14px; line-height: 1.6; margin-bottom: 28px; }
+        .logo-wrap { display: inline-block; animation: logoPulse 2.2s ease-in-out infinite; margin-bottom: 10px; }
+        @keyframes logoPulse { 0%,100%{filter:drop-shadow(0 0 8px rgba(212,175,55,0.4))} 50%{filter:drop-shadow(0 0 22px rgba(212,175,55,0.85))} }
+        .app-name { font-size: 20px; font-weight: 800; background: linear-gradient(135deg,#f5d060,#d4af37,#a07d1c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 2px; margin-bottom: 4px; }
+        .app-tag { font-size: 9px; color: #d4af37; letter-spacing: 3px; opacity: 0.7; margin-bottom: 24px; }
+        .offline-icon { font-size: 40px; margin-bottom: 12px; }
+        .title { font-size: 18px; font-weight: 700; color: #eaecef; margin-bottom: 8px; }
+        .subtitle { color: #848e9c; font-size: 13px; line-height: 1.6; margin-bottom: 28px; }
         .btn { background: linear-gradient(135deg, #d4af37, #ffd700); color: #000; border: none; padding: 14px 32px; border-radius: 10px; font-weight: 800; cursor: pointer; font-size: 15px; width: 100%; margin-bottom: 12px; }
         .btn-secondary { background: transparent; color: #00c853; border: 1px solid #00c853; padding: 12px 32px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; width: 100%; }
         .status { margin-top: 20px; font-size: 12px; color: #848e9c; }
@@ -22,9 +26,42 @@
 </head>
 <body>
     <div class="card">
-        <div class="icon">📡</div>
+        <!-- Same logo as main app -->
+        <div class="logo-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 140" width="56" height="86">
+                <defs>
+                    <linearGradient id="sg" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#f5d060;stop-opacity:1"/>
+                        <stop offset="60%" style="stop-color:#d4af37;stop-opacity:1"/>
+                        <stop offset="100%" style="stop-color:#d4af37;stop-opacity:0.15"/>
+                    </linearGradient>
+                    <filter id="gl"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                </defs>
+                <g filter="url(#gl)">
+                    <line x1="45" y1="2" x2="45" y2="14" stroke="#d4af37" stroke-width="2.5" stroke-linecap="round"/>
+                    <polygon points="35,22 55,22 50,14 40,14" fill="#d4af37"/>
+                    <rect x="22" y="22" width="46" height="72" rx="5" fill="none" stroke="#d4af37" stroke-width="2"/>
+                    <rect x="24" y="24" width="42" height="44" rx="4" fill="url(#sg)" opacity="0.95"/>
+                    <rect x="24" y="68" width="42" height="24" rx="3" fill="none"/>
+                    <line x1="22" y1="46" x2="16" y2="46" stroke="#d4af37" stroke-width="1.5" opacity="0.9"/>
+                    <line x1="22" y1="58" x2="16" y2="58" stroke="#d4af37" stroke-width="1.5" opacity="0.9"/>
+                    <line x1="22" y1="70" x2="16" y2="70" stroke="#d4af37" stroke-width="1.5" opacity="0.9"/>
+                    <line x1="68" y1="46" x2="74" y2="46" stroke="#d4af37" stroke-width="1.5" opacity="0.9"/>
+                    <line x1="68" y1="58" x2="74" y2="58" stroke="#d4af37" stroke-width="1.5" opacity="0.9"/>
+                    <line x1="68" y1="70" x2="74" y2="70" stroke="#d4af37" stroke-width="1.5" opacity="0.9"/>
+                    <rect x="18" y="94" width="54" height="9" rx="3" fill="none" stroke="#d4af37" stroke-width="2"/>
+                    <line x1="45" y1="103" x2="45" y2="122" stroke="#d4af37" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="28" y1="122" x2="62" y2="122" stroke="#d4af37" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="45" y1="116" x2="45" y2="128" stroke="#d4af37" stroke-width="3" stroke-linecap="round"/>
+                </g>
+            </svg>
+        </div>
+        <div class="app-name">TREDING STORE</div>
+        <div class="app-tag">NFT · INVESTMENT · CRYPTO TRADE</div>
+
+        <div class="offline-icon">📡</div>
         <h1 class="title">You're Offline</h1>
-        <p class="subtitle">No internet connection detected. Please check your network settings and try again.</p>
+        <p class="subtitle">No internet connection detected.<br>Please check your network and try again.</p>
         <button class="btn" onclick="tryReload()">🔄 Retry Connection</button>
         <button class="btn-secondary" onclick="goHome()">Go to App</button>
         <div class="status">
@@ -38,12 +75,10 @@
             setTimeout(() => window.location.href = '/', 500);
         }
         function goHome() { window.location.href = '/'; }
-        // Auto-retry when online
         window.addEventListener('online', () => {
             document.getElementById('status-text').textContent = 'Connected! Redirecting...';
             setTimeout(() => window.location.href = '/', 1000);
         });
-        // Check status
         setTimeout(() => {
             document.getElementById('status-text').textContent = navigator.onLine ? 'Connected but page unavailable' : 'No internet connection';
         }, 1000);
