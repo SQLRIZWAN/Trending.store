@@ -8052,22 +8052,29 @@
                     container.innerHTML = '<p class="text-textGray text-center py-8">No active investments</p>'; 
                     return; 
                 } 
-                container.innerHTML = investments.map(inv => { 
+                container.innerHTML = investments.map(inv => {
                     const isMatured = inv.status === 'matured';
                     const startDate = inv.startDate?.toDate ? inv.startDate.toDate() : new Date(inv.startDate || Date.now());
                     const daysElapsed = Math.max(0, Math.floor((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
-                    // Use stored annual % rates (e.g. minReturnRate=5 means 5% p.a.)
-                    // Daily rate = annualRate / 100 / 365
-                    const minAnnualRate = (inv.minReturnRate || 5) / 100;
-                    const maxAnnualRate = (inv.maxReturnRate || 15) / 100;
-                    const avgDailyRate = ((minAnnualRate + maxAnnualRate) / 2) / 365;
-                    const minDailyProfit = inv.amount * minAnnualRate / 365;
-                    const maxDailyProfit = inv.amount * maxAnnualRate / 365;
-                    const dailyProfit = inv.amount * avgDailyRate;
-                    const totalEarned = dailyProfit * daysElapsed;
+                    const duration = inv.duration || 30;
+
+                    // Return % from DB (total return % for the plan duration)
+                    const minRate = inv.minReturnRate || 5;   // e.g. 5 = 5% total over duration
+                    const maxRate = inv.maxReturnRate || 15;  // e.g. 15 = 15% total over duration
+                    const avgRate = (minRate + maxRate) / 2;
+
+                    // Daily profit = amount × rate% / duration
+                    const minDailyProfit = inv.amount * (minRate / 100) / duration;
+                    const maxDailyProfit = inv.amount * (maxRate / 100) / duration;
+                    const avgDailyProfit  = inv.amount * (avgRate / 100) / duration;
+
+                    // Total earned estimate (if server hasn't set totalReturned yet)
+                    const estimatedEarned = avgDailyProfit * daysElapsed;
+                    const totalEarned = (inv.totalReturned > 0 ? inv.totalReturned : estimatedEarned);
+
                     const endDate = inv.endDate?.toDate ? inv.endDate.toDate() : new Date(inv.endDate || Date.now());
                     const daysLeft = Math.max(0, Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
-                    const progress = Math.min(100, (daysElapsed / (inv.duration || 30)) * 100);
+                    const progress = Math.min(100, (daysElapsed / duration) * 100);
                     return ` 
                         <div class="rounded-xl p-4 mb-2" style="background:linear-gradient(135deg,#151a21,#0b0e11);border:1px solid #d4af37;"> 
                             <div class="flex justify-between items-start mb-3"> 
@@ -8077,22 +8084,26 @@
                                 </div> 
                                 <span class="px-2 py-1 text-xs rounded font-bold" style="${isMatured ? 'background:#d4af37;color:#000' : 'background:rgba(212,175,55,0.15);color:#d4af37'}">${isMatured ? '✓ Matured' : '● Active'}</span>
                             </div>
-                            <div class="grid grid-cols-2 gap-2 text-xs mb-3"> 
+                            <div class="grid grid-cols-2 gap-2 text-xs mb-3">
                                 <div class="bg-surface rounded-lg p-2">
                                     <p class="text-textGray mb-1">Invested</p>
                                     <p class="font-bold text-white">₹${inv.amount.toLocaleString()}</p>
                                 </div>
                                 <div class="bg-surface rounded-lg p-2">
+                                    <p class="text-textGray mb-1">Return Rate</p>
+                                    <p class="font-bold text-primary">${minRate}%–${maxRate}%</p>
+                                </div>
+                                <div class="bg-surface rounded-lg p-2">
                                     <p class="text-textGray mb-1">Daily Profit</p>
-                                    <p class="font-bold text-primary text-xs">₹${minDailyProfit.toFixed(2)}–₹${maxDailyProfit.toFixed(2)}</p>
+                                    <p class="font-bold text-primary">₹${minDailyProfit.toFixed(2)}–₹${maxDailyProfit.toFixed(2)}</p>
                                 </div>
                                 <div class="bg-surface rounded-lg p-2">
                                     <p class="text-textGray mb-1">Total Earned</p>
-                                    <p class="font-bold text-primary">₹${(inv.totalReturned > 0 ? inv.totalReturned : totalEarned).toFixed(2)}</p>
+                                    <p class="font-bold text-primary">₹${totalEarned.toFixed(2)}</p>
                                 </div>
-                                <div class="bg-surface rounded-lg p-2">
-                                    <p class="text-textGray mb-1">Days Left</p>
-                                    <p class="font-bold ${daysLeft === 0 ? 'text-primary' : 'text-white'}">${daysLeft === 0 ? 'Done!' : daysLeft + 'd'}</p>
+                                <div class="bg-surface rounded-lg p-2 col-span-2 flex justify-between items-center">
+                                    <span class="text-textGray">Duration: ${duration} days</span>
+                                    <span class="font-bold ${daysLeft === 0 ? 'text-primary' : 'text-white'}">${daysLeft === 0 ? '✓ Done' : daysLeft + 'd left'}</span>
                                 </div>
                             </div>
                             <div class="mb-3">
