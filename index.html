@@ -979,11 +979,21 @@
                             </div>
 
                             <div id="spot-buttons" class="space-y-2 pt-2 hidden">
+                                <!-- Spot Buy/Sell Toggle -->
+                                <div class="flex rounded-lg overflow-hidden border border-border mb-2">
+                                    <button id="spot-side-buy" onclick="setSpotSide('buy')" class="flex-1 py-2 text-sm font-bold bg-primary/20 text-primary border-r border-border">Buy</button>
+                                    <button id="spot-side-sell" onclick="setSpotSide('sell')" class="flex-1 py-2 text-sm font-bold text-textGray">Sell</button>
+                                </div>
+                                <!-- Coin balance for sell -->
+                                <div id="spot-coin-balance" class="hidden text-xs flex justify-between items-center px-1 mb-1">
+                                    <span class="text-textGray">Available <span id="spot-coin-symbol">BTC</span></span>
+                                    <span id="spot-coin-balance-val" class="text-white font-mono font-bold">0.00000000</span>
+                                </div>
                                 <button id="btn-buy" onclick="placeTradingOrder('buy')" class="buy-gradient text-white w-full py-4 rounded-lg font-bold text-lg shadow-lg shadow-green-900/50 active:scale-95 transition-transform">
                                     <div id="buy-btn-label">Buy BTC</div>
                                     <div class="text-xs font-normal opacity-80" id="buy-cost-display">0.00 USDT</div>
                                 </button>
-                                <button id="btn-sell" onclick="placeTradingOrder('sell')" class="sell-gradient text-white w-full py-4 rounded-lg font-bold text-lg shadow-lg shadow-red-900/50 active:scale-95 transition-transform">
+                                <button id="btn-sell" onclick="placeTradingOrder('sell')" class="sell-gradient text-white w-full py-4 rounded-lg font-bold text-lg shadow-lg shadow-red-900/50 active:scale-95 transition-transform hidden">
                                     <div id="sell-btn-label">Sell BTC</div>
                                     <div class="text-xs font-normal opacity-80" id="sell-cost-display">0.00 USDT</div>
                                 </button>
@@ -2258,6 +2268,8 @@
             currentTradingMode: 'futures',
             currentOrderType: 'Limit',
             currentLeverage: 10,
+            spotSide: 'buy',
+            spotCoinBalance: 0,
             currentTimeframe: '15',
             
             // Dynamic data from DB
@@ -7055,13 +7067,15 @@
                 if (longCost) longCost.parentElement.querySelector('div:first-child').textContent = 'Open Long';
                 if (shortCost) shortCost.parentElement.querySelector('div:first-child').textContent = 'Open Short';
                 
-            } else if (mode === 'spot') { 
-                futuresSubtabs?.classList.add('hidden'); 
-                futuresButtons?.classList.add('hidden'); 
-                spotButtons?.classList.remove('hidden'); 
-                leverageDisplay?.classList.add('hidden'); 
-                marginInfo?.classList.add('hidden'); 
+            } else if (mode === 'spot') {
+                futuresSubtabs?.classList.add('hidden');
+                futuresButtons?.classList.add('hidden');
+                spotButtons?.classList.remove('hidden');
+                leverageDisplay?.classList.add('hidden');
+                marginInfo?.classList.add('hidden');
                 liqRow?.classList.add('hidden');
+                // Reset to buy side when entering spot
+                setSpotSide(state.spotSide || 'buy');
                 
             } else { 
                 futuresSubtabs?.classList.add('hidden'); 
@@ -7083,13 +7097,72 @@
             updateUI(); 
         }
         
+        // Spot Buy/Sell toggle
+        function setSpotSide(side) {
+            state.spotSide = side;
+            const buyBtn  = document.getElementById('btn-buy');
+            const sellBtn = document.getElementById('btn-sell');
+            const buyTab  = document.getElementById('spot-side-buy');
+            const sellTab = document.getElementById('spot-side-sell');
+            const coinBalRow = document.getElementById('spot-coin-balance');
+
+            if (side === 'buy') {
+                buyBtn?.classList.remove('hidden');
+                sellBtn?.classList.add('hidden');
+                buyTab?.classList.add('bg-primary/20', 'text-primary');
+                buyTab?.classList.remove('text-textGray');
+                sellTab?.classList.remove('bg-danger/20', 'text-danger');
+                sellTab?.classList.add('text-textGray');
+                coinBalRow?.classList.add('hidden');
+            } else {
+                buyBtn?.classList.add('hidden');
+                sellBtn?.classList.remove('hidden');
+                sellTab?.classList.add('bg-danger/20', 'text-danger');
+                sellTab?.classList.remove('text-textGray');
+                buyTab?.classList.remove('bg-primary/20', 'text-primary');
+                buyTab?.classList.add('text-textGray');
+                coinBalRow?.classList.remove('hidden');
+                updateSpotCoinBalance();
+            }
+
+            // Reset quantity input
+            const qtyInput = document.getElementById('trade-quantity-input');
+            if (qtyInput) { qtyInput.value = ''; qtyInput.placeholder = side === 'sell' ? 'Amount (' + state.pairSymbol.replace('USDT','') + ')' : '0.00'; }
+            calculateTradingTotal();
+        }
+
+        // Fetch and display coin balance for sell side
+        async function updateSpotCoinBalance() {
+            if (!state.user) return;
+            const coinSymbol = state.pairSymbol.replace('USDT', '');
+            document.getElementById('spot-coin-symbol').textContent = coinSymbol;
+            try {
+                const doc = await db.collection('users').doc(state.user.uid)
+                    .collection('spotAssets').doc(coinSymbol).get();
+                const bal = doc.exists ? (doc.data().balance || 0) : 0;
+                state.spotCoinBalance = bal;
+                const el = document.getElementById('spot-coin-balance-val');
+                if (el) el.textContent = bal.toFixed(8);
+            } catch(e) {
+                state.spotCoinBalance = 0;
+            }
+        }
+
         // MAX quantity for trading
         function setMaxQuantity() {
             const price = parseFloat(document.getElementById('trade-price-input').value) || state.currentPrice;
-            const leverage = state.currentTradingMode === 'spot' ? 1 : state.currentLeverage;
             const mode = state.currentTradingMode;
+
+            // Spot SELL: max = coin balance
+            if (mode === 'spot' && state.spotSide === 'sell') {
+                const coinBal = state.spotCoinBalance || 0;
+                document.getElementById('trade-quantity-input').value = coinBal.toFixed(8);
+                calculateTradingTotal();
+                return;
+            }
+
+            const leverage = mode === 'spot' ? 1 : state.currentLeverage;
             const balanceINR = mode === 'futures' ? (state.userData?.futuresBalance || 0) : mode === 'margin' ? (state.userData?.marginBalance || 0) : (state.userData?.spotBalance || 0);
-            // BUG #7 FIX: INR → USDT convert karo, phir qty calculate
             const balanceUSDT = balanceINR / (state.usdtToInr || 83);
             if (price > 0) {
                 const maxQty = (balanceUSDT * leverage) / price;
@@ -7944,12 +8017,18 @@
             updateTradingSlider(0);
             calculateTradingTotal();
             
-            // BUG #6 FIX: Buy/Sell button text update karo selected coin ke saath
+            // Update buy/sell button labels and spot coin symbol
             const coinSymbol = symbol.replace('USDT', '');
             const buyLabel = document.getElementById('buy-btn-label');
             const sellLabel = document.getElementById('sell-btn-label');
             if (buyLabel) buyLabel.textContent = 'Buy ' + coinSymbol;
             if (sellLabel) sellLabel.textContent = 'Sell ' + coinSymbol;
+            const spotCoinSym = document.getElementById('spot-coin-symbol');
+            if (spotCoinSym) spotCoinSym.textContent = coinSymbol;
+            // Refresh coin balance if on sell side
+            if (state.currentTradingMode === 'spot' && state.spotSide === 'sell') {
+                updateSpotCoinBalance();
+            }
             
             // Reload TradingView widget with new symbol
             loadTradingViewWidget();
