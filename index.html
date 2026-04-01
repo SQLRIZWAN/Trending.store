@@ -1597,12 +1597,14 @@
             <!-- History View -->
             <div id="view-history" class="view-section hidden animate-fade-in">
                 <div class="sticky top-[57px] bg-bgDeep z-40 border-b border-border">
-                    <div class="flex">
-                        <button onclick="switchHistoryTab('all')" class="history-tab flex-1 py-3 text-xs font-medium text-center border-b-2 border-primary text-white" data-type="all">All</button>
-                        <button onclick="switchHistoryTab('deposit')" class="history-tab flex-1 py-3 text-xs font-medium text-center border-b-2 border-transparent text-textGray" data-type="deposit">Deposits</button>
-                        <button onclick="switchHistoryTab('withdraw')" class="history-tab flex-1 py-3 text-xs font-medium text-center border-b-2 border-transparent text-textGray" data-type="withdraw">Withdrawals</button>
-                        <button onclick="switchHistoryTab('transfer')" class="history-tab flex-1 py-3 text-xs font-medium text-center border-b-2 border-transparent text-textGray" data-type="transfer">Transfers</button>
-                        <button onclick="switchHistoryTab('trades')" class="history-tab flex-1 py-3 text-xs font-medium text-center border-b-2 border-transparent text-textGray" data-type="trades">Trades</button>
+                    <div class="flex overflow-x-auto no-scrollbar">
+                        <button onclick="switchHistoryTab('all')" class="history-tab flex-1 py-3 text-xs font-medium text-center border-b-2 border-primary text-white whitespace-nowrap px-3" data-type="all">All</button>
+                        <button onclick="switchHistoryTab('deposit')" class="history-tab flex-1 py-3 text-xs font-medium text-center border-b-2 border-transparent text-textGray whitespace-nowrap px-3" data-type="deposit">Deposits</button>
+                        <button onclick="switchHistoryTab('withdraw')" class="history-tab flex-1 py-3 text-xs font-medium text-center border-b-2 border-transparent text-textGray whitespace-nowrap px-3" data-type="withdraw">Withdrawals</button>
+                        <button onclick="switchHistoryTab('transfer')" class="history-tab flex-1 py-3 text-xs font-medium text-center border-b-2 border-transparent text-textGray whitespace-nowrap px-3" data-type="transfer">Transfers</button>
+                        <button onclick="switchHistoryTab('invest')" class="history-tab flex-1 py-3 text-xs font-medium text-center border-b-2 border-transparent text-textGray whitespace-nowrap px-3" data-type="invest">Invest</button>
+                        <button onclick="switchHistoryTab('nft')" class="history-tab flex-1 py-3 text-xs font-medium text-center border-b-2 border-transparent text-textGray whitespace-nowrap px-3" data-type="nft">NFT</button>
+                        <button onclick="switchHistoryTab('trades')" class="history-tab flex-1 py-3 text-xs font-medium text-center border-b-2 border-transparent text-textGray whitespace-nowrap px-3" data-type="trades">Trades</button>
                     </div>
                 </div>
                 <div id="history-content" class="p-4 space-y-2"></div>
@@ -4347,30 +4349,37 @@
                 const userRef = db.collection('users').doc(state.user.uid);
                 const withdrawRef = db.collection('withdrawals').doc();
                 
+                // BALANCE FIX: Do NOT deduct balance on submission.
+                // Admin panel deducts once on approval — client deduction caused double-minus.
+                // Only verify sufficient balance then create pending record.
                 await db.runTransaction(async (transaction) => {
                     const userDoc = await transaction.get(userRef);
                     if (!userDoc.exists) throw new Error('User not found');
-                    
+
                     const currentBalance = userDoc.data()[balanceKey] || 0;
-                    if (currentBalance < amount) {
-                        throw new Error(`Insufficient balance. Available: ₹${currentBalance.toFixed(2)}`);
+                    // Also subtract any existing pending withdrawals to prevent double-spend
+                    const pendingSnap = await db.collection('withdrawals')
+                        .where('uid', '==', state.user.uid)
+                        .where('status', '==', 'pending')
+                        .get();
+                    const pendingTotal = pendingSnap.docs.reduce((s, d) => s + (Number(d.data().amountINR) || Number(d.data().amount) || 0), 0);
+                    const effectiveBalance = currentBalance - pendingTotal;
+                    if (effectiveBalance < amount) {
+                        throw new Error(`Insufficient balance. Available after pending: ₹${Math.max(0, effectiveBalance).toFixed(2)}`);
                     }
-                    
-                    transaction.update(userRef, {
-                        [balanceKey]: firebase.firestore.FieldValue.increment(-amount)
-                    });
-                    
+
                     transaction.set(withdrawRef, {
-                        uid: state.user.uid, 
-                        userName: state.userData.name, 
-                        amount, 
-                        amountINR: amount, // BUG #9 FIX: Consistent field for daily limit
-                        account, 
+                        uid: state.user.uid,
+                        userName: state.userData.name,
+                        amount,
+                        amountINR: amount,
+                        account,
                         upi,
                         accountHolderName: name,
                         qrImageUrl,
                         type: 'inr',
-                        status: 'pending', 
+                        status: 'pending',
+                        balanceDeductedByAdmin: true, // Signal: admin handles deduction on approval
                         ip: state.userIP,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
@@ -4481,31 +4490,35 @@
                 const userRef = db.collection('users').doc(state.user.uid);
                 const withdrawRef = db.collection('withdrawals').doc();
                 
+                // BALANCE FIX: Do NOT deduct on submission — admin deducts once on approval.
                 await db.runTransaction(async (transaction) => {
                     const userDoc = await transaction.get(userRef);
                     if (!userDoc.exists) throw new Error('User not found');
-                    
+
                     const currentBalance = userDoc.data()[balanceKey] || 0;
-                    if (currentBalance < totalDeduction) {
-                        throw new Error(`Insufficient balance. Required: ₹${totalDeduction.toFixed(2)} (including fee)`);
+                    const pendingSnap = await db.collection('withdrawals')
+                        .where('uid', '==', state.user.uid)
+                        .where('status', '==', 'pending')
+                        .get();
+                    const pendingTotal = pendingSnap.docs.reduce((s, d) => s + (Number(d.data().amountINR) || Number(d.data().amount) || 0), 0);
+                    const effectiveBalance = currentBalance - pendingTotal;
+                    if (effectiveBalance < totalDeduction) {
+                        throw new Error(`Insufficient balance. Available after pending: ₹${Math.max(0, effectiveBalance).toFixed(2)}`);
                     }
-                    
-                    transaction.update(userRef, {
-                        [balanceKey]: firebase.firestore.FieldValue.increment(-totalDeduction)
-                    });
-                    
+
                     transaction.set(withdrawRef, {
                         uid: state.user.uid,
                         userName: state.userData.name,
                         amount: amount,
-                        amountINR: totalDeduction, // BUG #9 FIX: INR equivalent for daily limit
+                        amountINR: totalDeduction,
                         inrEquivalent: usdtValue,
-                        fee: 1, // 1 USDT
+                        fee: 1,
                         account: account,
                         address: address,
                         network: 'BEP20',
                         type: 'usdt',
                         status: 'pending',
+                        balanceDeductedByAdmin: true,
                         ip: state.userIP,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
@@ -6436,7 +6449,7 @@
             }
 
             // --- INVESTMENTS ---
-            if (type === 'invest') {
+            if (type === 'all' || type === 'invest') {
                 try {
                     const snap = await db.collection('investments')
                         .where('uid', '==', uid)
@@ -6446,9 +6459,32 @@
                     });
                 } catch(e) {
                     console.error('History investments error:', e.code, e.message);
-                    container.innerHTML = '<p class="text-danger text-center py-4">Investments load error: ' + e.message + '</p>';
-                    return;
+                    if (type === 'invest') {
+                        container.innerHTML = '<p class="text-danger text-center py-4">Investments load error: ' + e.message + '</p>';
+                        return;
+                    }
                 }
+            }
+
+            // --- NFT PURCHASES ---
+            if (type === 'all' || type === 'nft') {
+                try {
+                    const snap = await db.collection('nft_purchases')
+                        .where('uid', '==', uid)
+                        .limit(50).get();
+                    snap.docs.forEach(doc => {
+                        allData.push({ id: doc.id, _collection: 'nft', ...doc.data(), type: 'nft' });
+                    });
+                } catch(e) {
+                    console.error('History NFT error:', e.code, e.message);
+                }
+                // Also check userNFTs subcollection
+                try {
+                    const snap2 = await db.collection('users').doc(uid).collection('nfts').limit(50).get();
+                    snap2.docs.forEach(doc => {
+                        allData.push({ id: doc.id, _collection: 'nft', ...doc.data(), type: 'nft' });
+                    });
+                } catch(e) {}
             }
 
             // --- TRADES (closed positions) ---
@@ -6533,6 +6569,33 @@
                                     <span class="font-mono font-bold text-primary">₹${(data.amount || 0).toLocaleString()}</span>
                                     ${earned > 0 ? '<p class="text-xs text-primary">+₹' + earned.toFixed(2) + ' earned</p>' : ''}
                                     <p class="text-xs ${invColor} capitalize">${invStatus}</p>
+                                </div>
+                            </div>
+                        </div>`;
+                }
+
+                // NFT
+                if (data._collection === 'nft') {
+                    const nftDate = data.purchasedAt?.toDate ? data.purchasedAt.toDate().toLocaleString('en-IN')
+                                  : data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString('en-IN')
+                                  : data.purchaseDate || 'N/A';
+                    const nftStatus = data.status || 'owned';
+                    const nftColor = nftStatus === 'owned' ? 'text-primary' : nftStatus === 'sold' ? 'text-textGray' : 'text-secondary';
+                    return `
+                        <div class="glass rounded-lg p-4">
+                            <div class="flex items-center gap-3">
+                                ${data.image ? `<img src="${data.image}" class="w-12 h-12 rounded-lg object-cover" onerror="this.style.display='none'">` : '<div class="w-12 h-12 rounded-lg bg-surface flex items-center justify-center"><i class="fas fa-image text-textGray"></i></div>'}
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <p class="font-bold text-sm">${data.name || data.nftName || 'NFT'}</p>
+                                            <p class="text-textGray text-xs">${nftDate}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="font-mono font-bold text-primary">₹${(data.price || data.amount || 0).toLocaleString()}</span>
+                                            <p class="text-xs ${nftColor} capitalize">${nftStatus}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>`;
