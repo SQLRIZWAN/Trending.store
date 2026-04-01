@@ -7,7 +7,15 @@
     
     <meta name="description" content="Professional cryptocurrency trading platform with real-time market data, spot, margin, and futures trading.">
     <meta name="theme-color" content="#0b0e11">
-    
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Treding Store">
+    <link rel="apple-touch-icon" href="/icon.svg">
+    <meta name="mobile-web-app-capable" content="yes">
+
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -27,6 +35,65 @@
 
     <!-- TradingView Widget (async - don't block page load) -->
     <script async src="https://s3.tradingview.com/tv.js"></script>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            });
+        }
+        // PWA Install prompt capture
+        let _deferredInstallPrompt = null;
+        window.addEventListener('beforeinstallprompt', e => {
+            e.preventDefault();
+            _deferredInstallPrompt = e;
+            // Show install buttons
+            setTimeout(() => {
+                document.querySelectorAll('.pwa-install-btn').forEach(b => b.style.display = 'flex');
+                // Show popup after 5 seconds if not dismissed
+                setTimeout(() => {
+                    const popup = document.getElementById('pwa-install-popup');
+                    const dismissed = localStorage.getItem('pwaPopupDismissed');
+                    if (popup && !dismissed && _deferredInstallPrompt) {
+                        popup.classList.add('show');
+                    }
+                }, 5000);
+            }, 500);
+        });
+        window.addEventListener('appinstalled', () => {
+            _deferredInstallPrompt = null;
+            document.querySelectorAll('.pwa-install-btn').forEach(b => b.style.display = 'none');
+            const popup = document.getElementById('pwa-install-popup');
+            if (popup) popup.classList.remove('show');
+            localStorage.setItem('pwaInstalled', '1');
+        });
+        function triggerPWAInstall() {
+            if (_deferredInstallPrompt) {
+                _deferredInstallPrompt.prompt();
+                _deferredInstallPrompt.userChoice.then(choice => {
+                    if (choice.outcome === 'accepted') {
+                        document.querySelectorAll('.pwa-install-btn').forEach(b => b.style.display = 'none');
+                    }
+                    _deferredInstallPrompt = null;
+                });
+                const popup = document.getElementById('pwa-install-popup');
+                if (popup) popup.classList.remove('show');
+            } else {
+                // iOS / already installed fallback
+                if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+                    alert('📲 iOS pe install karne ke liye:\n\nSafari mein Share button tap karein aur "Add to Home Screen" select karein.');
+                } else {
+                    alert('✅ App already installed or browser does not support installation.');
+                }
+            }
+        }
+        function dismissPWAPopup() {
+            const popup = document.getElementById('pwa-install-popup');
+            if (popup) popup.classList.remove('show');
+            localStorage.setItem('pwaPopupDismissed', '1');
+        }
+    </script>
 
     <script>
         tailwind.config = {
@@ -260,6 +327,26 @@
         .mobile-nav-item:active { transform: scale(.92); }
         button { transition: all .2s ease; }
         button:active { transform: scale(.97); }
+
+        /* PWA Install Popup */
+        #pwa-install-popup { position: fixed; bottom: 90px; left: 12px; right: 12px; z-index: 9998; background: linear-gradient(135deg, #1e2329, #151a21); border: 1.5px solid rgba(212,175,55,0.5); border-radius: 16px; padding: 14px 16px; display: none; gap: 12px; align-items: center; box-shadow: 0 8px 32px rgba(0,0,0,0.7); animation: slideUp 0.4s ease-out; }
+        #pwa-install-popup.show { display: flex; }
+        .pwa-install-btn { display: none; align-items: center; justify-content: center; }
+
+        /* Modern P&L Modal Upgrade */
+        #pnl-modal { overflow-y: auto; }
+        .pnl-day-cell { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .pnl-day-cell:active { transform: scale(0.92); }
+        .pnl-day-cell:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+
+        /* Trade mode badges */
+        .mode-badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 4px; vertical-align: middle; }
+
+        /* Referral balance card */
+        .referral-balance-card { background: linear-gradient(135deg, rgba(0,200,83,0.1), rgba(0,200,83,0.05)); border: 1px solid rgba(0,200,83,0.3); border-radius: 12px; padding: 16px; }
+
+        /* Assets tab */
+        .asset-row { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #1e2329; border-radius: 10px; margin-bottom: 8px; }
     </style>
 </head>
 <body>
@@ -524,6 +611,10 @@
                     <!-- BUG 5 FIX: Badge moved outside btn-animated (which has overflow:hidden),
                          into a wrapper div with position:relative so badge doesn't get clipped
                          or create phantom red box during side-menu slide animation -->
+                    <!-- PWA Install Button (shows when installable) -->
+                    <button id="pwa-header-install-btn" onclick="triggerPWAInstall()" class="pwa-install-btn btn-animated w-10 h-10 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#d4af37,#ffd700);display:none;" title="Install App">
+                        <i class="fas fa-download text-black text-sm"></i>
+                    </button>
                     <div class="relative" style="z-index:1;">
                         <button onclick="openNotifications()" class="btn-animated w-10 h-10 rounded-lg bg-surfaceLight flex items-center justify-center">
                             <i class="fas fa-bell text-lg"></i>
@@ -583,6 +674,11 @@
                 <button onclick="navigateTo('referral'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-users w-5 text-secondary"></i><span>Refer & Earn</span></button>
                 <button onclick="navigateTo('report'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-exclamation-triangle w-5 text-danger"></i><span>Report Issue</span></button>
                 <button onclick="navigateTo('profile'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-user w-5"></i><span>Profile</span></button>
+                <button id="pwa-menu-install-btn" onclick="triggerPWAInstall(); closeSideMenu();" class="pwa-install-btn w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left" style="display:none;">
+                    <i class="fas fa-download w-5 text-yellow-400"></i>
+                    <span>Install App</span>
+                    <span class="ml-auto text-xs px-2 py-0.5 rounded-full font-bold" style="background:rgba(212,175,55,0.2);color:#d4af37;">PWA</span>
+                </button>
             </nav>
             <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-[#151a21]">
                 <p class="text-textGray text-xs text-center mb-4" id="footer-copy">©SQL 2024</p>
@@ -937,7 +1033,7 @@
                         <button onclick="switchPositionTab('assets', this)" id="pos-tab-assets" class="text-textGray pb-3 whitespace-nowrap">Assets</button>
                     </div>
 
-                    <div class="flex justify-between items-center px-4 py-3 text-xs border-b border-border">
+                    <div id="position-filter-bar" class="flex justify-between items-center px-4 py-3 text-xs border-b border-border">
                         <div class="flex items-center gap-2">
                             <input type="checkbox" id="show-current-pair" class="w-4 h-4 accent-primary rounded" onchange="loadPositionsRealtime()">
                             <label for="show-current-pair" class="text-textGray">Show current pair only</label>
@@ -1127,52 +1223,80 @@
                 </div>
             </div>
 
-            <!-- Referral View (Fixed - No Commission on Deposit) -->
+            <!-- Referral View -->
             <div id="view-referral" class="view-section hidden animate-fade-in">
                 <div class="p-4 max-w-md mx-auto">
-                    <h2 class="text-xl font-bold mb-6">Refer & Earn</h2>
-                    
-                    <div class="glass rounded-xl p-6 mb-6 text-center">
-                        <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-gift text-3xl text-primary"></i>
+                    <h2 class="text-xl font-bold mb-4">Refer &amp; Earn</h2>
+
+                    <!-- Referral Earnings Balance Card -->
+                    <div class="referral-balance-card mb-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <div>
+                                <p class="text-textGray text-xs">Referral Earnings</p>
+                                <h3 id="referral-balance-display" class="text-2xl font-bold text-primary font-mono">₹0.00</h3>
+                                <p class="text-textGray text-xs mt-1">Available to use for trade, invest or withdraw</p>
+                            </div>
+                            <div class="w-14 h-14 rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,rgba(0,200,83,0.2),rgba(0,200,83,0.05));border:1px solid rgba(0,200,83,0.3);">
+                                <i class="fas fa-coins text-primary text-xl"></i>
+                            </div>
                         </div>
-                        <h3 class="font-bold text-lg mb-2">Invite Friends</h3>
-                        <p class="text-textGray text-sm mb-4">Share your referral code and earn rewards when your friends trade!</p>
-                        
+                        <button onclick="transferReferralToSpot()" id="referral-transfer-btn" class="btn-animated w-full py-2.5 rounded-xl font-bold text-sm text-black flex items-center justify-center gap-2" style="background:linear-gradient(135deg,#00c853,#00a844);">
+                            <i class="fas fa-exchange-alt text-xs"></i>
+                            Transfer to Spot Wallet
+                        </button>
+                    </div>
+
+                    <div class="glass rounded-xl p-5 mb-4 text-center">
+                        <div class="w-14 h-14 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-users text-2xl text-secondary"></i>
+                        </div>
+                        <h3 class="font-bold mb-1">Invite Friends, Earn ₹10</h3>
+                        <p class="text-textGray text-xs mb-4">When your friend deposits ₹100+, you earn <span class="text-primary font-bold">₹10 instantly</span> (one-time per referral)</p>
+
                         <div class="referral-code mb-4" id="referral-code-display">LOADING...</div>
-                        
-                        <button onclick="copyReferralCode()" class="btn-animated w-full bg-primary text-black font-bold py-3 rounded-lg mb-3">
+
+                        <button onclick="copyReferralCode()" class="btn-animated w-full bg-primary text-black font-bold py-3 rounded-xl mb-3">
                             <i class="fas fa-copy mr-2"></i>Copy Code
                         </button>
-                        
-                        <div class="flex gap-2 justify-center">
-                            <button onclick="shareReferral('whatsapp')" class="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm">
-                                <i class="fab fa-whatsapp mr-1"></i>Share
+
+                        <div class="flex gap-2">
+                            <button onclick="shareReferral('whatsapp')" class="flex-1 font-bold py-2 rounded-lg text-sm text-white" style="background:#25D366;">
+                                <i class="fab fa-whatsapp mr-1"></i>WhatsApp
                             </button>
-                            <button onclick="shareReferral('telegram')" class="flex-1 bg-blue-500 text-white py-2 rounded-lg text-sm">
-                                <i class="fab fa-telegram mr-1"></i>Share
+                            <button onclick="shareReferral('telegram')" class="flex-1 font-bold py-2 rounded-lg text-sm text-white" style="background:#2CA5E0;">
+                                <i class="fab fa-telegram mr-1"></i>Telegram
+                            </button>
+                            <button onclick="shareReferral('copy')" class="px-3 py-2 rounded-lg bg-surfaceLight text-textGray text-sm">
+                                <i class="fas fa-link"></i>
                             </button>
                         </div>
                     </div>
 
-                    <div class="glass rounded-xl p-6 mb-6">
-                        <h3 class="font-bold mb-4">Your Referral Stats</h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="text-center p-3 bg-surface rounded-lg">
-                                <p class="text-textGray text-xs mb-1">Total Referrals</p>
-                                <p id="total-referrals" class="text-2xl font-bold text-primary">0</p>
+                    <div class="glass rounded-xl p-5 mb-4">
+                        <h3 class="font-bold mb-3">Referral Stats</h3>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="text-center p-3 bg-surface rounded-xl">
+                                <p class="text-textGray text-xs mb-1">Total</p>
+                                <p id="total-referrals" class="text-xl font-bold text-primary">0</p>
                             </div>
-                            <div class="text-center p-3 bg-surface rounded-lg">
-                                <p class="text-textGray text-xs mb-1">Trading Fee Rebate</p>
-                                <p id="total-referral-earnings" class="text-2xl font-bold text-secondary">₹0</p>
+                            <div class="text-center p-3 bg-surface rounded-xl">
+                                <p class="text-textGray text-xs mb-1">Earned</p>
+                                <p id="total-referral-earnings" class="text-xl font-bold text-secondary">₹0</p>
+                            </div>
+                            <div class="text-center p-3 bg-surface rounded-xl">
+                                <p class="text-textGray text-xs mb-1">Pending</p>
+                                <p id="pending-referrals" class="text-xl font-bold text-textGray">0</p>
                             </div>
                         </div>
-                        <p class="text-textGray text-xs mt-3 text-center">Earn 10% of trading fees paid by your referrals</p>
+                        <div class="mt-3 p-3 rounded-xl text-xs text-textGray" style="background:rgba(255,214,0,0.06);border:1px solid rgba(255,214,0,0.15);">
+                            <i class="fas fa-info-circle text-secondary mr-1"></i>
+                            Friend ko register karte time apna referral code dalna hoga. Unke pehle ₹100 deposit ke baad reward milega.
+                        </div>
                     </div>
 
-                    <div class="glass rounded-xl p-6">
-                        <h3 class="font-bold mb-4">Recent Referrals</h3>
-                        <div id="referral-list" class="space-y-3 max-h-64 overflow-y-auto">
+                    <div class="glass rounded-xl p-5">
+                        <h3 class="font-bold mb-3">Recent Referrals</h3>
+                        <div id="referral-list" class="space-y-2 max-h-64 overflow-y-auto">
                             <p class="text-textGray text-center py-4">No referrals yet</p>
                         </div>
                     </div>
@@ -1793,10 +1917,8 @@
                 <div>
                     <label class="text-textGray text-xs mb-1 block">Duration (Days) <span class="text-danger">*</span></label>
                     <select id="invest-duration" class="v-input" style="text-align: left;" onchange="updateInvestReturns()">
+                        <!-- Options populated dynamically by openInvestModal() -->
                         <option value="30">30 Days</option>
-                        <option value="60">60 Days</option>
-                        <option value="90">90 Days</option>
-                        <option value="180">180 Days</option>
                     </select>
                 </div>
                 <div class="bg-surface p-3 rounded-lg">
@@ -1810,59 +1932,101 @@
         </div>
     </div>
 
-    <!-- P&L History Full Modal -->
-    <div id="pnl-modal" class="fixed inset-0 z-[10002] hidden flex-col" style="background:#0a0a0a;">
-        <!-- Header -->
-        <div class="flex items-center justify-between p-4 border-b border-border sticky top-0 z-10" style="background:#0a0a0a;">
-            <button onclick="closePnLModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface text-textGray"><i class="fas fa-arrow-left text-sm"></i></button>
-            <h2 class="font-bold text-base">P&L History</h2>
-            <div class="flex gap-1 bg-surface rounded-full p-1">
-                <button id="pnl-inr-btn" onclick="setPnLCurrency('INR')" class="px-3 py-1 rounded-full text-xs font-bold transition-all" style="background:linear-gradient(135deg,#d4af37,#ffd700);color:#000;">₹ INR</button>
-                <button id="pnl-usdt-btn" onclick="setPnLCurrency('USDT')" class="px-3 py-1 rounded-full text-xs font-bold text-textGray transition-all">$ USDT</button>
+    <!-- P&L History Full Modal (Modern Upgrade) -->
+    <div id="pnl-modal" class="fixed inset-0 z-[10002] hidden flex-col" style="background:#080b0e;">
+        <!-- Modern Header -->
+        <div class="sticky top-0 z-10 px-4 pt-4 pb-3" style="background:linear-gradient(180deg,#080b0e 85%,rgba(8,11,14,0));">
+            <div class="flex items-center justify-between mb-4">
+                <button onclick="closePnLModal()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-surface/80 text-textGray active:scale-90 transition-transform">
+                    <i class="fas fa-arrow-left text-sm"></i>
+                </button>
+                <div>
+                    <h2 class="font-bold text-base text-center">P&amp;L Analytics</h2>
+                    <p class="text-textGray text-xs text-center">Trading Performance</p>
+                </div>
+                <div class="flex gap-1 bg-surface/80 rounded-xl p-1 border border-border/50">
+                    <button id="pnl-inr-btn" onclick="setPnLCurrency('INR')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all" style="background:linear-gradient(135deg,#d4af37,#ffd700);color:#000;">₹</button>
+                    <button id="pnl-usdt-btn" onclick="setPnLCurrency('USDT')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-textGray transition-all">$</button>
+                </div>
+            </div>
+
+            <!-- Summary Cards - Modern Bento Grid -->
+            <div class="grid grid-cols-3 gap-2 mb-3">
+                <div class="rounded-2xl p-3 text-center col-span-1" style="background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.05));border:1px solid rgba(212,175,55,0.25);">
+                    <p class="text-textGray text-xs mb-1">Total P&amp;L</p>
+                    <p id="pnl-total" class="font-bold text-lg leading-tight">₹0</p>
+                </div>
+                <div class="rounded-2xl p-3 text-center" style="background:linear-gradient(135deg,rgba(0,200,83,0.15),rgba(0,200,83,0.05));border:1px solid rgba(0,200,83,0.25);">
+                    <p class="text-textGray text-xs mb-1">🟢 Win</p>
+                    <p id="pnl-win-days" class="font-bold text-lg text-primary">0</p>
+                </div>
+                <div class="rounded-2xl p-3 text-center" style="background:linear-gradient(135deg,rgba(246,70,93,0.15),rgba(246,70,93,0.05));border:1px solid rgba(246,70,93,0.25);">
+                    <p class="text-textGray text-xs mb-1">🔴 Loss</p>
+                    <p id="pnl-loss-days" class="font-bold text-lg text-danger">0</p>
+                </div>
+            </div>
+
+            <!-- Win Rate Bar -->
+            <div id="pnl-winrate-bar" class="rounded-xl overflow-hidden" style="height:6px;background:#1e2329;">
+                <div id="pnl-winrate-fill" class="h-full rounded-xl transition-all duration-500" style="width:0%;background:linear-gradient(90deg,#00c853,#00ff88);"></div>
+            </div>
+            <div class="flex justify-between text-xs text-textGray mt-1 px-0.5 mb-1">
+                <span>Win Rate</span>
+                <span id="pnl-winrate-pct" class="text-primary font-bold">0%</span>
             </div>
         </div>
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-3 gap-3 p-4">
-            <div class="rounded-xl p-3 text-center" style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2)">
-                <p class="text-textGray text-xs mb-1">Total P&L</p>
-                <p id="pnl-total" class="font-bold text-base">₹0</p>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto px-4 pb-24">
+            <!-- Calendar Navigation -->
+            <div class="flex items-center justify-between py-2 mb-2">
+                <button onclick="pnlCalNav(-1)" class="w-9 h-9 flex items-center justify-center rounded-xl bg-surface text-textGray active:scale-90 transition-transform">
+                    <i class="fas fa-chevron-left text-xs"></i>
+                </button>
+                <span id="pnl-cal-title" class="font-bold text-sm"></span>
+                <button onclick="pnlCalNav(1)" class="w-9 h-9 flex items-center justify-center rounded-xl bg-surface text-textGray active:scale-90 transition-transform">
+                    <i class="fas fa-chevron-right text-xs"></i>
+                </button>
             </div>
-            <div class="rounded-xl p-3 text-center" style="background:rgba(0,200,83,0.08);border:1px solid rgba(0,200,83,0.2)">
-                <p class="text-textGray text-xs mb-1">Win Days</p>
-                <p id="pnl-win-days" class="font-bold text-base text-primary">0</p>
+
+            <!-- Calendar Grid -->
+            <div class="rounded-2xl p-3 mb-3" style="background:#111620;border:1px solid rgba(255,255,255,0.06);">
+                <div class="grid grid-cols-7 gap-1 mb-2">
+                    <div class="text-center text-xs text-textGray font-bold py-1">Su</div>
+                    <div class="text-center text-xs text-textGray font-bold py-1">Mo</div>
+                    <div class="text-center text-xs text-textGray font-bold py-1">Tu</div>
+                    <div class="text-center text-xs text-textGray font-bold py-1">We</div>
+                    <div class="text-center text-xs text-textGray font-bold py-1">Th</div>
+                    <div class="text-center text-xs text-textGray font-bold py-1">Fr</div>
+                    <div class="text-center text-xs text-textGray font-bold py-1">Sa</div>
+                </div>
+                <div id="pnl-calendar-grid" class="grid grid-cols-7 gap-1"></div>
+                <div id="pnl-empty-state" class="hidden text-center py-8 text-textGray">
+                    <i class="fas fa-chart-area text-4xl mb-3 block opacity-20"></i>
+                    <p class="text-sm font-semibold">No trades yet</p>
+                    <p class="text-xs mt-1 opacity-50">Close positions to see P&amp;L data here</p>
+                </div>
             </div>
-            <div class="rounded-xl p-3 text-center" style="background:rgba(246,70,93,0.08);border:1px solid rgba(246,70,93,0.2)">
-                <p class="text-textGray text-xs mb-1">Loss Days</p>
-                <p id="pnl-loss-days" class="font-bold text-base text-danger">0</p>
+
+            <!-- Day Detail -->
+            <div id="pnl-day-detail" class="hidden mb-3">
+                <div class="rounded-2xl p-4" style="background:#111620;border:1px solid rgba(212,175,55,0.2);">
+                    <div class="flex items-center justify-between mb-3">
+                        <p id="pnl-detail-date" class="font-bold text-sm text-white"></p>
+                        <button onclick="document.getElementById('pnl-day-detail').classList.add('hidden')" class="w-6 h-6 flex items-center justify-center rounded-full bg-surface text-textGray text-xs">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="pnl-trades-list" class="space-y-2 max-h-56 overflow-y-auto"></div>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div id="pnl-loading" class="text-center py-6 text-textGray text-sm">
+                <i class="fas fa-spinner fa-spin text-2xl mb-2 block text-primary"></i>
+                Loading your P&amp;L data...
             </div>
         </div>
-        <!-- Calendar Navigation -->
-        <div class="flex items-center justify-between px-4 pb-2">
-            <button onclick="pnlCalNav(-1)" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface text-textGray hover:text-white"><i class="fas fa-chevron-left text-xs"></i></button>
-            <span id="pnl-cal-title" class="font-bold text-sm"></span>
-            <button onclick="pnlCalNav(1)" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface text-textGray hover:text-white"><i class="fas fa-chevron-right text-xs"></i></button>
-        </div>
-        <!-- Calendar Grid -->
-        <div class="px-4 pb-2">
-            <div class="grid grid-cols-7 gap-1 mb-1">
-                ${['S','M','T','W','T','F','S'].map(d=>`<div class="text-center text-xs text-textGray font-bold py-1">${d}</div>`).join('')}
-            </div>
-            <div id="pnl-calendar-grid" class="grid grid-cols-7 gap-1"></div>
-            <!-- BUG 2 FIX: Proper empty state instead of silent blank calendar -->
-            <div id="pnl-empty-state" class="hidden text-center py-8 text-textGray">
-                <i class="fas fa-chart-bar text-3xl mb-2 block opacity-30"></i>
-                <p class="text-sm">No closed trades yet</p>
-                <p class="text-xs mt-1 opacity-60">P&L data will appear here after you close positions</p>
-            </div>
-        </div>
-        <!-- Day Detail -->
-        <div id="pnl-day-detail" class="hidden px-4 pb-2">
-            <div class="rounded-xl p-3" style="background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2)">
-                <p id="pnl-detail-date" class="font-bold text-sm mb-2"></p>
-                <div id="pnl-trades-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
-            </div>
-        </div>
-        <div id="pnl-loading" class="text-center py-4 text-textGray text-sm"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</div>
     </div>
 
     <!-- NFT Confirmation Modal -->
@@ -1961,6 +2125,23 @@
                 <button onclick="hideLogoutDialog()" class="flex-1 py-2 bg-surfaceLight rounded-lg text-sm font-semibold">Cancel</button>
                 <button onclick="logout()" class="flex-1 py-2 bg-danger text-white rounded-lg text-sm font-semibold">Logout</button>
             </div>
+        </div>
+    </div>
+
+    <!-- PWA Install Popup (shows after 5s) -->
+    <div id="pwa-install-popup">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#d4af37,#ffd700);">
+            <i class="fas fa-mobile-alt text-black text-xl"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="font-bold text-sm text-white">Install Treding Store</p>
+            <p class="text-textGray text-xs mt-0.5">Home screen pe add karein – faster & offline!</p>
+        </div>
+        <div class="flex gap-2 flex-shrink-0">
+            <button onclick="triggerPWAInstall()" class="px-3 py-2 rounded-lg font-bold text-xs text-black btn-animated" style="background:linear-gradient(135deg,#d4af37,#ffd700);">Install</button>
+            <button onclick="dismissPWAPopup()" class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface text-textGray">
+                <i class="fas fa-times text-xs"></i>
+            </button>
         </div>
     </div>
 
@@ -2987,9 +3168,15 @@
                 setLoaderProgress(45, 'Setting up your account...');
                 // Real-time user data listener
                 const userUnsubscribe = db.collection('users').doc(state.user.uid).onSnapshot(doc => {
-                    if (doc.exists) { 
+                    if (doc.exists) {
+                        const prevBalance = state.userData ? (state.userData.spotBalance || 0) : -1;
                         state.userData = doc.data();
                         updateUI();
+                        // Check referral reward eligibility when balance increases
+                        const newBalance = state.userData.spotBalance || 0;
+                        if (newBalance > prevBalance) {
+                            processReferralRewardIfEligible();
+                        }
                     }
                 });
                 state.listeners.push(userUnsubscribe);
@@ -3726,103 +3913,214 @@
         }
 
         // ==========================================
-        // 🤝 REFERRAL SYSTEM (FIXED - Trading Fees Only)
+        // 🤝 REFERRAL SYSTEM (₹10 on first ₹100 deposit)
         // ==========================================
-        
+
         async function loadReferralData() {
-            // BUG 12 FIX: Guard both state.userData AND state.user before proceeding
             if (!state.userData || !state.user) return;
-            
+
             if (!state.userData.referralCode) {
                 const code = generateReferralCode();
-                if (!code) return; // generateReferralCode returns null if user not ready
+                if (!code) return;
                 await db.collection('users').doc(state.user.uid).update({ referralCode: code });
                 state.referralCode = code;
             } else {
                 state.referralCode = state.userData.referralCode;
             }
-            
-            // FIX 5: Turant code dikhao - snapshot ka wait mat karo
+
+            // Show code immediately
             const codeDisplay = document.getElementById('referral-code-display');
-            if (codeDisplay && state.referralCode) {
-                codeDisplay.textContent = state.referralCode;
-            }
-            
+            if (codeDisplay && state.referralCode) codeDisplay.textContent = state.referralCode;
+
+            // Load referrals via snapshot
             const unsubscribe = db.collection('referrals')
                 .where('referrerId', '==', state.user.uid)
-                .orderBy('timestamp', 'desc')
                 .onSnapshot(snapshot => {
                     state.referrals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     updateReferralUI();
                 }, error => {
-                    // FIX 5: Agar referrals collection empty ya error ho to bhi code dikhe
                     console.log('Referrals load error (non-critical):', error);
                     state.referrals = [];
                     updateReferralUI();
                 });
-            
+
             state.listeners.push(unsubscribe);
         }
-        
+
         function generateReferralCode() {
-            // BUG 12 FIX: Guard against state.user not yet initialized.
-            // Previously could generate "REFundefined" if called before auth completes.
             const uid = state.user?.uid;
-            if (!uid) {
-                console.warn('generateReferralCode called before state.user initialized');
-                return null;
-            }
+            if (!uid) return null;
             return 'REF' + uid.substring(0, 6).toUpperCase();
         }
-        
+
         function updateReferralUI() {
             const codeDisplay = document.getElementById('referral-code-display');
-            if (codeDisplay && state.referralCode) {
-                codeDisplay.textContent = state.referralCode;
-            }
-            
+            if (codeDisplay && state.referralCode) codeDisplay.textContent = state.referralCode;
+
             const totalRef = document.getElementById('total-referrals');
             if (totalRef) totalRef.textContent = state.referrals.length;
-            
+
+            const rewarded = state.referrals.filter(r => r.rewardPaid).length;
+            const pending = state.referrals.length - rewarded;
+
             const totalEarn = document.getElementById('total-referral-earnings');
-            if (totalEarn) {
-                const total = state.referrals.reduce((sum, ref) => sum + (ref.commission || 0), 0);
-                totalEarn.textContent = '₹' + total.toFixed(2);
-            }
-            
+            if (totalEarn) totalEarn.textContent = '₹' + (rewarded * 10).toFixed(0);
+
+            const pendingEl = document.getElementById('pending-referrals');
+            if (pendingEl) pendingEl.textContent = pending;
+
+            // Referral balance from user doc
+            const refBal = Number(state.userData?.referralBalance) || 0;
+            const balDisplay = document.getElementById('referral-balance-display');
+            if (balDisplay) balDisplay.textContent = '₹' + refBal.toFixed(2);
+
             const list = document.getElementById('referral-list');
             if (list) {
                 if (state.referrals.length === 0) {
                     list.innerHTML = '<p class="text-textGray text-center py-4">No referrals yet</p>';
                 } else {
                     list.innerHTML = state.referrals.map(ref => `
-                        <div class="flex justify-between items-center p-3 bg-surface rounded-lg">
+                        <div class="flex justify-between items-center p-3 bg-surface rounded-xl">
                             <div>
-                                <p class="font-bold text-sm">${ref.referredName || 'User'}</p>
-                                <p class="text-textGray text-xs">${ref.timestamp?.toDate().toLocaleDateString() || ''}</p>
+                                <p class="font-bold text-sm">${ref.referredName || 'Friend'}</p>
+                                <p class="text-textGray text-xs">${ref.timestamp?.toDate?.().toLocaleDateString('en-IN') || ''}</p>
                             </div>
-                            <span class="text-secondary font-bold">Pending</span>
+                            <span class="text-xs font-bold px-2 py-1 rounded-full ${ref.rewardPaid ? 'bg-primary/20 text-primary' : 'bg-yellow-500/20 text-yellow-400'}">
+                                ${ref.rewardPaid ? '✅ ₹10 Earned' : '⏳ Pending'}
+                            </span>
                         </div>
                     `).join('');
                 }
             }
         }
-        
+
         function copyReferralCode() {
             if (state.referralCode) {
-                navigator.clipboard.writeText(state.referralCode);
-                showToast('Referral code copied!');
+                navigator.clipboard.writeText(state.referralCode).catch(() => {});
+                showToast('✅ Referral code copied!');
             }
         }
-        
+
         function shareReferral(platform) {
-            const text = `Join me on Trending Store! Use my referral code: ${state.referralCode}`;
-            const url = window.location.href;
-            
+            const code = state.referralCode || '';
+            const text = `🚀 Treding Store pe join karo! Crypto trade, invest & NFT sab ek jagah.\nMera referral code use karo: ${code}\nFirst deposit pe ₹10 extra milega!`;
+            const url = window.location.origin;
+
             if (platform === 'whatsapp') {
-                window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`);
+                window.open(`https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}`);
             } else if (platform === 'telegram') {
                 window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
+            } else if (platform === 'copy') {
+                navigator.clipboard.writeText(text + '\n' + url).catch(() => {});
+                showToast('Share text copied!');
+            }
+        }
+
+        // Transfer referral earnings to spot wallet
+        async function transferReferralToSpot() {
+            const refBal = Number(state.userData?.referralBalance) || 0;
+            if (refBal <= 0) {
+                showToast('No referral earnings to transfer', 'error');
+                return;
+            }
+            if (!confirm(`Transfer ₹${refBal.toFixed(2)} referral earnings to Spot wallet?`)) return;
+
+            const btn = document.getElementById('referral-transfer-btn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Transferring...'; }
+
+            try {
+                await db.runTransaction(async (txn) => {
+                    const userRef = db.collection('users').doc(state.user.uid);
+                    const uDoc = await txn.get(userRef);
+                    if (!uDoc.exists) throw new Error('User not found');
+                    const currRefBal = uDoc.data().referralBalance || 0;
+                    if (currRefBal <= 0) throw new Error('No referral balance to transfer');
+                    txn.update(userRef, {
+                        referralBalance: 0,
+                        spotBalance: firebase.firestore.FieldValue.increment(currRefBal)
+                    });
+                });
+
+                showToast(`✅ ₹${refBal.toFixed(2)} transferred to Spot wallet!`);
+                // Update UI via onSnapshot listener automatically
+            } catch (err) {
+                showToast('Transfer failed: ' + err.message, 'error');
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-exchange-alt text-xs mr-2"></i>Transfer to Spot Wallet'; }
+            }
+        }
+
+        // Check and process referral reward when referred user makes first deposit
+        async function processReferralRewardIfEligible() {
+            if (!state.user || !state.userData) return;
+            if (state.userData.referralFirstDepositRewarded) return; // Already rewarded
+            if (!state.userData.referredBy) return; // No referrer
+
+            try {
+                // Check approved payments for this user
+                const paymentsSnap = await db.collection('payments')
+                    .where('uid', '==', state.user.uid)
+                    .where('status', '==', 'approved')
+                    .get();
+
+                const totalApproved = paymentsSnap.docs.reduce((sum, d) => sum + (Number(d.data().amount) || 0), 0);
+                if (totalApproved < 100) return; // Less than ₹100 deposited
+
+                // Find referrer by referral code (queries must happen outside transaction)
+                const referrerSnap = await db.collection('users')
+                    .where('referralCode', '==', state.userData.referredBy)
+                    .limit(1)
+                    .get();
+
+                if (referrerSnap.empty) return;
+
+                const referrerId = referrerSnap.docs[0].id;
+
+                // Find referral record outside transaction
+                const refQuery = await db.collection('referrals')
+                    .where('referrerId', '==', referrerId)
+                    .where('referredId', '==', state.user.uid)
+                    .limit(1)
+                    .get();
+                const refDocId = refQuery.empty ? null : refQuery.docs[0].id;
+
+                // Atomic: mark reward paid for referred user + credit ₹10 to referrer
+                await db.runTransaction(async (txn) => {
+                    const referredRef = db.collection('users').doc(state.user.uid);
+                    const referrerRef = db.collection('users').doc(referrerId);
+
+                    const referredDoc = await txn.get(referredRef);
+                    if (referredDoc.data().referralFirstDepositRewarded) return; // Already done
+
+                    txn.update(referredRef, { referralFirstDepositRewarded: true });
+                    txn.update(referrerRef, {
+                        referralBalance: firebase.firestore.FieldValue.increment(10),
+                        spotBalance: firebase.firestore.FieldValue.increment(10)
+                    });
+
+                    // Update referral record if found
+                    if (refDocId) {
+                        txn.update(db.collection('referrals').doc(refDocId), {
+                            rewardPaid: true, rewardAmount: 10,
+                            rewardAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+
+                    // Notification to referrer
+                    const notifRef = db.collection('notifications').doc();
+                    txn.set(notifRef, {
+                        uid: referrerId,
+                        title: '🎉 Referral Reward!',
+                        message: `Your friend ${state.userData.name || 'User'} deposited ₹100+! You earned ₹10.`,
+                        type: 'referral_reward',
+                        read: false,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                });
+
+                console.log('Referral reward processed');
+            } catch (err) {
+                console.log('Referral reward check failed (non-critical):', err.message);
             }
         }
 
@@ -4703,12 +5001,16 @@
         }
         
         function setMaxInvest() {
-            // BUG 1 FIX: MAX should reflect combined spot + invest available
             const plan = state.selectedInvestPlan;
-            const spotBal = state.userData?.spotBalance || 0;
-            const investBal = state.userData?.investBalance || 0;
-            const totalBal = spotBal + investBal;
-            const max = plan ? Math.min(totalBal, 1000000) : totalBal;
+            const spotBal = Number(state.userData?.spotBalance) || 0;
+            const investBal = Number(state.userData?.investBalance) || 0;
+            const lockedInvest = (state.userInvestments || [])
+                .filter(i => i.status === 'active')
+                .reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+            const freeInvestBal = Math.max(0, investBal - lockedInvest);
+            const totalBal = spotBal + freeInvestBal;
+            const planMax = plan ? Number(plan.max) || 0 : 0;
+            const max = planMax > 0 ? Math.min(totalBal, planMax) : Math.min(totalBal, 10000000);
             document.getElementById('invest-amount').value = max.toFixed(2);
             updateInvestReturns();
         }
@@ -4726,87 +5028,90 @@
         
         async function submitInvestment() {
             if (state.processing.invest) return;
-            
-            // BUG-004 FIX: Guard against null selectedInvestPlan (user clicks Confirm before selecting)
+
             if (!state.selectedInvestPlan) {
                 showToast('Please select an investment plan first', 'error');
                 return;
             }
-            
+
             const amount = parseFloat(document.getElementById('invest-amount').value);
             const duration = parseInt(document.getElementById('invest-duration').value);
-            
-            if (!amount || amount < Number(state.selectedInvestPlan.min)) { 
-                showToast(`Minimum investment is ₹${Number(state.selectedInvestPlan.min)}`, 'error'); 
-                return; 
-            }
-            
-            // BUG 1 FIX: Check combined balance, allow investing from existing investBalance
-            const spotBalance = Number(state.userData?.spotBalance) || 0;
-            const investBalance = Number(state.userData?.investBalance) || 0;
-            
-            if (spotBalance + investBalance < amount) {
-                showToast('Insufficient balance', 'error');
+            const plan = state.selectedInvestPlan;
+
+            if (!amount || isNaN(amount) || amount < Number(plan.min)) {
+                showToast(`Minimum investment is ₹${Number(plan.min)}`, 'error');
                 return;
             }
-            
+            if (!duration || isNaN(duration) || duration < 1) {
+                showToast('Please select a valid duration', 'error');
+                return;
+            }
+
+            const spotBalance = Number(state.userData?.spotBalance) || 0;
+            const investBalance = Number(state.userData?.investBalance) || 0;
+
+            // Calculate locked invest (active investments) to find FREE invest balance
+            const lockedInvest = (state.userInvestments || [])
+                .filter(i => i.status === 'active')
+                .reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+            const freeInvestBalance = Math.max(0, investBalance - lockedInvest);
+            const totalAvailable = spotBalance + freeInvestBalance;
+
+            if (totalAvailable < amount) {
+                showToast(`Insufficient balance. Available: ₹${totalAvailable.toFixed(2)}`, 'error');
+                return;
+            }
+
             setProcessing('invest', true);
-            
+
             try {
-                // BUG 1 FIX: Only transfer from spot if investBalance is insufficient.
-                // If user already has enough in invest wallet, skip the transfer
-                // to avoid forcing them to use spot when they have invest funds.
-                // We save 'usedInvestBalance' flag so maturity code won't double-deduct.
-                let usedInvestBalance = false;
-                if (investBalance >= amount) {
-                    // Enough in invest wallet — atomically deduct from investBalance
-                    const userRef = db.collection('users').doc(state.user.uid);
-                    await db.runTransaction(async (txn) => {
-                        const uDoc = await txn.get(userRef);
-                        if (!uDoc.exists) throw new Error('User not found');
-                        const currInvest = uDoc.data().investBalance || 0;
-                        if (currInvest < amount) throw new Error('Insufficient invest balance (concurrent change)');
+                // BALANCE FLOW FIX: Money stays visible in total balance
+                // Strategy: move from spot → investBalance (net zero to total)
+                // investBalance acts as "locked invest wallet"
+                // Active investment records track what's locked
+                const userRef = db.collection('users').doc(state.user.uid);
+
+                await db.runTransaction(async (txn) => {
+                    const uDoc = await txn.get(userRef);
+                    if (!uDoc.exists) throw new Error('User not found');
+
+                    const currSpot = uDoc.data().spotBalance || 0;
+                    const currInvest = uDoc.data().investBalance || 0;
+
+                    // Calculate how much to take from spot (invest balance may have free funds)
+                    const currLocked = (state.userInvestments || [])
+                        .filter(i => i.status === 'active')
+                        .reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+                    const currFreeInvest = Math.max(0, currInvest - currLocked);
+                    const fromSpot = Math.max(0, amount - currFreeInvest);
+
+                    if (fromSpot > currSpot) {
+                        throw new Error(`Insufficient spot balance. Need ₹${fromSpot.toFixed(2)} from spot.`);
+                    }
+
+                    // Only deduct from spot and add to invest wallet — investBalance INCREASES or stays same
+                    // Total balance remains unchanged (money just moves spot → invest)
+                    if (fromSpot > 0) {
                         txn.update(userRef, {
-                            investBalance: firebase.firestore.FieldValue.increment(-amount)
+                            spotBalance: firebase.firestore.FieldValue.increment(-fromSpot),
+                            investBalance: firebase.firestore.FieldValue.increment(fromSpot)
                         });
-                    });
-                    usedInvestBalance = true;
-                } else {
-                    // BAL-07 FIX: Wrap BOTH spot→invest transfer AND invest deduction
-                    // in a single atomic Firestore transaction to prevent partial-failure state corruption
-                    const userRef = db.collection('users').doc(state.user.uid);
-                    await db.runTransaction(async (txn) => {
-                        const uDoc = await txn.get(userRef);
-                        if (!uDoc.exists) throw new Error('User not found');
-                        const currSpot = uDoc.data().spotBalance || 0;
-                        const currInvest = uDoc.data().investBalance || 0;
-                        const topUp = amount - currInvest;
-                        if (currSpot < topUp) throw new Error('Insufficient spot balance');
-                        // Atomically move topUp from spot to invest, then deduct full amount from invest
-                        // BUG-G5 FIX: Was increment(currInvest - amount) which could produce negative balance.
-                        // Correct: spotBalance -= topUp, investBalance = 0 (currInvest is fully consumed + topUp added and immediately consumed)
-                        txn.update(userRef, {
-                            spotBalance: firebase.firestore.FieldValue.increment(-topUp),
-                            investBalance: firebase.firestore.FieldValue.increment(-currInvest)
-                        });
-                    });
-                    usedInvestBalance = true;
-                }
-                
-                // BUG #10 FIX: plan rates se consistent calculation (same as display)
-                const plan = state.selectedInvestPlan;
+                    }
+                    // If enough free invest balance, no spot needed — no balance change at all
+                });
+
                 const minRate = (plan.minReturnRate || 5) / 100;
                 const maxRate = (plan.maxReturnRate || 15) / 100;
                 const minEstimatedReturn = amount * minRate * (duration / 365);
                 const maxEstimatedReturn = amount * maxRate * (duration / 365);
-                
+
                 await db.collection('investments').add({
-                    uid: state.user.uid, 
-                    userName: state.userData.name, 
-                    planId: plan.id, 
+                    uid: state.user.uid,
+                    userName: state.userData.name,
+                    planId: plan.id,
                     planName: plan.name,
-                    amount, 
-                    duration, 
+                    amount,
+                    duration,
                     minReturnRate: plan.minReturnRate || 5,
                     maxReturnRate: plan.maxReturnRate || 15,
                     minEstimatedReturn,
@@ -4814,17 +5119,27 @@
                     actualReturn: 0,
                     status: 'active',
                     totalReturned: 0,
-                    usedInvestBalance,      // Flag for maturity: investBalance already decremented
                     startDate: firebase.firestore.FieldValue.serverTimestamp(),
                     endDate: new Date(Date.now() + duration * 24 * 60 * 60 * 1000),
                     purchaseDate: new Date().toLocaleDateString('en-GB')
                 });
-                
-                showToast('Investment successful! Returns are market-linked.'); 
+
+                // Audit log
+                await db.collection('audit').add({
+                    uid: state.user.uid,
+                    type: 'investment',
+                    amount,
+                    duration,
+                    planId: plan.id,
+                    ip: state.userIP,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                }).catch(() => {});
+
+                showToast(`✅ Invested ₹${amount.toLocaleString()} successfully!`);
                 closeInvestModal();
-                loadUserInvestments();
-            } catch (error) { 
-                showToast(error.message, 'error'); 
+                await loadUserInvestments();
+            } catch (error) {
+                showToast(error.message, 'error');
             } finally {
                 setProcessing('invest', false);
             }
@@ -5237,7 +5552,6 @@
         }
 
         function updatePnLSummary() {
-            const usdtRate = state.usdtToInr || 84;
             let total = 0, wins = 0, losses = 0;
             Object.values(pnlState.byDate).forEach(day => {
                 const val = pnlState.currency === 'INR' ? day.pnlInr : day.pnlUsdt;
@@ -5246,9 +5560,20 @@
             });
             const sym = pnlState.currency === 'INR' ? '₹' : '$';
             const totalEl = document.getElementById('pnl-total');
-            if (totalEl) { totalEl.textContent = (total >= 0 ? '+' : '') + sym + Math.abs(total).toFixed(2); totalEl.style.color = total >= 0 ? '#00c853' : '#f6465d'; }
+            if (totalEl) {
+                totalEl.textContent = (total >= 0 ? '+' : '') + sym + Math.abs(total).toFixed(2);
+                totalEl.style.color = total > 0 ? '#00c853' : total < 0 ? '#f6465d' : '#eaecef';
+            }
             const we = document.getElementById('pnl-win-days'); if (we) we.textContent = wins;
             const le = document.getElementById('pnl-loss-days'); if (le) le.textContent = losses;
+
+            // Update win rate bar
+            const totalDays = wins + losses;
+            const winRate = totalDays > 0 ? Math.round((wins / totalDays) * 100) : 0;
+            const fill = document.getElementById('pnl-winrate-fill');
+            const pct = document.getElementById('pnl-winrate-pct');
+            if (fill) { fill.style.width = winRate + '%'; fill.style.background = winRate >= 50 ? 'linear-gradient(90deg,#00c853,#00ff88)' : 'linear-gradient(90deg,#ff3d00,#ff6b35)'; }
+            if (pct) { pct.textContent = winRate + '%'; pct.style.color = winRate >= 50 ? '#00c853' : '#ff3d00'; }
         }
 
         function renderPnLCalendar() {
@@ -5287,8 +5612,8 @@
                     else { bg = 'background:rgba(255,255,255,0.07)'; textColor = '#fff'; }
                     amountHtml = `<span style="font-size:7px;color:${textColor};display:block;margin-top:1px;">${val >= 0 ? '+' : ''}${Math.abs(val) >= 1000 ? (Math.abs(val)/1000).toFixed(1)+'k' : Math.abs(val).toFixed(0)}</span>`;
                 }
-                cells.push(`<div onclick="pnlDayClick('${key}')" class="rounded-lg text-center cursor-pointer transition-all" style="${bg};padding:4px 2px;min-height:44px;border:1px solid rgba(255,255,255,0.04)">
-                    <span style="font-size:11px;font-weight:bold;color:${textColor}">${d}</span>
+                cells.push(`<div onclick="pnlDayClick('${key}')" class="pnl-day-cell rounded-xl text-center cursor-pointer" style="${bg};padding:5px 2px;min-height:46px;border:1px solid rgba(255,255,255,0.05);">
+                    <span style="font-size:12px;font-weight:bold;color:${textColor}">${d}</span>
                     ${amountHtml}
                 </div>`);
             }
@@ -5342,16 +5667,18 @@
         };
 
         function checkInvestBalance(planId) {
-            // BUG 1 FIX: Check BOTH spotBalance AND investBalance
-            // Previously only spotBalance was checked, so users with sufficient
-            // investBalance still got "insufficient balance" error.
             const plan = state.investPlans.find(p => p.id === planId);
             if (!plan) return;
             const spotBalance = Number(state.userData?.spotBalance) || 0;
             const investBalance = Number(state.userData?.investBalance) || 0;
-            const totalAvailable = spotBalance + investBalance;
+            // Calculate free invest balance (not locked in active investments)
+            const lockedInvest = (state.userInvestments || [])
+                .filter(i => i.status === 'active')
+                .reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+            const freeInvestBalance = Math.max(0, investBalance - lockedInvest);
+            const totalAvailable = spotBalance + freeInvestBalance;
             const planMin = Number(plan.min) || 0;
-            
+
             if (totalAvailable < planMin) {
                 showToast(`Insufficient balance. You need ₹${(planMin - totalAvailable).toFixed(2)} more.`, 'error');
                 setTimeout(() => openPay(), 1000);
@@ -5376,6 +5703,9 @@
             const planMax = Number(plan.max) || 0;
             const minRate = Number(plan.minReturnRate) || 5;
             const maxRate = Number(plan.maxReturnRate) || 15;
+            const planDuration = Number(plan.duration) || 30;
+            const cat = plan.category || 'longterm';
+
             document.getElementById('invest-details').innerHTML = `
                 <img src="${plan.image}" alt="${plan.name}" class="w-full rounded-lg object-cover mb-3 border border-border" style="height:144px;" onerror="this.style.display='none'">
                 <h3 class="font-bold text-lg text-white">${plan.name}</h3>
@@ -5390,15 +5720,42 @@
                         <p class="font-bold text-sm" style="color:#d4af37;">${maxRate}%</p>
                     </div>
                     <div class="rounded-lg p-2 text-center bg-surface">
-                        <p class="text-textGray text-xs">Duration</p>
-                        <p class="text-white font-bold text-sm">${plan.duration}d</p>
+                        <p class="text-textGray text-xs">Max Duration</p>
+                        <p class="text-white font-bold text-sm">${planDuration}d</p>
                     </div>
                 </div>
             `;
+
+            // Build duration options based on plan category
+            const durationSelect = document.getElementById('invest-duration');
+            let options = [];
+            if (cat === 'daily') {
+                // Daily plans: 1-30 days granular
+                options = [1,2,3,4,5,6,7,10,14,21,planDuration].filter((v,i,a) => v <= planDuration && a.indexOf(v) === i).sort((a,b)=>a-b);
+            } else if (cat === 'shortterm') {
+                options = [7,14,21,30,45,60,planDuration].filter((v,i,a) => v <= planDuration && a.indexOf(v) === i).sort((a,b)=>a-b);
+            } else if (cat === 'midterm') {
+                options = [30,45,60,90,120,planDuration].filter((v,i,a) => v <= planDuration && a.indexOf(v) === i).sort((a,b)=>a-b);
+            } else {
+                // Long term
+                options = [30,60,90,120,180,270,365,planDuration].filter((v,i,a) => v <= planDuration && a.indexOf(v) === i).sort((a,b)=>a-b);
+            }
+            // Ensure max plan duration is always an option
+            if (!options.includes(planDuration)) options.push(planDuration);
+            options.sort((a,b)=>a-b);
+
+            durationSelect.innerHTML = options.map(d => {
+                const label = d === 1 ? '1 Day' : d === planDuration ? `${d} Days (Max)` : `${d} Days`;
+                return `<option value="${d}">${label}</option>`;
+            }).join('');
+            // Default to plan's max duration
+            durationSelect.value = planDuration;
+
             document.getElementById('invest-min').textContent = `Min: ₹${planMin.toLocaleString()}${planMax > 0 ? ' | Max: ₹' + planMax.toLocaleString() : ''}`;
             document.getElementById('invest-amount').value = '';
             document.getElementById('invest-returns').textContent = '₹0.00';
             document.getElementById('invest-modal').style.display = 'flex';
+            updateInvestReturns();
         }
 
         // Auth functions
@@ -7148,32 +7505,206 @@
         }
         
         // FIX: Proper tab switching with explicit button parameter
-        async function switchPositionTab(tab, btn) { 
-            const tabs = ['positions', 'orders', 'trades', 'assets']; 
-            
-            // Reset all tabs styling
-            tabs.forEach(t => { 
+        async function switchPositionTab(tab, btn) {
+            const tabs = ['positions', 'orders', 'trades', 'assets'];
+
+            // Reset all tabs styling + show/hide filter bar
+            tabs.forEach(t => {
                 const tabBtn = document.getElementById(`pos-tab-${t}`);
-                if (tabBtn) { 
-                    if (t === tab) { 
-                        tabBtn.className = 'font-semibold text-white border-b-2 border-primary pb-3 whitespace-nowrap'; 
-                    } else { 
-                        tabBtn.className = 'text-textGray pb-3 whitespace-nowrap'; 
-                    } 
-                } 
-            }); 
-            
-            const container = document.getElementById('positions-content'); 
-            if (tab === 'positions') { 
-                renderPositions(); 
-            } else if (tab === 'orders') { 
-                renderOrders(); 
-            } else if (tab === 'trades') { 
+                if (tabBtn) {
+                    if (t === tab) {
+                        tabBtn.className = 'font-semibold text-white border-b-2 border-primary pb-3 whitespace-nowrap';
+                    } else {
+                        tabBtn.className = 'text-textGray pb-3 whitespace-nowrap';
+                    }
+                }
+            });
+
+            // Show filter bar only on positions tab
+            const filterBar = document.getElementById('position-filter-bar');
+            if (filterBar) filterBar.style.display = tab === 'positions' ? '' : 'none';
+
+            const container = document.getElementById('positions-content');
+            if (tab === 'positions') {
+                renderPositions();
+            } else if (tab === 'orders') {
+                await renderOrdersTab();
+            } else if (tab === 'trades') {
                 // LOG-05 FIX: renderTradeHistory is async — must await to catch unhandled rejections
-                await renderTradeHistory(); 
-            } else { 
-                container.innerHTML = '<p class="text-textGray text-center py-4">Assets view coming soon</p>'; 
-            } 
+                await renderTradeHistory();
+            } else if (tab === 'assets') {
+                renderAssetsTab();
+            }
+        }
+
+        // ── Orders tab: real-time with cancel button ──
+        async function renderOrdersTab() {
+            const container = document.getElementById('positions-content');
+            container.innerHTML = '<p class="text-textGray text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading orders...</p>';
+
+            try {
+                const snap = await db.collection('orders')
+                    .where('uid', '==', state.user.uid)
+                    .where('mode', '==', state.currentTradingMode)
+                    .limit(50).get();
+
+                const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                docs.sort((a, b) => {
+                    const ta = a.createdAt?.toMillis?.() || a.createdAt?.seconds * 1000 || 0;
+                    const tb = b.createdAt?.toMillis?.() || b.createdAt?.seconds * 1000 || 0;
+                    return tb - ta;
+                });
+                state.orders = docs.slice(0, 30);
+
+                const ordersTab = document.getElementById('pos-tab-orders');
+                if (ordersTab) ordersTab.textContent = `Orders(${state.orders.length})`;
+
+                if (state.orders.length === 0) {
+                    container.innerHTML = `<div class="text-center py-8">
+                        <div class="w-16 h-16 bg-surface rounded-full mx-auto mb-3 flex items-center justify-center">
+                            <i class="fas fa-list-alt text-textGray text-2xl"></i>
+                        </div>
+                        <p class="text-textGray text-sm">No orders found</p>
+                        <p class="text-gray-600 text-xs mt-1">Place an order to see it here</p>
+                    </div>`;
+                    return;
+                }
+
+                const statusColors = { 'filled': '#00c853', 'pending': '#ffd600', 'rejected': '#ff3d00', 'cancelled': '#848e9c' };
+                const statusIcons = { 'filled': 'fa-check-circle', 'pending': 'fa-clock', 'rejected': 'fa-times-circle', 'cancelled': 'fa-ban' };
+
+                container.innerHTML = state.orders.map(order => {
+                    const sColor = statusColors[order.status] || '#848e9c';
+                    const sIcon = statusIcons[order.status] || 'fa-circle';
+                    const canCancel = order.status === 'pending';
+                    const side = order.side || 'buy';
+                    const isBuy = side === 'buy' || side === 'long';
+                    return `<div class="position-card">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold">${order.pair || '-'}</span>
+                                <span class="text-xs px-2 py-0.5 rounded font-bold ${isBuy ? 'bg-primary/20 text-primary' : 'bg-danger/20 text-danger'}">${side.toUpperCase()}</span>
+                                <span class="text-xs text-textGray">${order.type || 'Market'}</span>
+                            </div>
+                            ${canCancel ? `<button onclick="cancelOrder('${order.id}')" class="text-xs text-danger border border-danger/30 px-2 py-1 rounded hover:bg-danger/10">Cancel</button>` : ''}
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs mb-2">
+                            <div><span class="text-textGray">Price:</span> <span class="font-mono">$${Number(order.price || 0).toFixed(2)}</span></div>
+                            <div><span class="text-textGray">Qty:</span> <span class="font-mono">${Number(order.quantity || 0).toFixed(4)}</span></div>
+                            <div><span class="text-textGray">Fee:</span> <span class="font-mono">₹${Number(order.tradingFeeINR || 0).toFixed(2)}</span></div>
+                            <div><span class="text-textGray">Leverage:</span> <span>${order.leverage || 1}x</span></div>
+                        </div>
+                        <div class="flex justify-between items-center pt-1 border-t border-border">
+                            <span class="text-textGray text-xs">${order.createdAt?.toDate?.().toLocaleString('en-IN') || 'Just now'}</span>
+                            <span class="text-xs font-bold flex items-center gap-1" style="color:${sColor}">
+                                <i class="fas ${sIcon}"></i>${order.status?.toUpperCase() || 'FILLED'}
+                            </span>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch (err) {
+                container.innerHTML = `<div class="text-center py-6"><i class="fas fa-exclamation-triangle text-danger text-2xl mb-2"></i><p class="text-danger text-sm">${err.message}</p><button onclick="renderOrdersTab()" class="mt-3 px-4 py-2 bg-surfaceLight rounded-lg text-xs text-primary">Retry</button></div>`;
+            }
+        }
+
+        async function cancelOrder(orderId) {
+            if (!confirm('Cancel this order?')) return;
+            try {
+                await db.collection('orders').doc(orderId).update({
+                    status: 'cancelled',
+                    cancelledAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showToast('Order cancelled');
+                renderOrdersTab();
+            } catch (err) {
+                showToast('Cancel failed: ' + err.message, 'error');
+            }
+        }
+
+        // ── Assets tab: show crypto holdings ──
+        function renderAssetsTab() {
+            const container = document.getElementById('positions-content');
+            const mode = state.currentTradingMode;
+            container.innerHTML = `<div class="flex justify-between items-center mb-3">
+                <p class="text-textGray text-sm font-semibold">${mode.charAt(0).toUpperCase() + mode.slice(1)} Assets</p>
+                <span class="text-textGray text-xs">Live</span>
+            </div>
+            <div id="assets-tab-content"><div class="flex justify-center py-6"><div class="loader"></div></div></div>`;
+
+            if (mode === 'spot') {
+                // Load spot coin assets
+                db.collection('users').doc(state.user.uid)
+                    .collection('spotAssets')
+                    .get()
+                    .then(snap => {
+                        const assets = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(a => (a.balance || 0) > 0);
+                        const tabContent = document.getElementById('assets-tab-content');
+                        if (!tabContent) return;
+                        if (assets.length === 0) {
+                            tabContent.innerHTML = `<div class="text-center py-6">
+                                <i class="fas fa-coins text-textGray text-3xl mb-2 block opacity-40"></i>
+                                <p class="text-textGray text-sm">No spot assets</p>
+                                <p class="text-xs text-gray-600 mt-1">Buy coins to see them here</p>
+                            </div>`;
+                            return;
+                        }
+                        tabContent.innerHTML = assets.map(a => {
+                            const val = (a.balance || 0) * (a.price || 0);
+                            return `<div class="asset-row">
+                                <div class="flex items-center gap-3">
+                                    ${a.image ? `<img src="${a.image}" class="w-8 h-8 rounded-full" onerror="this.style.display='none'">` : '<div class="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-xs font-bold">' + (a.symbol || '?').charAt(0) + '</div>'}
+                                    <div>
+                                        <p class="font-bold text-sm">${a.symbol || a.id}</p>
+                                        <p class="text-textGray text-xs">${a.name || ''}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-mono font-bold text-sm">${(a.balance || 0).toFixed(6)}</p>
+                                    <p class="text-textGray text-xs">≈₹${val.toFixed(2)}</p>
+                                </div>
+                            </div>`;
+                        }).join('');
+                    })
+                    .catch(() => {
+                        const tabContent = document.getElementById('assets-tab-content');
+                        if (tabContent) tabContent.innerHTML = '<p class="text-danger text-center text-sm py-4">Error loading assets</p>';
+                    });
+            } else {
+                // Futures/Margin: show active positions as "holdings"
+                const positions = (state.positions || []).filter(p => p.mode === mode);
+                const tabContent = document.getElementById('assets-tab-content');
+                if (!tabContent) return;
+                if (positions.length === 0) {
+                    tabContent.innerHTML = `<div class="text-center py-6">
+                        <i class="fas fa-layer-group text-textGray text-3xl mb-2 block opacity-40"></i>
+                        <p class="text-textGray text-sm">No ${mode} assets</p>
+                        <p class="text-xs text-gray-600 mt-1">Open a position to see assets</p>
+                    </div>`;
+                    return;
+                }
+                // Show balance summary for the mode
+                const balance = state.userData?.[mode + 'Balance'] || 0;
+                tabContent.innerHTML = `
+                    <div class="rounded-lg p-3 mb-3 flex justify-between items-center" style="background:rgba(0,200,83,0.08);border:1px solid rgba(0,200,83,0.2)">
+                        <span class="text-sm text-textGray">${mode.charAt(0).toUpperCase() + mode.slice(1)} Balance</span>
+                        <span class="font-mono font-bold text-primary">₹${balance.toFixed(2)}</span>
+                    </div>
+                    <p class="text-textGray text-xs mb-2">Open Positions (${positions.length})</p>
+                    ${positions.map(p => {
+                        const pnl = state.currentPrice > 0 ? ((state.currentPrice - p.entryPrice) * p.quantity * (p.side === 'long' ? 1 : -1)) : 0;
+                        const pnlINR = pnl * (state.usdtToInr || 83);
+                        return `<div class="asset-row">
+                            <div>
+                                <p class="font-bold text-sm">${p.pair}</p>
+                                <p class="text-xs ${p.side === 'long' ? 'text-primary' : 'text-danger'}">${p.side.toUpperCase()} ${p.leverage}x</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-mono text-sm">${p.quantity.toFixed(4)}</p>
+                                <p class="text-xs font-bold ${pnlINR >= 0 ? 'text-primary' : 'text-danger'}">${pnlINR >= 0 ? '+' : ''}₹${pnlINR.toFixed(2)}</p>
+                            </div>
+                        </div>`;
+                    }).join('')}`;
+            }
         }
         
         // FIX: Added undefined check for state.orders
