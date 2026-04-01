@@ -1,7 +1,7 @@
 // ================================================
 // 🔧 TREDING STORE - SERVICE WORKER
 // ================================================
-const CACHE_NAME = 'treding-store-v1';
+const CACHE_NAME = 'treding-store-v3';
 const OFFLINE_URL = '/offline.html';
 
 // Files to cache on install
