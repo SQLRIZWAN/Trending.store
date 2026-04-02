@@ -1811,41 +1811,88 @@
             </div>
 
             <div id="usdt-section" class="hidden">
-                <div class="mb-4 text-left">
-                    <label class="text-textGray text-xs mb-1 block">USDT Amount (BEP20)</label>
-                    <div class="relative">
-                        <input type="number" id="usdt-amount" class="v-input" style="text-align: left;" placeholder="Min 10 USDT" oninput="calculateUSDT()">
-                        <button onclick="setMaxDepositUSDT()" class="max-btn" style="top: 40%;">MAX</button>
-                    </div>
-                    <p class="text-textGray text-xs mt-1" id="usdt-inr">≈ ₹0</p>
+
+                <!-- USDT Step Indicator -->
+                <div class="flex items-center justify-center mb-5 px-2">
+                    <div id="udep-dot-1" class="w-8 h-8 rounded-full bg-primary text-black flex items-center justify-center text-sm font-bold shrink-0">1</div>
+                    <div id="udep-line-12" class="flex-1 h-0.5 bg-primary mx-1"></div>
+                    <div id="udep-dot-2" class="w-8 h-8 rounded-full bg-surface text-textGray flex items-center justify-center text-sm font-bold shrink-0">2</div>
+                    <div id="udep-line-23" class="flex-1 h-0.5 bg-border mx-1"></div>
+                    <div id="udep-dot-3" class="w-8 h-8 rounded-full bg-surface text-textGray flex items-center justify-center text-sm font-bold shrink-0">3</div>
+                </div>
+                <div class="flex justify-between text-xs text-textGray mb-4 px-1">
+                    <span>Amount</span><span class="mr-1">Send USDT</span><span>Verify</span>
                 </div>
 
-                <div class="bg-surface p-3 rounded-lg mb-4 text-left">
-                    <p class="text-textGray text-xs mb-2">Network: BEP20 (BSC)</p>
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm text-textGray">Deposit Address:</span>
-                        <button onclick="copyAddress('usdt-address')" class="px-3 py-1 bg-primary text-black text-xs rounded font-bold">Copy</button>
+                <!-- USDT Step 1: Enter Amount -->
+                <div id="udep-step-1">
+                    <div class="mb-3 text-left">
+                        <label class="text-textGray text-xs mb-1 block">USDT Amount (BEP20)</label>
+                        <div class="relative">
+                            <input type="number" id="usdt-amount" class="v-input" style="text-align: left;" placeholder="Min 10 USDT" oninput="calculateUSDT()">
+                            <button onclick="setMaxDepositUSDT()" class="max-btn" style="top:40%;">MAX</button>
+                        </div>
+                        <p class="text-textGray text-xs mt-1" id="usdt-inr">≈ ₹0</p>
                     </div>
-                    <div id="usdt-address" class="text-xs text-textGray break-all mb-3 font-mono bg-black p-2 rounded">0x...</div>
-                    <p class="text-xs text-danger">* Only send USDT (BEP20) to this address</p>
+                    <button onclick="goToUSDTDepStep(2)" class="v-btn mt-2">Continue <i class="fas fa-arrow-right ml-2"></i></button>
                 </div>
 
-                <div class="border-t border-border my-4 pt-4">
-                    <p class="text-textGray text-xs mb-2">After Transfer, Submit Details:</p>
+                <!-- USDT Step 2: Send to Address -->
+                <div id="udep-step-2" class="hidden">
+                    <div class="flex items-center mb-4">
+                        <button onclick="goToUSDTDepStep(1)" class="w-8 h-8 rounded-lg bg-surfaceLight flex items-center justify-center text-textGray hover:text-white shrink-0">
+                            <i class="fas fa-arrow-left text-xs"></i>
+                        </button>
+                        <p class="flex-1 text-center text-primary font-bold text-xl" id="udep-amt-display">0 USDT</p>
+                    </div>
+
+                    <div class="bg-surface p-3 rounded-lg mb-4 text-left">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-textGray text-xs font-semibold">Network: BEP20 (BSC)</span>
+                            <span class="text-xs text-primary" id="udep-inr-display">≈ ₹0</span>
+                        </div>
+                        <p class="text-textGray text-xs mb-2">Send exactly <span class="text-primary font-bold" id="udep-amt-exact">0 USDT</span> to:</p>
+                        <div class="flex items-center gap-2 bg-black p-3 rounded-lg mb-2">
+                            <span class="text-xs font-mono flex-1 text-white break-all" id="udep-address-display">loading...</span>
+                            <button onclick="copyAddress('udep-address-display')" class="px-3 py-1 bg-primary text-black text-xs rounded font-bold shrink-0">
+                                <i class="fas fa-copy mr-1"></i>Copy
+                            </button>
+                        </div>
+                        <div id="usdt-address" class="hidden">0x...</div>
+                        <p class="text-xs text-danger"><i class="fas fa-exclamation-triangle mr-1"></i>Only send USDT (BEP20). Wrong network = lost funds</p>
+                    </div>
+
+                    <button onclick="goToUSDTDepStep(3)" class="v-btn">I've Sent <i class="fas fa-check ml-2"></i></button>
+                </div>
+
+                <!-- USDT Step 3: Submit Proof -->
+                <div id="udep-step-3" class="hidden">
+                    <div class="flex items-center mb-4">
+                        <button onclick="goToUSDTDepStep(2)" class="w-8 h-8 rounded-lg bg-surfaceLight flex items-center justify-center text-textGray hover:text-white shrink-0">
+                            <i class="fas fa-arrow-left text-xs"></i>
+                        </button>
+                        <p class="flex-1 text-center font-semibold text-sm">Submit Transaction Proof</p>
+                    </div>
+
+                    <div class="bg-surface p-3 rounded-lg mb-4 flex items-center justify-between">
+                        <span class="text-textGray text-xs">Amount</span>
+                        <span class="text-primary font-bold" id="udep-amt-confirm">0 USDT</span>
+                    </div>
+
                     <input type="text" id="usdt-txid" class="v-input mb-3" placeholder="Enter Transaction Hash / TxID" style="text-align: left;">
 
                     <label class="text-textGray text-xs mb-2 block">Upload Transaction Screenshot <span class="text-danger">*</span></label>
-                    <div class="file-upload-area mb-3" onclick="document.getElementById('usdt-screenshot').click()" id="usdt-upload-area">
+                    <div class="file-upload-area mb-4" onclick="document.getElementById('usdt-screenshot').click()" id="usdt-upload-area">
                         <input type="file" id="usdt-screenshot" class="hidden" accept="image/*" onchange="handleUSDTScreenshot(this)">
                         <i class="fas fa-image text-2xl text-textGray mb-1"></i>
                         <p id="usdt-file-text" class="text-textGray text-xs">Click to upload screenshot</p>
                     </div>
-                </div>
 
-                <button onclick="verifyLogic()" class="v-btn mb-3">
-                    <span>VERIFY PAYMENT</span>
-                    <i class="fas fa-check ml-2"></i>
-                </button>
+                    <button onclick="verifyLogic()" class="v-btn">
+                        <span>VERIFY PAYMENT</span>
+                        <i class="fas fa-check ml-2"></i>
+                    </button>
+                </div>
             </div>
 
             <button onclick="closePay()" style="color:#ff3d00; border:none; background:none; margin-top:10px; font-weight:bold; cursor:pointer; width: 100%;">
@@ -1857,35 +1904,54 @@
     <!-- Withdraw Modal -->
     <div id="withdraw-modal">
         <div class="withdraw-box">
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold">Withdraw Funds</h3>
                 <button onclick="closeWithdrawModal()" class="w-8 h-8 rounded-lg bg-surfaceLight flex items-center justify-center hover:bg-danger/20 transition-colors">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
-            <div class="space-y-4">
-                <div class="flex bg-surface rounded-lg p-1 mb-4">
-                    <button onclick="switchWithdrawType('inr')" id="withdraw-tab-inr" class="flex-1 py-2 rounded-lg text-sm font-bold bg-primary text-black">INR (UPI)</button>
-                    <button onclick="switchWithdrawType('usdt')" id="withdraw-tab-usdt" class="flex-1 py-2 rounded-lg text-sm font-bold text-textGray">USDT (BEP20)</button>
+
+            <!-- INR / USDT Tab -->
+            <div class="flex bg-surface rounded-lg p-1 mb-4">
+                <button onclick="switchWithdrawType('inr')" id="withdraw-tab-inr" class="flex-1 py-2 rounded-lg text-sm font-bold bg-primary text-black">INR (UPI)</button>
+                <button onclick="switchWithdrawType('usdt')" id="withdraw-tab-usdt" class="flex-1 py-2 rounded-lg text-sm font-bold text-textGray">USDT (BEP20)</button>
+            </div>
+
+            <!-- KYC / limit warnings (always visible) -->
+            <div id="kyc-warning" class="hidden mb-3 p-2 bg-danger/10 border border-danger/30 rounded-lg">
+                <p id="kyc-warning-msg" class="text-danger text-xs"><i class="fas fa-exclamation-triangle mr-1"></i>KYC verification required for withdrawal</p>
+                <button id="kyc-warning-action" onclick="closeWithdrawModal(); navigateTo('kyc')" class="text-xs text-primary underline mt-1">Complete KYC</button>
+            </div>
+            <div id="daily-limit-warning" class="hidden mb-3 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                <p class="text-yellow-500 text-xs"><i class="fas fa-info-circle mr-1"></i>Daily withdrawal limit: ₹<span id="daily-limit-amount">10000</span></p>
+            </div>
+
+            <!-- ── INR Withdraw Steps ── -->
+            <div id="withdraw-inr-section">
+
+                <!-- Step Indicator -->
+                <div class="flex items-center justify-center mb-4 px-2">
+                    <div id="wd-dot-1" class="w-8 h-8 rounded-full bg-primary text-black flex items-center justify-center text-sm font-bold shrink-0">1</div>
+                    <div id="wd-line-12" class="flex-1 h-0.5 bg-border mx-1"></div>
+                    <div id="wd-dot-2" class="w-8 h-8 rounded-full bg-surface text-textGray flex items-center justify-center text-sm font-bold shrink-0">2</div>
+                    <div id="wd-line-23" class="flex-1 h-0.5 bg-border mx-1"></div>
+                    <div id="wd-dot-3" class="w-8 h-8 rounded-full bg-surface text-textGray flex items-center justify-center text-sm font-bold shrink-0">3</div>
+                </div>
+                <div class="flex justify-between text-xs text-textGray mb-4 px-1">
+                    <span>Amount</span><span>UPI Details</span><span>Confirm</span>
                 </div>
 
-                <div class="bg-surfaceLight rounded-lg p-4 mb-4 border border-border">
-                    <p class="text-textGray text-xs mb-1">Available Balance</p>
-                    <p id="withdraw-available" class="text-2xl font-bold font-mono text-primary">₹0.00</p>
-                    <div id="kyc-warning" class="hidden mt-2 p-2 bg-danger/10 border border-danger/30 rounded-lg">
-                        <!-- BUG-06 FIX: Dynamic message — updated by JS based on kycStatus -->
-                        <p id="kyc-warning-msg" class="text-danger text-xs"><i class="fas fa-exclamation-triangle mr-1"></i>KYC verification required for withdrawal</p>
-                        <button id="kyc-warning-action" onclick="closeWithdrawModal(); navigateTo('kyc')" class="text-xs text-primary underline mt-1">Complete KYC</button>
+                <!-- INR Step 1: Account + Amount -->
+                <div id="wd-step-1" class="space-y-3">
+                    <div class="bg-surfaceLight rounded-lg p-3 border border-border flex items-center justify-between">
+                        <div>
+                            <p class="text-textGray text-xs">Available Balance</p>
+                            <p id="withdraw-available" class="text-xl font-bold font-mono text-primary">₹0.00</p>
+                        </div>
+                        <i class="fas fa-wallet text-primary text-2xl opacity-50"></i>
                     </div>
-                    <div id="daily-limit-warning" class="hidden mt-2 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                        <p class="text-yellow-500 text-xs"><i class="fas fa-info-circle mr-1"></i>Daily withdrawal limit: ₹<span id="daily-limit-amount">10000</span></p>
-                    </div>
-                </div>
-
-                <div id="withdraw-inr-section">
                     <div>
-                        <label class="text-textGray text-xs mb-2 block">Select Account <span class="text-danger">*</span></label>
+                        <label class="text-textGray text-xs mb-1 block">Select Account <span class="text-danger">*</span></label>
                         <select id="withdraw-account" class="input-trade" onchange="updateWithdrawAvailable()">
                             <option value="spot">Spot Account</option>
                             <option value="futures">Futures Account</option>
@@ -1894,78 +1960,158 @@
                             <option value="nft">NFT Account</option>
                         </select>
                     </div>
-
                     <div>
-                        <label class="text-textGray text-xs mb-2 block">Amount (₹) <span class="text-danger">*</span></label>
+                        <label class="text-textGray text-xs mb-1 block">Amount (₹) <span class="text-danger">*</span></label>
                         <div class="relative">
                             <input type="number" id="withdraw-amount" class="input-trade text-lg font-bold pr-16" placeholder="Min ₹500">
                             <button onclick="setMaxWithdraw()" class="max-btn">MAX</button>
                         </div>
                         <p class="text-textGray text-xs mt-1">Min: ₹500 | Max: <span id="max-withdraw">0</span></p>
                     </div>
+                    <button onclick="goToWDStep(2)" class="btn-animated w-full bg-primary text-black font-bold py-3 rounded-lg flex items-center justify-center gap-2">
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
 
+                <!-- INR Step 2: UPI Details -->
+                <div id="wd-step-2" class="hidden space-y-3">
+                    <div class="flex items-center mb-2">
+                        <button onclick="goToWDStep(1)" class="w-8 h-8 rounded-lg bg-surfaceLight flex items-center justify-center text-textGray hover:text-white shrink-0">
+                            <i class="fas fa-arrow-left text-xs"></i>
+                        </button>
+                        <p class="flex-1 text-center text-primary font-bold text-xl" id="wd-amt-display">₹0</p>
+                    </div>
                     <div>
-                        <label class="text-textGray text-xs mb-2 block">UPI ID <span class="text-danger">*</span></label>
+                        <label class="text-textGray text-xs mb-1 block">UPI ID <span class="text-danger">*</span></label>
                         <input type="text" id="withdraw-upi" class="input-trade" placeholder="name@upi">
-                        <p class="text-textGray text-xs mt-1">Format: name@upi</p>
+                        <p class="text-textGray text-xs mt-1">Format: name@upi or number@bank</p>
                     </div>
-
                     <div>
-                        <label class="text-textGray text-xs mb-2 block">Account Holder Name <span class="text-danger">*</span></label>
-                        <input type="text" id="withdraw-name" class="input-trade" placeholder="Enter account holder name">
+                        <label class="text-textGray text-xs mb-1 block">Account Holder Name <span class="text-danger">*</span></label>
+                        <input type="text" id="withdraw-name" class="input-trade" placeholder="Enter full name">
                     </div>
-
                     <div>
-                        <label class="text-textGray text-xs mb-2 block">QR Code Image <span class="text-textGray">(Optional)</span></label>
-                        <div id="withdraw-qr-area" onclick="document.getElementById('withdraw-qr-input').click()" class="border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all" style="border-color:rgba(212,175,55,0.4);background:rgba(212,175,55,0.03);" onmouseover="this.style.borderColor='rgba(212,175,55,0.8)'" onmouseout="this.style.borderColor='rgba(212,175,55,0.4)'">
+                        <label class="text-textGray text-xs mb-1 block">QR Code <span class="text-textGray">(Optional)</span></label>
+                        <div id="withdraw-qr-area" onclick="document.getElementById('withdraw-qr-input').click()" class="border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all" style="border-color:rgba(212,175,55,0.4);background:rgba(212,175,55,0.03);">
                             <div id="withdraw-qr-placeholder">
-                                <i class="fas fa-qrcode text-2xl mb-2 block" style="color:rgba(212,175,55,0.6)"></i>
-                                <p class="text-textGray text-xs">Tap to attach your QR code</p>
-                                <p class="text-xs mt-1" style="color:rgba(212,175,55,0.5)">JPG, PNG supported</p>
+                                <i class="fas fa-qrcode text-2xl mb-1 block" style="color:rgba(212,175,55,0.6)"></i>
+                                <p class="text-textGray text-xs">Tap to attach QR code</p>
                             </div>
-                            <img id="withdraw-qr-preview" alt="Withdraw QR code" src="" class="hidden mx-auto rounded-lg" style="max-height:120px;object-fit:contain;">
+                            <img id="withdraw-qr-preview" src="" alt="QR" class="hidden mx-auto rounded-lg" style="max-height:100px;object-fit:contain;">
                         </div>
                         <input type="file" id="withdraw-qr-input" accept="image/*" class="hidden" onchange="handleWithdrawQR(this)">
                         <button id="withdraw-qr-remove" onclick="removeWithdrawQR()" class="hidden mt-1 text-xs text-danger w-full text-center">✕ Remove QR</button>
                     </div>
+                    <button onclick="goToWDStep(3)" class="btn-animated w-full bg-primary text-black font-bold py-3 rounded-lg flex items-center justify-center gap-2">
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
                 </div>
 
-                <div id="withdraw-usdt-section" class="hidden">
+                <!-- INR Step 3: Confirm -->
+                <div id="wd-step-3" class="hidden">
+                    <div class="flex items-center mb-4">
+                        <button onclick="goToWDStep(2)" class="w-8 h-8 rounded-lg bg-surfaceLight flex items-center justify-center text-textGray hover:text-white shrink-0">
+                            <i class="fas fa-arrow-left text-xs"></i>
+                        </button>
+                        <p class="flex-1 text-center font-semibold text-sm">Confirm Withdrawal</p>
+                    </div>
+                    <div class="bg-surface rounded-lg divide-y divide-border text-sm mb-5">
+                        <div class="flex justify-between p-3"><span class="text-textGray">Amount</span><span id="wd-confirm-amount" class="font-bold text-danger">₹0</span></div>
+                        <div class="flex justify-between p-3"><span class="text-textGray">UPI ID</span><span id="wd-confirm-upi" class="font-mono text-xs">—</span></div>
+                        <div class="flex justify-between p-3"><span class="text-textGray">Name</span><span id="wd-confirm-name" class="text-xs">—</span></div>
+                        <div class="flex justify-between p-3"><span class="text-textGray">Account</span><span id="wd-confirm-account" class="text-xs capitalize">—</span></div>
+                    </div>
+                    <button onclick="submitWithdraw()" id="withdraw-submit-btn" class="btn-animated w-full bg-danger text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2">
+                        <span>Request Withdrawal</span>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── USDT Withdraw Steps ── -->
+            <div id="withdraw-usdt-section" class="hidden">
+
+                <!-- Step Indicator -->
+                <div class="flex items-center justify-center mb-4 px-2">
+                    <div id="uwt-dot-1" class="w-8 h-8 rounded-full bg-primary text-black flex items-center justify-center text-sm font-bold shrink-0">1</div>
+                    <div id="uwt-line-12" class="flex-1 h-0.5 bg-border mx-1"></div>
+                    <div id="uwt-dot-2" class="w-8 h-8 rounded-full bg-surface text-textGray flex items-center justify-center text-sm font-bold shrink-0">2</div>
+                    <div id="uwt-line-23" class="flex-1 h-0.5 bg-border mx-1"></div>
+                    <div id="uwt-dot-3" class="w-8 h-8 rounded-full bg-surface text-textGray flex items-center justify-center text-sm font-bold shrink-0">3</div>
+                </div>
+                <div class="flex justify-between text-xs text-textGray mb-4 px-1">
+                    <span>Amount</span><span>Address</span><span>Confirm</span>
+                </div>
+
+                <!-- USDT Step 1: Account + Amount -->
+                <div id="uwt-step-1" class="space-y-3">
+                    <div class="bg-surfaceLight rounded-lg p-3 border border-border flex items-center justify-between">
+                        <div>
+                            <p class="text-textGray text-xs">Available Balance</p>
+                            <p id="withdraw-usdt-available" class="text-xl font-bold font-mono text-primary">0 USDT</p>
+                        </div>
+                        <i class="fas fa-coins text-primary text-2xl opacity-50"></i>
+                    </div>
                     <div>
-                        <label class="text-textGray text-xs mb-2 block">Select Account <span class="text-danger">*</span></label>
+                        <label class="text-textGray text-xs mb-1 block">Select Account <span class="text-danger">*</span></label>
                         <select id="withdraw-usdt-account" class="input-trade" onchange="updateWithdrawAvailable()">
                             <option value="spot">Spot Account</option>
                             <option value="futures">Futures Account</option>
                         </select>
                     </div>
-
                     <div>
-                        <label class="text-textGray text-xs mb-2 block">Network <span class="text-danger">*</span></label>
-                        <select class="input-trade bg-surfaceLight" disabled>
-                            <option>BEP20 (BSC)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="text-textGray text-xs mb-2 block">USDT Amount <span class="text-danger">*</span></label>
+                        <label class="text-textGray text-xs mb-1 block">USDT Amount <span class="text-danger">*</span></label>
                         <div class="relative">
                             <input type="number" id="withdraw-usdt-amount" class="input-trade text-lg font-bold pr-16" placeholder="Min 10 USDT">
                             <button onclick="setMaxWithdrawUSDT()" class="max-btn">MAX</button>
                         </div>
-                        <p class="text-textGray text-xs mt-1">Min: 10 USDT | Fee: 1 USDT</p>
+                        <p class="text-textGray text-xs mt-1">Min: 10 USDT | Network fee: 1 USDT</p>
                     </div>
-
-                    <div>
-                        <label class="text-textGray text-xs mb-2 block">Withdrawal Address <span class="text-danger">*</span></label>
-                        <input type="text" id="withdraw-address" class="input-trade" placeholder="Enter BEP20 address">
-                        <p class="text-textGray text-xs mt-1 text-danger">* Double check address. Wrong address = Lost funds</p>
-                    </div>
+                    <button onclick="goToUWTStep(2)" class="btn-animated w-full bg-primary text-black font-bold py-3 rounded-lg flex items-center justify-center gap-2">
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
                 </div>
 
-                <button onclick="submitWithdraw()" id="withdraw-submit-btn" class="btn-animated w-full bg-danger text-white font-bold py-3 rounded-lg mt-4 flex items-center justify-center gap-2">
-                    <span>Request Withdrawal</span>
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+                <!-- USDT Step 2: Address -->
+                <div id="uwt-step-2" class="hidden space-y-3">
+                    <div class="flex items-center mb-2">
+                        <button onclick="goToUWTStep(1)" class="w-8 h-8 rounded-lg bg-surfaceLight flex items-center justify-center text-textGray hover:text-white shrink-0">
+                            <i class="fas fa-arrow-left text-xs"></i>
+                        </button>
+                        <p class="flex-1 text-center text-primary font-bold text-xl" id="uwt-amt-display">0 USDT</p>
+                    </div>
+                    <div class="bg-surface p-3 rounded-lg text-xs text-textGray mb-1">
+                        <i class="fas fa-network-wired mr-1 text-primary"></i>Network: <span class="text-white font-semibold">BEP20 (BSC)</span>
+                    </div>
+                    <div>
+                        <label class="text-textGray text-xs mb-1 block">Withdrawal Address (BEP20) <span class="text-danger">*</span></label>
+                        <input type="text" id="withdraw-address" class="input-trade font-mono text-xs" placeholder="0x...">
+                        <p class="text-danger text-xs mt-1"><i class="fas fa-exclamation-triangle mr-1"></i>Double check address. Wrong address = lost funds</p>
+                    </div>
+                    <button onclick="goToUWTStep(3)" class="btn-animated w-full bg-primary text-black font-bold py-3 rounded-lg flex items-center justify-center gap-2">
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- USDT Step 3: Confirm -->
+                <div id="uwt-step-3" class="hidden">
+                    <div class="flex items-center mb-4">
+                        <button onclick="goToUWTStep(2)" class="w-8 h-8 rounded-lg bg-surfaceLight flex items-center justify-center text-textGray hover:text-white shrink-0">
+                            <i class="fas fa-arrow-left text-xs"></i>
+                        </button>
+                        <p class="flex-1 text-center font-semibold text-sm">Confirm Withdrawal</p>
+                    </div>
+                    <div class="bg-surface rounded-lg divide-y divide-border text-sm mb-5">
+                        <div class="flex justify-between p-3"><span class="text-textGray">Amount</span><span id="uwt-confirm-amount" class="font-bold text-danger">0 USDT</span></div>
+                        <div class="flex justify-between p-3"><span class="text-textGray">You Receive</span><span id="uwt-confirm-receive" class="font-bold text-primary">0 USDT</span></div>
+                        <div class="flex justify-between p-3"><span class="text-textGray">Network</span><span class="text-xs">BEP20 (BSC)</span></div>
+                        <div class="flex justify-between p-3"><span class="text-textGray">Address</span><span id="uwt-confirm-address" class="font-mono text-xs break-all max-w-[180px] text-right">—</span></div>
+                    </div>
+                    <button onclick="submitWithdraw()" id="withdraw-usdt-submit-btn" class="btn-animated w-full bg-danger text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2">
+                        <span>Request Withdrawal</span>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -4203,23 +4349,23 @@
             state.withdrawType = type;
             document.getElementById('withdraw-tab-inr').className = type === 'inr' ? 'flex-1 py-2 rounded-lg text-sm font-bold bg-primary text-black' : 'flex-1 py-2 rounded-lg text-sm font-bold text-textGray';
             document.getElementById('withdraw-tab-usdt').className = type === 'usdt' ? 'flex-1 py-2 rounded-lg text-sm font-bold bg-primary text-black' : 'flex-1 py-2 rounded-lg text-sm font-bold text-textGray';
-            
             document.getElementById('withdraw-inr-section').classList.toggle('hidden', type !== 'inr');
             document.getElementById('withdraw-usdt-section').classList.toggle('hidden', type !== 'usdt');
-            
+
+            // Reset to step 1 on tab switch
+            if (type === 'inr') goToWDStep(1);
+            else goToUWTStep(1);
+
             updateWithdrawAvailable();
-            
-            // Show KYC warning if not verified
+
+            // KYC warning
+            const kycStatus = state.userData?.kycStatus;
             const kycWarning = document.getElementById('kyc-warning');
             if (kycWarning) {
-                if (state.userData?.kycStatus !== 'verified') {
+                if (kycStatus !== 'verified') {
                     kycWarning.classList.remove('hidden');
-                    document.getElementById('withdraw-submit-btn').disabled = true;
-                    document.getElementById('withdraw-submit-btn').classList.add('btn-disabled');
                 } else {
                     kycWarning.classList.add('hidden');
-                    document.getElementById('withdraw-submit-btn').disabled = false;
-                    document.getElementById('withdraw-submit-btn').classList.remove('btn-disabled');
                 }
             }
         }
@@ -5361,16 +5507,14 @@
         function updateWithdrawAvailable() {
             if (state.withdrawType === 'inr') {
                 const account = document.getElementById('withdraw-account').value;
-                const balanceKey = account + 'Balance';
-                const balance = state.userData[balanceKey] || 0;
+                const balance = state.userData[account + 'Balance'] || 0;
                 document.getElementById('withdraw-available').textContent = formatCurrency(balance);
                 document.getElementById('max-withdraw').textContent = balance.toFixed(2);
             } else {
                 const account = document.getElementById('withdraw-usdt-account').value;
-                const balanceKey = account + 'Balance';
-                const balance = state.userData[balanceKey] || 0;
-                const usdtBalance = balance / state.usdtToInr;
-                document.getElementById('withdraw-available').textContent = usdtBalance.toFixed(2) + ' USDT';
+                const balance = state.userData[account + 'Balance'] || 0;
+                const usdtBalance = balance / (state.usdtToInr || 85);
+                document.getElementById('withdraw-usdt-available').textContent = usdtBalance.toFixed(2) + ' USDT';
             }
         }
 
@@ -6028,42 +6172,35 @@
             resetFileUploads();
         }
         
-        function openWithdrawModal() { 
-            // UIF-04 FIX: Reset account dropdown to 'spot' so user sees the correct default balance
+        function openWithdrawModal() {
+            // Reset dropdowns to spot
             const acctDropdown = document.getElementById('withdraw-account');
             if (acctDropdown) acctDropdown.value = 'spot';
-            document.getElementById('withdraw-modal').style.display = 'flex'; 
-            updateWithdrawAvailable(); 
+
+            document.getElementById('withdraw-modal').style.display = 'flex';
             resetWithdrawForm();
-            // BUG 9 FIX: On open, always apply KYC state to BOTH the warning banner
-            // AND the submit button disabled state. Previously only the warning was shown
-            // but the button remained clickable, allowing KYC bypass.
+
+            // Always start at INR step 1
+            switchWithdrawType('inr');
+            updateWithdrawAvailable();
+
+            // KYC warning
             const kycWarning = document.getElementById('kyc-warning');
-            const submitBtn = document.getElementById('withdraw-submit-btn');
+            const msgEl = document.getElementById('kyc-warning-msg');
+            const actionBtn = document.getElementById('kyc-warning-action');
             if (state.userData?.kycStatus !== 'verified') {
                 kycWarning?.classList.remove('hidden');
-                // BUG-06 FIX: Show correct message for pending vs unverified
-                const msgEl = document.getElementById('kyc-warning-msg');
-                const actionBtn = document.getElementById('kyc-warning-action');
                 if (msgEl) {
                     if (state.userData?.kycStatus === 'pending') {
                         msgEl.innerHTML = '<i class="fas fa-clock mr-1"></i>KYC verification under review. Please wait.';
-                        if (actionBtn) actionBtn.classList.add('hidden');
+                        actionBtn?.classList.add('hidden');
                     } else {
                         msgEl.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>KYC verification required for withdrawal';
-                        if (actionBtn) actionBtn.classList.remove('hidden');
+                        actionBtn?.classList.remove('hidden');
                     }
-                }
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.classList.add('btn-disabled');
                 }
             } else {
                 kycWarning?.classList.add('hidden');
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.classList.remove('btn-disabled');
-                }
             }
         }
         
@@ -6078,12 +6215,15 @@
             document.getElementById('invest-amount').value = '';
         }
         
-        function switchPaymentType(type) { 
-            state.paymentType = type; 
-            document.getElementById('tab-inr').className = type === 'inr' ? 'flex-1 py-2 rounded-lg text-sm font-bold bg-primary text-black' : 'flex-1 py-2 rounded-lg text-sm font-bold text-textGray'; 
-            document.getElementById('tab-usdt').className = type === 'usdt' ? 'flex-1 py-2 rounded-lg text-sm font-bold bg-primary text-black' : 'flex-1 py-2 rounded-lg text-sm font-bold text-textGray'; 
-            document.getElementById('inr-section').classList.toggle('hidden', type !== 'inr'); 
-            document.getElementById('usdt-section').classList.toggle('hidden', type !== 'usdt'); 
+        function switchPaymentType(type) {
+            state.paymentType = type;
+            document.getElementById('tab-inr').className = type === 'inr' ? 'flex-1 py-2 rounded-lg text-sm font-bold bg-primary text-black' : 'flex-1 py-2 rounded-lg text-sm font-bold text-textGray';
+            document.getElementById('tab-usdt').className = type === 'usdt' ? 'flex-1 py-2 rounded-lg text-sm font-bold bg-primary text-black' : 'flex-1 py-2 rounded-lg text-sm font-bold text-textGray';
+            document.getElementById('inr-section').classList.toggle('hidden', type !== 'inr');
+            document.getElementById('usdt-section').classList.toggle('hidden', type !== 'usdt');
+            // Reset to step 1 on tab switch
+            if (type === 'inr') goToDepStep(1);
+            else goToUSDTDepStep(1);
         }
         
         function setDepositAmount(amount) { 
@@ -6136,6 +6276,92 @@
         function copyDepositUPI() {
             const upiId = state.adminConfig?.upi || 'admin@upi';
             navigator.clipboard.writeText(upiId).then(() => showToast('UPI ID copied!'));
+        }
+
+        // ── USDT Deposit Steps ──
+        function goToUSDTDepStep(step) {
+            const amount = parseFloat(document.getElementById('usdt-amount').value);
+            if (step === 2 && (!amount || amount < 10)) {
+                showToast('Please enter amount (Min 10 USDT)', 'error');
+                return;
+            }
+            [1, 2, 3].forEach(s => document.getElementById(`udep-step-${s}`).classList.toggle('hidden', s !== step));
+            const active = 'bg-primary text-black', inactive = 'bg-surface text-textGray';
+            const base = 'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0';
+            document.getElementById('udep-dot-1').className = `${base} ${step >= 1 ? active : inactive}`;
+            document.getElementById('udep-dot-2').className = `${base} ${step >= 2 ? active : inactive}`;
+            document.getElementById('udep-dot-3').className = `${base} ${step >= 3 ? active : inactive}`;
+            document.getElementById('udep-line-12').className = `flex-1 h-0.5 mx-1 ${step >= 2 ? 'bg-primary' : 'bg-border'}`;
+            document.getElementById('udep-line-23').className = `flex-1 h-0.5 mx-1 ${step >= 3 ? 'bg-primary' : 'bg-border'}`;
+            if (step === 2) {
+                const addr = state.adminConfig?.usdtAddress || '0x...';
+                document.getElementById('udep-amt-display').textContent = amount + ' USDT';
+                document.getElementById('udep-amt-exact').textContent = amount + ' USDT';
+                document.getElementById('udep-address-display').textContent = addr;
+                document.getElementById('udep-inr-display').textContent = '≈ ₹' + (amount * (state.usdtToInr || 85)).toLocaleString(undefined, {maximumFractionDigits: 0});
+            }
+            if (step === 3) {
+                document.getElementById('udep-amt-confirm').textContent = amount + ' USDT';
+            }
+        }
+
+        // ── INR Withdraw Steps ──
+        function goToWDStep(step) {
+            const amount = parseFloat(document.getElementById('withdraw-amount').value);
+            if (step === 2) {
+                if (state.userData?.kycStatus !== 'verified') { showToast('KYC verification required to withdraw', 'error'); return; }
+                if (!amount || amount < 500) { showToast('Please enter amount (Min ₹500)', 'error'); return; }
+            }
+            if (step === 3) {
+                const upi = document.getElementById('withdraw-upi').value.trim();
+                const name = document.getElementById('withdraw-name').value.trim();
+                if (!upi) { showToast('Please enter UPI ID', 'error'); return; }
+                if (!name) { showToast('Please enter account holder name', 'error'); return; }
+                // Fill confirm summary
+                document.getElementById('wd-confirm-amount').textContent = '₹' + amount.toLocaleString();
+                document.getElementById('wd-confirm-upi').textContent = upi;
+                document.getElementById('wd-confirm-name').textContent = name;
+                const acc = document.getElementById('withdraw-account').value;
+                document.getElementById('wd-confirm-account').textContent = acc + ' Account';
+            }
+            [1, 2, 3].forEach(s => document.getElementById(`wd-step-${s}`).classList.toggle('hidden', s !== step));
+            const active = 'bg-primary text-black', inactive = 'bg-surface text-textGray';
+            const base = 'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0';
+            document.getElementById('wd-dot-1').className = `${base} ${step >= 1 ? active : inactive}`;
+            document.getElementById('wd-dot-2').className = `${base} ${step >= 2 ? active : inactive}`;
+            document.getElementById('wd-dot-3').className = `${base} ${step >= 3 ? active : inactive}`;
+            document.getElementById('wd-line-12').className = `flex-1 h-0.5 mx-1 ${step >= 2 ? 'bg-primary' : 'bg-border'}`;
+            document.getElementById('wd-line-23').className = `flex-1 h-0.5 mx-1 ${step >= 3 ? 'bg-primary' : 'bg-border'}`;
+            if (step === 2) {
+                document.getElementById('wd-amt-display').textContent = '₹' + amount.toLocaleString();
+            }
+        }
+
+        // ── USDT Withdraw Steps ──
+        function goToUWTStep(step) {
+            const amount = parseFloat(document.getElementById('withdraw-usdt-amount').value);
+            if (step === 2) {
+                if (state.userData?.kycStatus !== 'verified') { showToast('KYC verification required to withdraw', 'error'); return; }
+                if (!amount || amount < 10) { showToast('Please enter amount (Min 10 USDT)', 'error'); return; }
+            }
+            if (step === 3) {
+                const addr = document.getElementById('withdraw-address').value.trim();
+                if (!addr || addr.length < 10) { showToast('Please enter valid BEP20 address', 'error'); return; }
+                document.getElementById('uwt-confirm-amount').textContent = amount + ' USDT';
+                document.getElementById('uwt-confirm-receive').textContent = (amount - 1) + ' USDT';
+                document.getElementById('uwt-confirm-address').textContent = addr;
+            }
+            [1, 2, 3].forEach(s => document.getElementById(`uwt-step-${s}`).classList.toggle('hidden', s !== step));
+            const active = 'bg-primary text-black', inactive = 'bg-surface text-textGray';
+            const base = 'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0';
+            document.getElementById('uwt-dot-1').className = `${base} ${step >= 1 ? active : inactive}`;
+            document.getElementById('uwt-dot-2').className = `${base} ${step >= 2 ? active : inactive}`;
+            document.getElementById('uwt-dot-3').className = `${base} ${step >= 3 ? active : inactive}`;
+            document.getElementById('uwt-line-12').className = `flex-1 h-0.5 mx-1 ${step >= 2 ? 'bg-primary' : 'bg-border'}`;
+            document.getElementById('uwt-line-23').className = `flex-1 h-0.5 mx-1 ${step >= 3 ? 'bg-primary' : 'bg-border'}`;
+            if (step === 2) {
+                document.getElementById('uwt-amt-display').textContent = amount + ' USDT';
+            }
         }
         
         function handleINRScreenshot(input) { 
