@@ -148,9 +148,8 @@
         .input-trade:focus { outline: none; border-color: #00c853; }
         .input-trade:disabled { background: #1e2329; color: #848e9c; cursor: not-allowed; }
         .mobile-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #151a21; border-top: 1px solid #2b3139; display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; }
-        .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #848e9c; font-size: 9px; transition: all 0.2s; padding: 4px 4px; border-radius: 8px; position: relative; }
+        .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #848e9c; font-size: 9px; transition: all 0.2s; padding: 4px 4px; border-radius: 8px; }
         .mobile-nav-item.active { color: #00c853; background: rgba(0, 200, 83, 0.1); }
-        .mobile-nav-item.active::before { content: ''; display: block; position: absolute; top: -8px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; border-radius: 50%; background: #ffd700; box-shadow: 0 0 6px rgba(255,215,0,0.7); }
         .mobile-nav-item:active { transform: scale(0.9); }
         .market-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #2b3139; cursor: pointer; transition: background 0.2s; }
         .market-item:hover { background: #1e2329; }
@@ -161,14 +160,13 @@
         .toast.error { border-color: #ff3d00; color: #ff3d00; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        #pay-modal, #withdraw-modal, #invest-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 6000; display: none; justify-content: center; align-items: flex-end; padding: 0; }
-        .pay-box, .withdraw-box { background: #111; padding: 25px; border: 2px solid #ffd700; border-radius: 24px 24px 0 0; width: 100%; max-width: 400px; text-align: center; max-height: 90vh; overflow-y: auto; }
-        .pay-box::before, .withdraw-box::before { content: ''; display: block; width: 40px; height: 4px; border-radius: 2px; background: #2b3139; margin: 0 auto 16px; }
+        #pay-modal, #withdraw-modal, #invest-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 6000; display: none; justify-content: center; align-items: center; padding: 20px; }
+        .pay-box, .withdraw-box { background: #111; padding: 25px; border: 2px solid #ffd700; border-radius: 25px; width: 100%; max-width: 400px; text-align: center; max-height: 90vh; overflow-y: auto; }
         .withdraw-box { border-color: #2b3139; }
-        .p-btn { background: #1a1a1a; margin: 8px 0; padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 15px; color: white; text-decoration: none; border: 1px solid rgba(255,215,0,0.15); font-weight: bold; cursor: pointer; transition: all 0.2s; }
-        .p-btn:hover { background: #252525; border-color: rgba(255,215,0,0.5); box-shadow: 0 0 12px rgba(255,215,0,0.1); }
+        .p-btn { background: #1a1a1a; margin: 8px 0; padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 15px; color: white; text-decoration: none; border: 1px solid #333; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .p-btn:hover { background: #252525; border-color: #00c853; }
         .p-btn img { width: 25px; height: 25px; border-radius: 5px; }
-        .v-input { width: 100%; padding: 12px; background: #000; border: 1px solid #444; color: #00ff88; text-align: left; border-radius: 10px; margin: 10px 0; font-weight: bold; }
+        .v-input { width: 100%; padding: 12px; background: #000; border: 1px solid #444; color: #00ff88; text-align: center; border-radius: 10px; margin: 10px 0; font-weight: bold; }
         .v-btn { background: #00ff88; color: black; border: none; padding: 14px; width: 100%; border-radius: 10px; font-weight: 900; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden; }
         .v-btn:hover { background: #00cc6a; }
         .v-btn.processing { background: #ffd600; color: black; pointer-events: none; }
@@ -329,9 +327,6 @@
         .mobile-nav-item:active { transform: scale(.92); }
         button { transition: all .2s ease; }
         button:active { transform: scale(.97); }
-
-        /* Modal Title */
-        .modal-title { color: var(--color-gold, #ffd700); font-size: 1.25rem; font-weight: 800; margin-bottom: 16px; text-align: center; letter-spacing: 0.05em; }
 
         /* PWA Install Popup */
         #pwa-install-popup { position: fixed; bottom: 90px; left: 12px; right: 12px; z-index: 9998; background: linear-gradient(135deg, #1e2329, #151a21); border: 1.5px solid rgba(212,175,55,0.5); border-radius: 16px; padding: 14px 16px; display: none; gap: 12px; align-items: center; box-shadow: 0 8px 32px rgba(0,0,0,0.7); animation: slideUp 0.4s ease-out; }
@@ -706,7 +701,7 @@
                         <h2 id="invest-value" class="text-xl font-bold font-mono text-primary">₹0.00</h2>
                         <p class="text-textGray text-xs mt-1">Active Investments</p>
                     </div>
-                    <div class="glass rounded-xl col-span-2 bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20" style="border-radius:12px;overflow:hidden;box-shadow:0 0 18px rgba(212,175,55,0.12),0 2px 8px rgba(0,0,0,0.4);">
+                    <div class="glass rounded-xl col-span-2 bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20" style="border-radius:12px;overflow:hidden;">
                         <!-- Tab Header -->
                         <div class="flex border-b border-yellow-500/10">
                             <button onclick="homeCardTab('balance',this)" id="hc-tab-balance" class="flex-1 py-2 text-xs font-bold text-black" style="background:rgba(212,175,55,0.25);">💰 Balance</button>
@@ -721,7 +716,7 @@
                                     <button id="curr-mode-usdt" onclick="setCurrencyMode('USDT')" class="px-3 py-1 rounded-full text-xs font-bold text-textGray transition-all">$ USDT</button>
                                 </div>
                             </div>
-                            <h2 id="total-balance-display" class="text-2xl font-bold font-mono" style="background:linear-gradient(90deg,#ffd700,#d4af37,#ffe066);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">₹0.00</h2>
+                            <h2 id="total-balance-display" class="text-2xl font-bold font-mono text-yellow-400">₹0.00</h2>
                             <p class="text-textGray text-xs mt-1">All Accounts Combined</p>
                         </div>
                         <!-- P&L History Tab -->
@@ -1108,12 +1103,7 @@
                     <div id="investing-loading" class="hidden flex justify-center py-8">
                         <div class="loader"></div>
                     </div>
-                    <div class="grid grid-cols-1 gap-4" id="investing-list">
-                        <div class="empty-state-ui text-center py-10 hidden">
-                            <i class="fas fa-box-open text-3xl text-textGray mb-3 block opacity-40"></i>
-                            <p class="text-textGray text-sm">No plans available</p>
-                        </div>
-                    </div>
+                    <div class="grid grid-cols-1 gap-4" id="investing-list"></div>
                 </div>
             </div>
 
@@ -1145,25 +1135,20 @@
                     <div id="nft-loading" class="hidden flex justify-center py-8">
                         <div class="loader"></div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4" id="nft-list">
-                        <div class="empty-state-ui text-center py-10 col-span-2 hidden">
-                            <i class="fas fa-box-open text-3xl text-textGray mb-3 block opacity-40"></i>
-                            <p class="text-textGray text-sm">No plans available</p>
-                        </div>
-                    </div>
+                    <div class="grid grid-cols-2 gap-4" id="nft-list"></div>
                 </div>
             </div>
 
             <!-- Wallet View -->
             <div id="view-wallet" class="view-section hidden animate-fade-in">
                 <div class="relative border-b border-border sticky top-[57px] bg-bgDeep z-40">
-                    <div class="flex overflow-x-auto no-scrollbar w-full" id="wallet-tabs-container">
-                        <button onclick="switchWalletTab('overview', this)" class="wallet-tab active shrink-0" data-tab="overview">Overview</button>
-                        <button onclick="switchWalletTab('spot', this)" class="wallet-tab shrink-0" data-tab="spot">Spot</button>
-                        <button onclick="switchWalletTab('futures', this)" class="wallet-tab shrink-0" data-tab="futures">Futures</button>
-                        <button onclick="switchWalletTab('margin', this)" class="wallet-tab shrink-0" data-tab="margin">Margin</button>
-                        <button onclick="switchWalletTab('nft', this)" class="wallet-tab shrink-0" data-tab="nft">NFT</button>
-                        <button onclick="switchWalletTab('invest', this)" class="wallet-tab shrink-0" data-tab="invest">Invest</button>
+                    <div class="flex w-full" id="wallet-tabs-container">
+                        <button onclick="switchWalletTab('overview', this)" class="wallet-tab active" data-tab="overview" style="flex:1;min-width:0;font-size:11px;padding:10px 4px;">Overview</button>
+                        <button onclick="switchWalletTab('spot', this)" class="wallet-tab" data-tab="spot" style="flex:1;min-width:0;font-size:11px;padding:10px 4px;">Spot</button>
+                        <button onclick="switchWalletTab('futures', this)" class="wallet-tab" data-tab="futures" style="flex:1;min-width:0;font-size:11px;padding:10px 4px;">Futures</button>
+                        <button onclick="switchWalletTab('margin', this)" class="wallet-tab" data-tab="margin" style="flex:1;min-width:0;font-size:11px;padding:10px 4px;">Margin</button>
+                        <button onclick="switchWalletTab('nft', this)" class="wallet-tab" data-tab="nft" style="flex:1;min-width:0;font-size:11px;padding:10px 4px;">NFT</button>
+                        <button onclick="switchWalletTab('invest', this)" class="wallet-tab" data-tab="invest" style="flex:1;min-width:0;font-size:11px;padding:10px 4px;">Invest</button>
                     </div>
                 </div>
                 <div class="p-4">
@@ -1622,13 +1607,6 @@
             <!-- History View -->
             <div id="view-history" class="view-section hidden animate-fade-in">
                 <div class="sticky top-[57px] bg-bgDeep z-40 border-b border-border">
-                    <div class="flex items-center gap-3 px-4 py-3 border-b border-border/50">
-                        <button onclick="navigateTo('profile')" class="btn-animated w-10 h-10 rounded-lg bg-surfaceLight flex items-center justify-center shrink-0">
-                            <i class="fas fa-arrow-left"></i>
-                        </button>
-                        <h2 class="text-xl font-bold flex-1 text-center">Transaction History</h2>
-                        <div class="w-10"></div>
-                    </div>
                     <div class="flex overflow-x-auto no-scrollbar gap-1 px-2">
                         <button onclick="switchHistoryTab('all')" class="history-tab shrink-0 py-2.5 px-4 text-xs font-medium border-b-2 border-primary text-white whitespace-nowrap" data-type="all">All</button>
                         <button onclick="switchHistoryTab('deposit')" class="history-tab shrink-0 py-2.5 px-4 text-xs font-medium border-b-2 border-transparent text-textGray whitespace-nowrap" data-type="deposit">Deposits</button>
@@ -1722,7 +1700,7 @@
     <!-- Payment/Deposit Modal -->
     <div id="pay-modal">
         <div class="pay-box">
-            <h2 class="modal-title">DEPOSIT FUNDS</h2>
+            <h2 style="color:#ffd700; margin-bottom:10px;">DEPOSIT FUNDS</h2>
             
             <div class="flex bg-surface rounded-lg p-1 mb-4">
                 <button onclick="switchPaymentType('inr')" id="tab-inr" class="flex-1 py-2 rounded-lg text-sm font-bold bg-primary text-black">INR (UPI)</button>
@@ -2151,7 +2129,7 @@
     <!-- Invest Modal -->
     <div id="invest-modal">
         <div class="pay-box" style="max-width: 450px;">
-            <h2 class="modal-title">INVEST NOW</h2>
+            <h2 style="color:#ffd700; margin-bottom:10px;">INVEST NOW</h2>
             <div id="invest-details" class="text-left mb-4"></div>
             <div class="space-y-3 text-left">
                 <div>
@@ -5228,7 +5206,7 @@
                 const catColor = catColors[cat] || '#00c853';
                 const catLabel = catLabels[cat] || 'Long Term';
                 return `
-                <div class="feature-card relative overflow-hidden" style="border:1px solid rgba(212,175,55,0.2);border-top:3px solid ${catColor};">
+                <div class="feature-card relative overflow-hidden" style="border:1px solid rgba(212,175,55,0.2)">
                     <div class="absolute top-0 right-0 w-24 h-24 rounded-bl-full" style="background:linear-gradient(135deg,rgba(212,175,55,0.1),transparent)"></div>
                     <img src="${plan.image}" alt="${plan.name}" class="w-full object-cover" style="height:160px;border-radius:12px 12px 0 0;" onerror="this.style.display='none'" loading="lazy">
                     <div class="p-4 relative z-10">
