@@ -5295,7 +5295,12 @@
             const plan = state.selectedInvestPlan;
 
             if (!amount || isNaN(amount) || amount < Number(plan.min)) {
-                showToast(`Minimum investment is ₹${Number(plan.min)}`, 'error');
+                showToast(`Minimum investment is ₹${Number(plan.min).toLocaleString()}`, 'error');
+                return;
+            }
+            const planMax = Number(plan.max) || 0;
+            if (planMax > 0 && amount > planMax) {
+                showToast(`Maximum investment is ₹${planMax.toLocaleString()}`, 'error');
                 return;
             }
             if (!duration || isNaN(duration) || duration < 1) {
@@ -6004,7 +6009,11 @@
             durationSelect.value = options[0];
 
             document.getElementById('invest-min').textContent = `Min: ₹${planMin.toLocaleString()}${planMax > 0 ? ' | Max: ₹' + planMax.toLocaleString() : ''}`;
-            document.getElementById('invest-amount').value = '';
+            const amtInput = document.getElementById('invest-amount');
+            amtInput.value = '';
+            amtInput.min = planMin;
+            if (planMax > 0) amtInput.max = planMax;
+            else amtInput.removeAttribute('max');
             document.getElementById('invest-returns').textContent = '₹0.00';
             document.getElementById('invest-modal').style.display = 'flex';
             updateInvestReturns();
