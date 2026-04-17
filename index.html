@@ -512,22 +512,41 @@
                 <p id="loader-pct" style="font-size:15px;font-weight:800;color:#00c853;font-family:monospace;transition:all 0.3s;">0%</p>
             </div>
         </div>
+    </div>
 
-        <!-- Promo Popup on Loader: USDT rate + Fast Deposit bonus -->
-        <div id="loader-promo" style="position:relative;z-index:3;margin-top:28px;width:min(320px,88vw);background:linear-gradient(145deg,rgba(212,175,55,0.12),rgba(0,200,83,0.08));border:1.5px solid rgba(212,175,55,0.55);border-radius:16px;padding:14px 16px;box-shadow:0 6px 28px rgba(212,175,55,0.25);animation:logoPulse 2.4s ease-in-out infinite;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-                <div style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#26a17b,#1d8865);font-size:13px;font-weight:800;color:#fff;">&#x20B1;</div>
-                <div style="flex:1;">
-                    <p style="font-size:11px;color:#848e9c;margin:0;letter-spacing:0.5px;">LIVE RATE</p>
-                    <p style="font-size:15px;font-weight:800;color:#f5d060;margin:0;">1 USDT = &#8377;103</p>
+    <!-- Post-load Rate Popup (shown after loader closes) -->
+    <div id="rate-popup" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4" style="background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);">
+        <div class="relative w-full max-w-sm rounded-2xl p-6 animate-fade-in" style="background:linear-gradient(155deg,#15171c,#0b0e11);border:1.5px solid rgba(212,175,55,0.5);box-shadow:0 18px 60px rgba(0,0,0,0.7),0 0 40px rgba(212,175,55,0.15);">
+            <!-- Close button -->
+            <button onclick="closeRatePopup()" aria-label="Close" class="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" style="background:rgba(255,255,255,0.08);color:#fff;">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <!-- USDT icon -->
+            <div class="mx-auto mb-4 w-16 h-16 rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#26a17b,#1d8865);box-shadow:0 8px 24px rgba(38,161,123,0.35);">
+                <span style="font-size:28px;font-weight:900;color:#fff;">&#8381;</span>
+            </div>
+
+            <p class="text-center text-xs tracking-widest" style="color:#848e9c;">LIVE EXCHANGE RATE</p>
+            <h2 class="text-center font-extrabold mt-1" style="font-size:30px;color:#f5d060;">1 USDT = &#8377;103</h2>
+            <p class="text-center text-sm mt-1" style="color:#e6e8ea;">$1 = &#8377;103 &#x2022; Fixed Rate</p>
+
+            <div class="my-5" style="height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,0.35),transparent);"></div>
+
+            <!-- Fast Deposit highlight -->
+            <div class="rounded-xl p-3 flex items-start gap-3" style="background:linear-gradient(135deg,rgba(0,200,83,0.12),rgba(0,200,83,0.04));border:1px solid rgba(0,200,83,0.35);">
+                <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style="background:rgba(0,200,83,0.2);">
+                    <i class="fas fa-bolt" style="color:#00c853;"></i>
                 </div>
-                <span style="font-size:9px;font-weight:800;color:#000;background:linear-gradient(135deg,#f5d060,#d4af37);padding:3px 7px;border-radius:6px;">$1 = &#8377;103</span>
+                <div class="flex-1">
+                    <p class="text-sm font-bold" style="color:#fff;">Fast Deposit + Referral</p>
+                    <p class="text-xs mt-0.5" style="color:#b8bcc4;">Deposit with a <b style="color:#f5d060;">Referral ID</b> and get <b style="color:#00c853;">+15% Bonus</b> on your first deposit.</p>
+                </div>
             </div>
-            <div style="height:1px;background:rgba(212,175,55,0.25);margin:8px 0;"></div>
-            <div style="display:flex;align-items:center;gap:8px;">
-                <i class="fas fa-bolt" style="color:#00c853;font-size:14px;"></i>
-                <p style="margin:0;font-size:11.5px;color:#e6e8ea;line-height:1.35;">Fast Deposit with <b style="color:#f5d060;">Referral ID</b> &rarr; <b style="color:#00c853;">+15% Bonus</b></p>
-            </div>
+
+            <button onclick="closeRatePopup()" class="btn-animated w-full mt-5 py-3 rounded-xl font-bold text-black" style="background:linear-gradient(135deg,#f5d060,#d4af37);">
+                Got it
+            </button>
         </div>
     </div>
 
@@ -842,14 +861,6 @@
                     <button onclick="openWithdrawModal()" class="btn-animated flex-1 bg-surfaceLight border border-border text-white font-bold py-3 rounded-lg"><i class="fas fa-arrow-up mr-2"></i>Withdraw</button>
                     <button onclick="navigateTo('transfer')" class="btn-animated flex-1 bg-surfaceLight border border-border text-white font-bold py-3 rounded-lg"><i class="fas fa-exchange-alt mr-2"></i>Transfer</button>
                 </div>
-                <!-- Express Buy/Sell USDT -->
-                <div class="px-4 mb-6">
-                    <button onclick="openExpressUSDT()" class="btn-animated w-full py-3 rounded-xl font-bold text-black flex items-center justify-center gap-2 relative overflow-hidden" style="background:linear-gradient(135deg,#f5d060,#d4af37);">
-                        <i class="fas fa-bolt"></i>
-                        <span>Express Buy / Sell USDT</span>
-                        <span class="absolute -top-1 -right-1 text-[9px] font-bold px-2 py-0.5 rounded-bl-lg" style="background:#00c853;color:#000;">₹103 RATE</span>
-                    </button>
-                </div>
                 <div class="px-4 mb-4">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="font-bold">Trending</h3>
@@ -897,11 +908,11 @@
                         <button onclick="switchTradingMode('futures')" id="mode-futures" class="tab-active whitespace-nowrap text-sm text-textGray">Futures</button>
                         <button onclick="switchTradingMode('spot')" id="mode-spot" class="text-textGray whitespace-nowrap text-sm">Spot</button>
                         <button onclick="switchTradingMode('margin')" id="mode-margin" class="text-textGray whitespace-nowrap text-sm">Margin</button>
-                        <!-- MISS-1 FIX: P2P tab with animated Coming Soon overlay -->
+                        <!-- P2P opens Express USDT Buy/Sell flow -->
                         <div class="relative">
-                            <button onclick="showP2PComingSoon()" class="text-textGray whitespace-nowrap text-sm relative">
+                            <button onclick="openExpressUSDT()" class="text-textGray whitespace-nowrap text-sm relative">
                                 P2P
-                                <span class="absolute -top-1 -right-3 text-[8px] font-bold px-1 rounded" style="background:linear-gradient(135deg,#d4af37,#ffd700);color:#000;animation:goldPulse 2s infinite">NEW</span>
+                                <span class="absolute -top-1 -right-3 text-[8px] font-bold px-1 rounded" style="background:linear-gradient(135deg,#d4af37,#ffd700);color:#000;animation:goldPulse 2s infinite">LIVE</span>
                             </button>
                         </div>
                     </div>
@@ -1336,135 +1347,211 @@
                 </div>
             </div>
 
-            <!-- Referral View -->
+            <!-- Referral View — Professional Redesign -->
             <div id="view-referral" class="view-section hidden animate-fade-in">
-                <div class="p-4 max-w-md mx-auto">
-                    <h2 class="text-xl font-bold mb-4">Refer &amp; Earn</h2>
+                <div class="p-4 max-w-md mx-auto pb-6">
 
-                    <!-- Referral Earnings Balance Card -->
-                    <div class="referral-balance-card mb-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <div>
-                                <p class="text-textGray text-xs">Referral Earnings</p>
-                                <h3 id="referral-balance-display" class="text-2xl font-bold text-primary font-mono">₹0.00</h3>
-                                <p class="text-textGray text-xs mt-1">Available to use for trade, invest or withdraw</p>
+                    <!-- HERO: Earnings + Referral Code -->
+                    <div class="rounded-2xl p-5 mb-4 relative overflow-hidden" style="background:linear-gradient(135deg,#1a1408 0%,#0b0e11 60%,#0a1a12 100%);border:1.5px solid rgba(212,175,55,0.4);box-shadow:0 12px 40px rgba(0,0,0,0.5);">
+                        <!-- Subtle gold glow -->
+                        <div style="position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(212,175,55,0.25),transparent 70%);"></div>
+
+                        <div class="relative">
+                            <div class="flex items-center justify-between mb-1">
+                                <p class="text-[11px] tracking-widest uppercase" style="color:#848e9c;">Total Earnings</p>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(0,200,83,0.15);color:#00c853;border:1px solid rgba(0,200,83,0.35);">
+                                    <i class="fas fa-circle text-[6px] mr-1"></i>Active
+                                </span>
                             </div>
-                            <div class="w-14 h-14 rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,rgba(0,200,83,0.2),rgba(0,200,83,0.05));border:1px solid rgba(0,200,83,0.3);">
-                                <i class="fas fa-coins text-primary text-xl"></i>
+                            <h3 id="referral-balance-display" class="font-bold font-mono" style="font-size:34px;color:#f5d060;letter-spacing:-0.5px;">₹0.00</h3>
+                            <p class="text-xs mt-1" style="color:#b8bcc4;">Withdrawable or usable across the app</p>
+
+                            <button onclick="transferReferralToSpot()" id="referral-transfer-btn" class="btn-animated w-full mt-4 py-3 rounded-xl font-bold text-sm text-black flex items-center justify-center gap-2" style="background:linear-gradient(135deg,#00c853,#00a844);box-shadow:0 6px 18px rgba(0,200,83,0.25);">
+                                <i class="fas fa-wallet text-xs"></i>
+                                Transfer to Spot Wallet
+                            </button>
+
+                            <!-- Referral Code Box -->
+                            <div class="mt-4 rounded-xl p-3" style="background:rgba(255,255,255,0.03);border:1px dashed rgba(212,175,55,0.4);">
+                                <p class="text-[10px] tracking-widest uppercase mb-1.5" style="color:#848e9c;">Your Referral Code</p>
+                                <div class="flex items-center gap-2">
+                                    <span id="referral-code-display" class="font-mono font-extrabold flex-1 truncate" style="font-size:20px;color:#f5d060;letter-spacing:2px;">LOADING...</span>
+                                    <button onclick="copyReferralCode()" class="px-3 py-1.5 rounded-lg text-xs font-bold text-black" style="background:linear-gradient(135deg,#f5d060,#d4af37);">
+                                        <i class="fas fa-copy mr-1"></i>Copy
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Share Row -->
+                            <div class="grid grid-cols-3 gap-2 mt-3">
+                                <button onclick="shareReferral('whatsapp')" class="flex items-center justify-center gap-1.5 font-semibold py-2 rounded-lg text-xs text-white" style="background:#25D366;">
+                                    <i class="fab fa-whatsapp"></i>WhatsApp
+                                </button>
+                                <button onclick="shareReferral('telegram')" class="flex items-center justify-center gap-1.5 font-semibold py-2 rounded-lg text-xs text-white" style="background:#2CA5E0;">
+                                    <i class="fab fa-telegram"></i>Telegram
+                                </button>
+                                <button onclick="shareReferral('copy')" class="flex items-center justify-center gap-1.5 font-semibold py-2 rounded-lg text-xs" style="background:rgba(255,255,255,0.06);color:#e6e8ea;border:1px solid rgba(255,255,255,0.12);">
+                                    <i class="fas fa-link"></i>Link
+                                </button>
                             </div>
                         </div>
-                        <button onclick="transferReferralToSpot()" id="referral-transfer-btn" class="btn-animated w-full py-2.5 rounded-xl font-bold text-sm text-black flex items-center justify-center gap-2" style="background:linear-gradient(135deg,#00c853,#00a844);">
-                            <i class="fas fa-exchange-alt text-xs"></i>
-                            Transfer to Spot Wallet
-                        </button>
                     </div>
 
-                    <div class="glass rounded-xl p-5 mb-4 text-center" style="background:linear-gradient(145deg,rgba(212,175,55,0.08),rgba(0,200,83,0.06));border:1px solid rgba(212,175,55,0.3);">
-                        <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3" style="background:linear-gradient(135deg,#f5d060,#d4af37);">
-                            <i class="fas fa-users text-2xl text-black"></i>
+                    <!-- STATS: 4 KPIs in a clean grid -->
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="rounded-xl p-3.5" style="background:#15171c;border:1px solid rgba(255,255,255,0.05);">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:rgba(0,200,83,0.12);">
+                                    <i class="fas fa-user-friends text-xs" style="color:#00c853;"></i>
+                                </div>
+                                <p class="text-[10px] uppercase tracking-wider" style="color:#848e9c;">Level 1</p>
+                            </div>
+                            <p id="total-referrals" class="text-2xl font-bold" style="color:#fff;">0</p>
+                            <p class="text-[10px] mt-0.5" style="color:#848e9c;">Direct invites</p>
                         </div>
-                        <h3 class="font-bold mb-1 text-lg">Invite &amp; Earn — ₹50 Fast Bonus</h3>
-                        <p class="text-textGray text-xs mb-4">Friend signs up with your ID &amp; deposits ₹100+ → <span class="text-primary font-bold">₹50 instantly</span> + <span class="text-primary font-bold">10%</span> of every deposit forever</p>
-
-                        <div class="referral-code mb-4" id="referral-code-display">LOADING...</div>
-
-                        <button onclick="copyReferralCode()" class="btn-animated w-full bg-primary text-black font-bold py-3 rounded-xl mb-3">
-                            <i class="fas fa-copy mr-2"></i>Copy Code
-                        </button>
-
-                        <div class="flex gap-2">
-                            <button onclick="shareReferral('whatsapp')" class="flex-1 font-bold py-2 rounded-lg text-sm text-white" style="background:#25D366;">
-                                <i class="fab fa-whatsapp mr-1"></i>WhatsApp
-                            </button>
-                            <button onclick="shareReferral('telegram')" class="flex-1 font-bold py-2 rounded-lg text-sm text-white" style="background:#2CA5E0;">
-                                <i class="fab fa-telegram mr-1"></i>Telegram
-                            </button>
-                            <button onclick="shareReferral('copy')" class="px-3 py-2 rounded-lg bg-surfaceLight text-textGray text-sm">
-                                <i class="fas fa-link"></i>
-                            </button>
+                        <div class="rounded-xl p-3.5" style="background:#15171c;border:1px solid rgba(255,255,255,0.05);">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:rgba(33,150,243,0.12);">
+                                    <i class="fas fa-users text-xs" style="color:#2196f3;"></i>
+                                </div>
+                                <p class="text-[10px] uppercase tracking-wider" style="color:#848e9c;">Level 2</p>
+                            </div>
+                            <p id="total-referrals-l2" class="text-2xl font-bold" style="color:#fff;">0</p>
+                            <p class="text-[10px] mt-0.5" style="color:#848e9c;">Team members</p>
+                        </div>
+                        <div class="rounded-xl p-3.5" style="background:#15171c;border:1px solid rgba(255,255,255,0.05);">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:rgba(245,208,96,0.12);">
+                                    <i class="fas fa-coins text-xs" style="color:#f5d060;"></i>
+                                </div>
+                                <p class="text-[10px] uppercase tracking-wider" style="color:#848e9c;">Lifetime Earned</p>
+                            </div>
+                            <p id="total-referral-earnings" class="text-2xl font-bold" style="color:#f5d060;">₹0</p>
+                            <p class="text-[10px] mt-0.5" style="color:#848e9c;">Commissions paid</p>
+                        </div>
+                        <div class="rounded-xl p-3.5" style="background:#15171c;border:1px solid rgba(255,255,255,0.05);">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:rgba(255,255,255,0.05);">
+                                    <i class="fas fa-clock text-xs" style="color:#848e9c;"></i>
+                                </div>
+                                <p class="text-[10px] uppercase tracking-wider" style="color:#848e9c;">Pending</p>
+                            </div>
+                            <p id="pending-referrals" class="text-2xl font-bold" style="color:#fff;">0</p>
+                            <p class="text-[10px] mt-0.5" style="color:#848e9c;">Not yet deposited</p>
                         </div>
                     </div>
 
-                    <!-- Reward Structure Card -->
-                    <div class="glass rounded-xl p-5 mb-4">
-                        <h3 class="font-bold mb-3 flex items-center gap-2">
-                            <i class="fas fa-gift text-primary"></i> Rewards Structure
+                    <!-- HOW IT WORKS: 3 simple steps -->
+                    <div class="rounded-xl p-5 mb-4" style="background:#15171c;border:1px solid rgba(255,255,255,0.05);">
+                        <h3 class="font-bold mb-4 flex items-center gap-2" style="color:#fff;font-size:15px;">
+                            <i class="fas fa-route" style="color:#f5d060;"></i> How it works
                         </h3>
-                        <div class="space-y-2">
-                            <div class="flex items-center justify-between p-3 rounded-xl" style="background:rgba(212,175,55,0.07);border:1px solid rgba(212,175,55,0.2);">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-bolt text-yellow-400"></i>
-                                    <span class="text-sm">Fast Referral (first deposit)</span>
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 text-black" style="background:linear-gradient(135deg,#f5d060,#d4af37);">1</div>
+                                <div class="flex-1">
+                                    <p class="font-semibold text-sm" style="color:#fff;">Share your code</p>
+                                    <p class="text-xs mt-0.5" style="color:#848e9c;">Send your referral code to friends via WhatsApp, Telegram or link.</p>
                                 </div>
-                                <span class="font-bold text-primary">₹50</span>
                             </div>
-                            <div class="flex items-center justify-between p-3 rounded-xl" style="background:rgba(0,200,83,0.07);border:1px solid rgba(0,200,83,0.2);">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-user-friends text-primary"></i>
-                                    <span class="text-sm">Level 1 (direct deposits)</span>
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 text-black" style="background:linear-gradient(135deg,#f5d060,#d4af37);">2</div>
+                                <div class="flex-1">
+                                    <p class="font-semibold text-sm" style="color:#fff;">They sign up &amp; deposit</p>
+                                    <p class="text-xs mt-0.5" style="color:#848e9c;">Friend registers with your code and makes their first deposit of ₹100 or more.</p>
                                 </div>
-                                <span class="font-bold text-primary">10%</span>
                             </div>
-                            <div class="flex items-center justify-between p-3 rounded-xl" style="background:rgba(33,150,243,0.07);border:1px solid rgba(33,150,243,0.2);">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-users text-secondary"></i>
-                                    <span class="text-sm">Level 2 (team deposits)</span>
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 text-black" style="background:linear-gradient(135deg,#00c853,#00a844);">3</div>
+                                <div class="flex-1">
+                                    <p class="font-semibold text-sm" style="color:#fff;">You earn, forever</p>
+                                    <p class="text-xs mt-0.5" style="color:#848e9c;">Get ₹50 instant bonus + 10% on every deposit they make. Plus 2% from their referrals.</p>
                                 </div>
-                                <span class="font-bold text-secondary">2%</span>
-                            </div>
-                            <div class="flex items-center justify-between p-3 rounded-xl" style="background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.2);">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-rocket text-purple-400"></i>
-                                    <span class="text-sm">Fast Deposit with ID (your 1st)</span>
-                                </div>
-                                <span class="font-bold text-purple-400">+15%</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="glass rounded-xl p-5 mb-4">
-                        <h3 class="font-bold mb-3">Team Stats</h3>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="text-center p-3 bg-surface rounded-xl">
-                                <p class="text-textGray text-xs mb-1">Level 1</p>
-                                <p id="total-referrals" class="text-xl font-bold text-primary">0</p>
-                                <p class="text-textGray text-[10px]">Direct</p>
+                    <!-- REWARD STRUCTURE: clean rows with bold values -->
+                    <div class="rounded-xl p-5 mb-4" style="background:#15171c;border:1px solid rgba(255,255,255,0.05);">
+                        <h3 class="font-bold mb-4 flex items-center gap-2" style="color:#fff;font-size:15px;">
+                            <i class="fas fa-gift" style="color:#f5d060;"></i> Your rewards
+                        </h3>
+                        <div class="divide-y" style="border-color:rgba(255,255,255,0.05);">
+                            <div class="flex items-center justify-between py-3">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-bolt w-5 text-center" style="color:#f5d060;"></i>
+                                    <div>
+                                        <p class="text-sm font-semibold" style="color:#fff;">Fast Bonus</p>
+                                        <p class="text-[11px]" style="color:#848e9c;">When referral makes first deposit</p>
+                                    </div>
+                                </div>
+                                <span class="font-bold" style="color:#f5d060;font-size:17px;">₹50</span>
                             </div>
-                            <div class="text-center p-3 bg-surface rounded-xl">
-                                <p class="text-textGray text-xs mb-1">Level 2</p>
-                                <p id="total-referrals-l2" class="text-xl font-bold text-secondary">0</p>
-                                <p class="text-textGray text-[10px]">Team</p>
+                            <div class="flex items-center justify-between py-3" style="border-top:1px solid rgba(255,255,255,0.05);">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-user-friends w-5 text-center" style="color:#00c853;"></i>
+                                    <div>
+                                        <p class="text-sm font-semibold" style="color:#fff;">Level 1 Commission</p>
+                                        <p class="text-[11px]" style="color:#848e9c;">On every deposit by direct referrals</p>
+                                    </div>
+                                </div>
+                                <span class="font-bold" style="color:#00c853;font-size:17px;">10%</span>
                             </div>
-                            <div class="text-center p-3 bg-surface rounded-xl">
-                                <p class="text-textGray text-xs mb-1">Earned</p>
-                                <p id="total-referral-earnings" class="text-xl font-bold text-yellow-400">₹0</p>
+                            <div class="flex items-center justify-between py-3" style="border-top:1px solid rgba(255,255,255,0.05);">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-users w-5 text-center" style="color:#2196f3;"></i>
+                                    <div>
+                                        <p class="text-sm font-semibold" style="color:#fff;">Level 2 Commission</p>
+                                        <p class="text-[11px]" style="color:#848e9c;">On deposits by your team's referrals</p>
+                                    </div>
+                                </div>
+                                <span class="font-bold" style="color:#2196f3;font-size:17px;">2%</span>
                             </div>
-                            <div class="text-center p-3 bg-surface rounded-xl">
-                                <p class="text-textGray text-xs mb-1">Pending</p>
-                                <p id="pending-referrals" class="text-xl font-bold text-textGray">0</p>
+                            <div class="flex items-center justify-between py-3" style="border-top:1px solid rgba(255,255,255,0.05);">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-rocket w-5 text-center" style="color:#a78bfa;"></i>
+                                    <div>
+                                        <p class="text-sm font-semibold" style="color:#fff;">Fast Deposit Bonus</p>
+                                        <p class="text-[11px]" style="color:#848e9c;">Your first deposit with a referral ID</p>
+                                    </div>
+                                </div>
+                                <span class="font-bold" style="color:#a78bfa;font-size:17px;">+15%</span>
                             </div>
-                        </div>
-                        <div class="mt-3 p-3 rounded-xl text-xs text-textGray" style="background:rgba(255,214,0,0.06);border:1px solid rgba(255,214,0,0.15);">
-                            <i class="fas fa-info-circle text-secondary mr-1"></i>
-                            Friend ko register karte time apna referral code dalna hoga. Unka first deposit ₹100+ hote hi ₹50 + 10% commission milega. Unke sare future deposits par bhi 10% milta rahega.
                         </div>
                     </div>
 
-                    <!-- Team View: L1 + L2 -->
-                    <div class="glass rounded-xl p-5 mb-4">
-                        <div class="flex gap-2 mb-3">
-                            <button onclick="switchRefTeamTab('l1')" id="ref-tab-l1" class="flex-1 py-2 rounded-lg text-sm font-bold bg-primary text-black">
-                                <i class="fas fa-user-friends mr-1"></i> Level 1
+                    <!-- YOUR TEAM: clean tabbed list -->
+                    <div class="rounded-xl p-5 mb-4" style="background:#15171c;border:1px solid rgba(255,255,255,0.05);">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold flex items-center gap-2" style="color:#fff;font-size:15px;">
+                                <i class="fas fa-sitemap" style="color:#f5d060;"></i> Your Team
+                            </h3>
+                        </div>
+                        <div class="flex gap-2 mb-4 p-1 rounded-lg" style="background:#0b0e11;">
+                            <button onclick="switchRefTeamTab('l1')" id="ref-tab-l1" class="flex-1 py-2 rounded-md text-xs font-bold text-black" style="background:linear-gradient(135deg,#f5d060,#d4af37);">
+                                <i class="fas fa-user-friends mr-1"></i> Level 1 <span id="ref-tab-l1-count" class="ml-1 opacity-80"></span>
                             </button>
-                            <button onclick="switchRefTeamTab('l2')" id="ref-tab-l2" class="flex-1 py-2 rounded-lg text-sm font-bold text-textGray bg-surface">
-                                <i class="fas fa-users mr-1"></i> Level 2
+                            <button onclick="switchRefTeamTab('l2')" id="ref-tab-l2" class="flex-1 py-2 rounded-md text-xs font-bold" style="color:#848e9c;">
+                                <i class="fas fa-users mr-1"></i> Level 2 <span id="ref-tab-l2-count" class="ml-1 opacity-80"></span>
                             </button>
                         </div>
                         <div id="ref-team-l1" class="space-y-2 max-h-80 overflow-y-auto">
-                            <p class="text-textGray text-center py-4">No referrals yet</p>
+                            <div class="text-center py-8">
+                                <div class="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style="background:rgba(255,255,255,0.03);">
+                                    <i class="fas fa-user-plus" style="color:#848e9c;"></i>
+                                </div>
+                                <p class="text-sm" style="color:#848e9c;">No direct referrals yet</p>
+                                <p class="text-[11px] mt-1" style="color:#848e9c;">Share your code to start earning</p>
+                            </div>
                         </div>
                         <div id="ref-team-l2" class="space-y-2 max-h-80 overflow-y-auto hidden">
-                            <p class="text-textGray text-center py-4">No team members yet</p>
+                            <div class="text-center py-8">
+                                <div class="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style="background:rgba(255,255,255,0.03);">
+                                    <i class="fas fa-users" style="color:#848e9c;"></i>
+                                </div>
+                                <p class="text-sm" style="color:#848e9c;">No team members yet</p>
+                                <p class="text-[11px] mt-1" style="color:#848e9c;">When your referrals invite others, they appear here</p>
+                            </div>
                         </div>
                     </div>
 
@@ -3658,6 +3745,28 @@
                     history.replaceState({ view: 'home' }, '', '#home');
                 }
             }
+
+            // Post-load rate popup (once per session)
+            try {
+                if (!sessionStorage.getItem('ratePopupShown')) {
+                    setTimeout(showRatePopup, 700);
+                }
+            } catch(e) {}
+        }
+
+        function showRatePopup() {
+            const el = document.getElementById('rate-popup');
+            if (!el) return;
+            el.classList.remove('hidden');
+            el.classList.add('flex');
+            try { sessionStorage.setItem('ratePopupShown', '1'); } catch(e) {}
+        }
+
+        function closeRatePopup() {
+            const el = document.getElementById('rate-popup');
+            if (!el) return;
+            el.classList.add('hidden');
+            el.classList.remove('flex');
         }
 
         // ─── Progress Bar Helper ────────────────
@@ -4498,14 +4607,15 @@
             const t1 = document.getElementById('ref-tab-l1');
             const t2 = document.getElementById('ref-tab-l2');
             if (!l1 || !l2) return;
+            const activeStyle = 'linear-gradient(135deg,#f5d060,#d4af37)';
             if (level === 'l1') {
                 l1.classList.remove('hidden'); l2.classList.add('hidden');
-                t1.classList.add('bg-primary','text-black'); t1.classList.remove('bg-surface','text-textGray');
-                t2.classList.remove('bg-primary','text-black'); t2.classList.add('bg-surface','text-textGray');
+                if (t1) { t1.style.background = activeStyle; t1.style.color = '#000'; }
+                if (t2) { t2.style.background = 'transparent'; t2.style.color = '#848e9c'; }
             } else {
                 l2.classList.remove('hidden'); l1.classList.add('hidden');
-                t2.classList.add('bg-primary','text-black'); t2.classList.remove('bg-surface','text-textGray');
-                t1.classList.remove('bg-primary','text-black'); t1.classList.add('bg-surface','text-textGray');
+                if (t2) { t2.style.background = activeStyle; t2.style.color = '#000'; }
+                if (t1) { t1.style.background = 'transparent'; t1.style.color = '#848e9c'; }
             }
         }
 
@@ -4542,36 +4652,56 @@
             const balDisplay = document.getElementById('referral-balance-display');
             if (balDisplay) balDisplay.textContent = '₹' + refBal.toFixed(2);
 
-            const renderRefRow = (ref, levelBadge, color) => {
+            // Tab counters
+            const t1c = document.getElementById('ref-tab-l1-count');
+            if (t1c) t1c.textContent = l1.length ? `(${l1.length})` : '';
+            const t2c = document.getElementById('ref-tab-l2-count');
+            if (t2c) t2c.textContent = l2.length ? `(${l2.length})` : '';
+
+            const renderRefRow = (ref, levelLabel, color) => {
                 const earned = Number(ref.totalCommissionEarned) || 0;
-                const dt = ref.timestamp?.toDate?.().toLocaleDateString('en-IN') || '';
+                const dt = ref.timestamp?.toDate?.().toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) || '—';
+                const name = ref.referredName || 'Friend';
+                const statusBadge = ref.rewardPaid
+                    ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(0,200,83,0.12);color:#00c853;border:1px solid rgba(0,200,83,0.3);">Active</span>`
+                    : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(255,255,255,0.05);color:#848e9c;border:1px solid rgba(255,255,255,0.1);">Pending</span>`;
                 return `
-                    <div class="flex justify-between items-center p-3 rounded-xl" style="background:rgba(255,255,255,0.02);border:1px solid ${color}33;">
-                        <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs" style="background:${color}22;color:${color};">${(ref.referredName || 'F').charAt(0).toUpperCase()}</div>
-                            <div>
-                                <p class="font-bold text-sm">${ref.referredName || 'Friend'}</p>
-                                <p class="text-textGray text-[10px]">${dt} • ${levelBadge}</p>
+                    <div class="flex items-center gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0" style="background:${color}22;color:${color};border:1.5px solid ${color}40;">${name.charAt(0).toUpperCase()}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <p class="font-semibold text-sm truncate" style="color:#fff;">${name}</p>
+                                ${statusBadge}
                             </div>
+                            <p class="text-[11px] mt-0.5" style="color:#848e9c;"><i class="far fa-calendar-alt mr-1"></i>${dt} · ${levelLabel}</p>
                         </div>
-                        <div class="text-right">
-                            <p class="text-xs font-bold" style="color:${color};">${earned > 0 ? '₹' + earned.toFixed(2) : (ref.rewardPaid ? '✅' : '⏳')}</p>
-                            <p class="text-textGray text-[10px]">${earned > 0 ? 'Earned' : (ref.rewardPaid ? 'Active' : 'Pending')}</p>
+                        <div class="text-right shrink-0">
+                            <p class="text-sm font-bold font-mono" style="color:${earned > 0 ? color : '#848e9c'};">${earned > 0 ? '+₹' + earned.toFixed(0) : '—'}</p>
+                            <p class="text-[10px]" style="color:#848e9c;">${earned > 0 ? 'earned' : 'no deposit'}</p>
                         </div>
                     </div>
                 `;
             };
 
+            const emptyState = (icon, title, hint) => `
+                <div class="text-center py-8">
+                    <div class="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style="background:rgba(255,255,255,0.03);">
+                        <i class="fas ${icon}" style="color:#848e9c;"></i>
+                    </div>
+                    <p class="text-sm" style="color:#848e9c;">${title}</p>
+                    <p class="text-[11px] mt-1" style="color:#848e9c;">${hint}</p>
+                </div>`;
+
             const l1Box = document.getElementById('ref-team-l1');
             if (l1Box) {
                 l1Box.innerHTML = l1.length === 0
-                    ? '<p class="text-textGray text-center py-4">No direct referrals yet. Share your code!</p>'
+                    ? emptyState('fa-user-plus', 'No direct referrals yet', 'Share your code to start earning')
                     : l1.map(r => renderRefRow(r, 'Level 1', '#00c853')).join('');
             }
             const l2Box = document.getElementById('ref-team-l2');
             if (l2Box) {
                 l2Box.innerHTML = l2.length === 0
-                    ? '<p class="text-textGray text-center py-4">No Level-2 team members yet</p>'
+                    ? emptyState('fa-users', 'No team members yet', "When your referrals invite others, they appear here")
                     : l2.map(r => renderRefRow(r, 'Level 2', '#2196f3')).join('');
             }
         }
@@ -4815,7 +4945,7 @@
             // Fill company address/UPI
             document.getElementById('exp-company-address').textContent = state.adminConfig?.usdtAddress || 'Loading...';
             document.getElementById('exp-company-upi').textContent = state.adminConfig?.upi || 'Loading...';
-            setExpressSide('sell');
+            setExpressSide('buy');
             expressGoToStep(1);
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -4948,29 +5078,41 @@
                 const upload = await uploadToCloudinary(expressState.screenshotFile, 'express_usdt');
                 const rate = state.FIXED_USDT_INR || 103;
                 const inrValue = usdt * rate;
+                const side = expressState.side;
                 const doc = {
                     uid: state.user.uid,
                     userName: state.userData?.name || '',
                     userEmail: state.userData?.email || '',
-                    side: expressState.side,
+                    side: side,
                     usdtAmount: usdt,
+                    amount: inrValue,
+                    amountINR: inrValue,
                     inrAmount: inrValue,
                     rate: rate,
                     txid: txid,
                     screenshotUrl: upload.secure_url,
+                    qrImageUrl: upload.secure_url,
                     status: 'pending',
-                    type: 'express_usdt',
+                    type: side === 'sell' ? 'p2p_sell_usdt' : 'p2p_buy_usdt',
+                    mode: 'p2p',
+                    balanceDeductedByAdmin: true,
                     ip: state.userIP,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 };
-                if (expressState.side === 'sell') {
-                    doc.upiId = sanitizeInput(document.getElementById('exp-upi-id').value.trim());
-                    doc.accountName = sanitizeInput(document.getElementById('exp-upi-name').value.trim());
+                if (side === 'sell') {
+                    // Sell USDT → receive INR on UPI
+                    doc.upi = sanitizeInput(document.getElementById('exp-upi-id').value.trim());
+                    doc.upiId = doc.upi;
+                    doc.accountHolderName = sanitizeInput(document.getElementById('exp-upi-name').value.trim());
+                    doc.accountName = doc.accountHolderName;
                 } else {
+                    // Buy USDT → receive USDT on user's address
                     doc.userUsdtAddress = sanitizeInput(document.getElementById('exp-buy-address').value.trim());
+                    doc.account = doc.userUsdtAddress;
                 }
-                await db.collection('express_orders').add(doc);
-                showToast('✅ Submitted! Amount will be settled within 10–30 minutes.');
+                // Submit to same `withdrawals` collection that admin panel watches
+                await db.collection('withdrawals').add(doc);
+                showToast('✅ Request submitted! Settlement in 10–30 minutes.');
                 setTimeout(closeExpressUSDT, 1500);
             } catch (err) {
                 showToast('Submit failed: ' + (err.message || err), 'error');
