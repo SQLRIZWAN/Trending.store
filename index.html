@@ -909,12 +909,11 @@
                         <button onclick="switchTradingMode('spot')" id="mode-spot" class="text-textGray whitespace-nowrap text-sm">Spot</button>
                         <button onclick="switchTradingMode('margin')" id="mode-margin" class="text-textGray whitespace-nowrap text-sm">Margin</button>
                         <!-- P2P opens Express USDT Buy/Sell flow -->
-                        <div class="relative">
-                            <button onclick="openExpressUSDT()" class="text-textGray whitespace-nowrap text-sm relative">
-                                P2P
-                                <span class="absolute -top-1 -right-3 text-[8px] font-bold px-1 rounded" style="background:linear-gradient(135deg,#d4af37,#ffd700);color:#000;animation:goldPulse 2s infinite">LIVE</span>
-                            </button>
-                        </div>
+                        <button onclick="openExpressUSDT()" class="whitespace-nowrap text-sm font-semibold flex items-center gap-1.5 px-3 py-1 rounded-lg" style="background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(255,215,0,0.08));border:1px solid rgba(212,175,55,0.4);color:#f5d060;">
+                            <i class="fas fa-bolt text-[10px]"></i>
+                            <span>P2P</span>
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded" style="background:rgba(0,200,83,0.2);color:#00c853;border:1px solid rgba(0,200,83,0.4);">LIVE</span>
+                        </button>
                     </div>
                 </div>
                 <!-- P2P Coming Soon Overlay -->
@@ -4519,27 +4518,71 @@
         }
 
         function checkBalanceForSections(spotBalance) {
-            const totalBalance = (Number(spotBalance) || 0) + 
-                (Number(state.userData?.marginBalance) || 0) + 
-                (Number(state.userData?.futuresBalance) || 0) + 
-                (Number(state.userData?.nftBalance) || 0) + 
-                (Number(state.userData?.investBalance) || 0);
-            
+            const spot = Number(spotBalance) || 0;
+            const margin = Number(state.userData?.marginBalance) || 0;
+            const futures = Number(state.userData?.futuresBalance) || 0;
+            const refBal = Number(state.userData?.referralBalance) || 0;
+            // Spendable balance = money that can be moved to spot and used to buy
+            // (nftBalance + investBalance are locked in assets, NOT spendable)
+            const spendable = spot + margin + futures + refBal;
+
+            const smartBanner = (targetCost, label, openTransfer) => {
+                if (spot >= targetCost) return ''; // spot enough → no banner
+                if (spendable >= targetCost) {
+                    // User has enough overall; just needs to transfer to spot
+                    const need = (targetCost - spot).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+                    return `
+                        <div class="rounded-xl p-3 mb-3 flex items-start gap-3" style="background:linear-gradient(135deg,rgba(255,214,0,0.08),rgba(212,175,55,0.05));border:1px solid rgba(255,214,0,0.35);">
+                            <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(255,214,0,0.15);">
+                                <i class="fas fa-exchange-alt" style="color:#ffd600;"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold" style="color:#fff;">Transfer &#8377;${need} to Spot</p>
+                                <p class="text-[11px] mt-0.5" style="color:#b8bcc4;">Aapke doosre account men funds hain. Spot pe transfer karke ${label} buy kar sakte hain.</p>
+                                <button onclick="${openTransfer}" class="btn-animated mt-2 px-4 py-1.5 rounded-lg font-bold text-xs text-black" style="background:linear-gradient(135deg,#ffd600,#d4af37);">
+                                    <i class="fas fa-exchange-alt mr-1"></i>Transfer Now
+                                </button>
+                            </div>
+                        </div>`;
+                }
+                // Not enough even across accounts → deposit
+                const need = (targetCost - spendable).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+                return `
+                    <div class="rounded-xl p-3 mb-3 flex items-start gap-3" style="background:linear-gradient(135deg,rgba(255,61,0,0.08),rgba(255,61,0,0.04));border:1px solid rgba(255,61,0,0.4);">
+                        <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(255,61,0,0.15);">
+                            <i class="fas fa-wallet" style="color:#ff6b3d;"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold" style="color:#fff;">Deposit &#8377;${need} more</p>
+                            <p class="text-[11px] mt-0.5" style="color:#b8bcc4;">${label} buy karne ke liye aur funds chahiye.</p>
+                            <button onclick="openPay()" class="btn-animated mt-2 px-4 py-1.5 rounded-lg font-bold text-xs text-black" style="background:linear-gradient(135deg,#f5d060,#d4af37);">
+                                <i class="fas fa-plus mr-1"></i>Deposit
+                            </button>
+                        </div>
+                    </div>`;
+            };
+
             const cheapestNFT = state.allNFTs.length > 0 ? Math.min(...state.allNFTs.map(n => Number(n.price) || Infinity)) : Infinity;
             const nftBanner = document.getElementById('insufficient-balance-nft');
             if (nftBanner) {
-                nftBanner.classList.toggle('hidden', totalBalance >= cheapestNFT || state.allNFTs.length === 0);
-                if (totalBalance < cheapestNFT && state.allNFTs.length > 0) {
-                    nftBanner.innerHTML = `<div class="insufficient-balance"><i class="fas fa-exclamation-triangle mr-1"></i>Deposit ₹${(cheapestNFT - totalBalance).toLocaleString()} more to buy NFTs</div>`;
+                if (cheapestNFT === Infinity || state.allNFTs.length === 0 || spot >= cheapestNFT) {
+                    nftBanner.classList.add('hidden');
+                    nftBanner.innerHTML = '';
+                } else {
+                    nftBanner.classList.remove('hidden');
+                    nftBanner.innerHTML = smartBanner(cheapestNFT, 'NFT', "navigateTo('transfer')");
                 }
             }
 
             const cheapestPlan = state.investPlans.length > 0 ? Math.min(...state.investPlans.map(p => Number(p.min) || Infinity)) : Infinity;
             const investBanner = document.getElementById('insufficient-balance-invest');
             if (investBanner) {
-                investBanner.classList.toggle('hidden', totalBalance >= cheapestPlan || state.investPlans.length === 0);
-                if (totalBalance < cheapestPlan && state.investPlans.length > 0) {
-                    investBanner.innerHTML = `<div class="insufficient-balance"><i class="fas fa-exclamation-triangle mr-1"></i>Deposit ₹${(cheapestPlan - totalBalance).toLocaleString()} more to invest</div>`;
+                if (cheapestPlan === Infinity || state.investPlans.length === 0 || spot >= cheapestPlan) {
+                    investBanner.classList.add('hidden');
+                    investBanner.innerHTML = '';
+                } else {
+                    investBanner.classList.remove('hidden');
+                    investBanner.innerHTML = smartBanner(cheapestPlan, 'plan', "navigateTo('transfer')");
                 }
             }
         }
@@ -5656,9 +5699,11 @@
             const container = document.getElementById('nft-list');
             const loading = document.getElementById('nft-loading');
             const spotBalance = Number(state.userData?.spotBalance) || 0;
-            const nftBalance = Number(state.userData?.nftBalance) || 0;
-            const investBalance = Number(state.userData?.investBalance) || 0;
-            const totalBalance = spotBalance + nftBalance + investBalance;
+            const marginBalance = Number(state.userData?.marginBalance) || 0;
+            const futuresBalance = Number(state.userData?.futuresBalance) || 0;
+            const referralBalance = Number(state.userData?.referralBalance) || 0;
+            // Spendable = liquid INR across accounts (NOT nftBalance/investBalance — those are locked)
+            const spendable = spotBalance + marginBalance + futuresBalance + referralBalance;
             
             if (loading) loading.classList.add('hidden');
             
@@ -5680,7 +5725,7 @@
                 container.innerHTML = availableNFTs.map(nft => {
                     const nftPrice = Number(nft.price) || 0;
                     const canAffordDirect = spotBalance >= nftPrice;
-                    const canAffordTransfer = totalBalance >= nftPrice;
+                    const canAffordTransfer = spendable >= nftPrice;
                     return `
                     <div class="group cursor-pointer" style="background:linear-gradient(145deg,#0f0f0f,#1a1408);border:1px solid rgba(212,175,55,0.25);border-radius:16px;overflow:hidden;transition:all 0.3s;" onmouseover="this.style.borderColor='rgba(212,175,55,0.7)';this.style.boxShadow='0 8px 32px rgba(212,175,55,0.15)'" onmouseout="this.style.borderColor='rgba(212,175,55,0.25)';this.style.boxShadow='none'">
                         <div class="relative overflow-hidden">
@@ -5703,7 +5748,7 @@
                                 `<button onclick="initiateNFTBuy('${nft.docId}')" class="w-full font-bold py-2 rounded-lg btn-animated text-xs text-black" style="background:linear-gradient(135deg,#d4af37,#ffd700)"><i class="fas fa-shopping-cart mr-1"></i>Buy Now</button>` :
                                 canAffordTransfer ?
                                 `<button onclick="navigateTo('transfer')" class="w-full font-bold py-2 rounded-lg text-xs" style="background:rgba(255,214,0,0.1);border:1px solid rgba(255,214,0,0.4);color:#ffd600;"><i class="fas fa-exchange-alt mr-1"></i>Transfer to Spot & Buy</button>` :
-                                `<button onclick="openPay()" class="w-full font-bold py-2 rounded-lg text-xs" style="background:rgba(255,61,0,0.1);border:1px solid rgba(255,61,0,0.4);color:#ff3d00;"><i class="fas fa-wallet mr-1"></i>Deposit ₹${(nftPrice - totalBalance).toLocaleString()}</button>`
+                                `<button onclick="openPay()" class="w-full font-bold py-2 rounded-lg text-xs" style="background:rgba(255,61,0,0.1);border:1px solid rgba(255,61,0,0.4);color:#ff3d00;"><i class="fas fa-wallet mr-1"></i>Deposit ₹${(nftPrice - spendable).toLocaleString()}</button>`
                             }
                         </div>
                     </div>
@@ -6706,19 +6751,29 @@
             if (!plan) return;
             const spotBalance = Number(state.userData?.spotBalance) || 0;
             const investBalance = Number(state.userData?.investBalance) || 0;
-            // Calculate free invest balance (not locked in active investments)
+            const marginBalance = Number(state.userData?.marginBalance) || 0;
+            const futuresBalance = Number(state.userData?.futuresBalance) || 0;
+            const referralBalance = Number(state.userData?.referralBalance) || 0;
+            // Free invest balance (not locked in active investments)
             const lockedInvest = (state.userInvestments || [])
                 .filter(i => i.status === 'active')
                 .reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
             const freeInvestBalance = Math.max(0, investBalance - lockedInvest);
-            const totalAvailable = spotBalance + freeInvestBalance;
+            const directlyUsable = spotBalance + freeInvestBalance;
+            // Total spendable across all liquid accounts
+            const spendable = directlyUsable + marginBalance + futuresBalance + referralBalance;
             const planMin = Number(plan.min) || 0;
 
-            if (totalAvailable < planMin) {
-                showToast(`Insufficient balance. You need ₹${(planMin - totalAvailable).toFixed(2)} more.`, 'error');
-                setTimeout(() => openPay(), 1000);
-            } else {
+            if (directlyUsable >= planMin) {
                 openInvestModal(planId);
+            } else if (spendable >= planMin) {
+                // User has enough overall — just needs to transfer
+                const need = (planMin - directlyUsable).toFixed(0);
+                showToast(`Transfer ₹${need} to Spot to invest`, 'info');
+                setTimeout(() => navigateTo('transfer'), 900);
+            } else {
+                showToast(`Insufficient balance. Need ₹${(planMin - spendable).toFixed(2)} more.`, 'error');
+                setTimeout(() => openPay(), 1000);
             }
         }
         
