@@ -30,5 +30,9 @@
   "screenshots": [],
   "share_target": null,
   "related_applications": [],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "push_manager": {
+    "description": "Push notifications for trading alerts",
+    "badge": "/icon.svg"
+  }
 }

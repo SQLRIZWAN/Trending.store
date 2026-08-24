@@ -43,6 +43,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js"></script>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -51,7 +52,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
     <!-- TradingView Widget (async - don't block page load) -->
     <script async src="https://s3.tradingview.com/tv.js"></script>
@@ -156,7 +157,7 @@
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
+                        mono: ['Space Mono', 'monospace'],
                     }
                 }
             }
@@ -308,7 +309,7 @@
         .border-primary-green { border-color: #00c853; }
         .btn-disabled { opacity: 0.5; pointer-events: none; position: relative; }
         .btn-disabled::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.3); border-radius: inherit; }
-        .referral-code { background: linear-gradient(135deg, #1e2329, #151a21); border: 2px dashed #00c853; border-radius: 12px; padding: 16px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: bold; color: #00c853; letter-spacing: 2px; }
+        .referral-code { background: linear-gradient(135deg, #1e2329, #151a21); border: 2px dashed #00c853; border-radius: 12px; padding: 16px; text-align: center; font-family: 'Space Mono', monospace; font-size: 1.2rem; font-weight: bold; color: #00c853; letter-spacing: 2px; }
         
         #forgot-password-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10002; display: none; align-items: center; justify-content: center; padding: 20px; }
         .forgot-box { background: #151a21; border: 1px solid #2b3139; border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
@@ -353,6 +354,8 @@
 
         /* ── UI POLISH ── */
         * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        /* Fix: Zero dot (nukta) - Space Mono zero has no dot inside */
+        .font-mono { font-family: 'Space Mono', monospace !important; }
         .feature-card { transition: all .3s cubic-bezier(.4,0,.2,1); }
         .feature-card:active { transform: scale(.98); }
         .feature-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,.4); }
@@ -730,8 +733,8 @@
                         <i class="fas fa-download text-black text-sm"></i>
                     </button>
                     <div class="relative" style="z-index:1;">
-                        <button onclick="openNotifications()" class="btn-animated w-10 h-10 rounded-lg bg-surfaceLight flex items-center justify-center">
-                            <i class="fas fa-bell text-lg"></i>
+                        <button onclick="handleNotificationBell()" class="btn-animated w-10 h-10 rounded-lg bg-surfaceLight flex items-center justify-center">
+                            <i id="bell-icon" class="fas fa-bell text-lg"></i>
                         </button>
                         <span id="notif-badge" class="notification-badge hidden">0</span>
                     </div>
@@ -2793,6 +2796,23 @@
         </div>
     </div>
 
+    <!-- Notification Permission Popup -->
+    <div id="notif-permission-popup" style="position:fixed;bottom:90px;left:12px;right:12px;z-index:9998;background:linear-gradient(135deg,#1e2329,#151a21);border:1.5px solid rgba(0,200,83,0.5);border-radius:16px;padding:14px 16px;display:none;gap:12px;align-items:center;box-shadow:0 8px 32px rgba(0,0,0,0.7);animation:slideUp 0.4s ease-out;">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#00c853,#00a844);">
+            <i class="fas fa-bell text-black text-xl"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="font-bold text-sm text-white">Enable Notifications</p>
+            <p class="text-textGray text-xs mt-0.5">Trading alerts, deposit updates & more!</p>
+        </div>
+        <div class="flex gap-2 flex-shrink-0">
+            <button onclick="enableNotifications()" class="px-3 py-2 rounded-lg font-bold text-xs text-black btn-animated" style="background:linear-gradient(135deg,#00c853,#00a844);">Enable</button>
+            <button onclick="dismissNotifPopup()" class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface text-textGray">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div id="toast" class="toast"></div>
 
@@ -2816,11 +2836,128 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         const storage = firebase.storage();
+        const messaging = firebase.messaging();
 
         // Enable offline persistence for faster loading
         db.enablePersistence({ synchronizeTabs: true }).catch(err => {
             console.log('Persistence error:', err);
         });
+
+        // ==========================================
+        // 🔔 PUSH NOTIFICATIONS (FCM)
+        // ==========================================
+        async function requestNotificationPermission() {
+            if (!('Notification' in window)) {
+                console.log('Browser does not support notifications');
+                return;
+            }
+            
+            if (Notification.permission === 'granted') {
+                await getFCMToken();
+                return;
+            }
+            
+            if (Notification.permission === 'denied') {
+                console.log('Notification permission denied');
+                return;
+            }
+            
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                await getFCMToken();
+            }
+        }
+        
+        async function getFCMToken() {
+            try {
+                const token = await messaging.getToken({
+                    vapidKey: 'BEl62iUYgUivxVkv99Kahy4N1dCLFaCdsTwqBPwCPN3KwDDn'
+                });
+                
+                if (token) {
+                    console.log('FCM Token:', token);
+                    // Save token to Firestore
+                    if (state.user) {
+                        await db.collection('users').doc(state.user.uid).update({
+                            fcmToken: token,
+                            lastTokenUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+                    state.fcmToken = token;
+                }
+            } catch (err) {
+                console.error('FCM token error:', err);
+            }
+        }
+        
+        // Listen for foreground messages
+        messaging.onMessage((payload) => {
+            console.log('Foreground message:', payload);
+            const { title, body, icon } = payload.notification || {};
+            showLocalNotification(title || 'Treding Store', body || '', icon);
+        });
+        
+        function showLocalNotification(title, body, icon) {
+            if (Notification.permission !== 'granted') return;
+            
+            const notif = new Notification(title, {
+                body: body,
+                icon: icon || '/icon.svg',
+                badge: '/icon.svg',
+                tag: 'treding-store-' + Date.now(),
+                requireInteraction: true,
+                vibrate: [200, 100, 200]
+            });
+            
+            notif.onclick = function() {
+                window.focus();
+                notif.close();
+            };
+            
+            // Auto close after 10 seconds
+            setTimeout(() => notif.close(), 10000);
+        }
+        
+        // Request permission after user logs in
+        function initNotifications() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                // Show notification popup after 5 seconds
+                setTimeout(() => {
+                    const dismissed = localStorage.getItem('notifPopupDismissed');
+                    if (!dismissed) {
+                        const popup = document.getElementById('notif-permission-popup');
+                        if (popup) {
+                            popup.style.display = 'flex';
+                        }
+                    }
+                }, 5000);
+            } else if (Notification.permission === 'granted') {
+                getFCMToken();
+            }
+        }
+        
+        async function enableNotifications() {
+            const popup = document.getElementById('notif-permission-popup');
+            if (popup) popup.style.display = 'none';
+            
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    await getFCMToken();
+                    showToast('Notifications enabled!', 'success');
+                } else {
+                    showToast('Notification permission denied', 'error');
+                }
+            } catch (err) {
+                console.error('Notification permission error:', err);
+            }
+        }
+        
+        function dismissNotifPopup() {
+            const popup = document.getElementById('notif-permission-popup');
+            if (popup) popup.style.display = 'none';
+            localStorage.setItem('notifPopupDismissed', '1');
+        }
 
         // ==========================================
         // ☁️ CLOUDINARY CONFIGURATION
@@ -3018,38 +3155,34 @@
             }
             
             const symbol = state.pairSymbol.toLowerCase();
-            const wsUrl = `wss://stream.binance.com:9443/ws/${symbol}@ticker/${symbol}@depth20@100ms`;
+            const wsUrl = `wss://stream.binance.com:9443/stream?streams=${symbol}@ticker/${symbol}@depth20@100ms`;
             
             state.binanceWS = new WebSocket(wsUrl);
             
             state.binanceWS.onopen = () => {
                 console.log('Binance WebSocket Connected');
                 state.wsConnected = true;
-                // FIX 1: Hide status + reset reconnect flags
                 const statusEl = document.getElementById('connection-status');
                 if (statusEl) statusEl.classList.remove('show', 'reconnecting');
                 state.wsReconnecting = false;
                 state.wsRetryCount = 0;
                 clearTimeout(state.wsRetryTimeout);
                 
-                // Only show toast on first connect, not reconnects
                 if (state.wsFirstConnect) {
-                    // Connection toast silently disabled
                     state.wsFirstConnect = false;
                 }
             };
             
             state.binanceWS.onmessage = (event) => {
-                const data = JSON.parse(event.data);
+                const msg = JSON.parse(event.data);
+                const data = msg.data || msg;
                 
-                // Handle Ticker Data (Price)
                 if (data.e === '24hrTicker') {
                     state.currentPrice = parseFloat(data.c);
                     state.priceChange24h = parseFloat(data.P);
                     updateRealtimePrice(data.c, data.P);
                 }
                 
-                // Handle Depth Data (Order Book)
                 if (data.b && data.a) {
                     updateRealOrderBook(data.b, data.a);
                 }
@@ -3751,6 +3884,9 @@
                     setTimeout(showRatePopup, 700);
                 }
             } catch(e) {}
+            
+            // Initialize push notifications
+            setTimeout(initNotifications, 2000);
         }
 
         function showRatePopup() {
@@ -6946,6 +7082,30 @@
             localStorage.removeItem('userAvatar'); 
             auth.signOut(); 
         }
+        function handleNotificationBell() {
+            if (!('Notification' in window)) {
+                showToast('Your browser does not support notifications', 'error');
+                return;
+            }
+            
+            if (Notification.permission === 'granted') {
+                openNotifications();
+            } else if (Notification.permission === 'denied') {
+                showToast('Notifications are blocked. Please enable in browser settings.', 'error');
+            } else {
+                // Request permission
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        getFCMToken();
+                        showToast('Notifications enabled!', 'success');
+                        openNotifications();
+                    } else {
+                        showToast('Notification permission denied', 'error');
+                    }
+                });
+            }
+        }
+        
         function openNotifications() { 
             document.getElementById('notification-panel').classList.remove('hidden'); 
             document.getElementById('notification-panel').classList.add('flex'); 
