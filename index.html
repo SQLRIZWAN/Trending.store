@@ -720,7 +720,7 @@
                 <div class="flex items-center gap-3">
                     <div class="hidden md:flex items-center gap-2 mr-4">
                         <span class="text-xs text-textGray">USDT/INR:</span>
-                        <span id="usdt-inr-rate" class="text-primary font-mono font-bold">₹83.00</span>
+                        <span id="usdt-inr-rate" class="text-primary font-mono font-bold">₹103.00</span>
                     </div>
                     <!-- BUG 5 FIX: Badge moved outside btn-animated (which has overflow:hidden),
                          into a wrapper div with position:relative so badge doesn't get clipped
@@ -771,7 +771,7 @@
                     </div>
                     <div class="flex-1">
                         <p id="menu-name" class="font-semibold text-sm">User</p>
-                        <p id="menu-balance" class="text-primary text-xs font-mono">₹0.00</p>
+                        <p id="menu-balance" class="text-primary text-xs font-mono">₹0</p>
                     </div>
                     <button onclick="closeSideMenu()" class="w-8 h-8 rounded-lg bg-surfaceLight flex items-center justify-center">
                         <i class="fas fa-times"></i>
@@ -807,12 +807,12 @@
                 <div class="grid grid-cols-2 gap-3 p-4">
                     <div class="glass rounded-xl p-4">
                         <p class="text-textGray text-xs mb-1">NFT Value</p>
-                        <h2 id="nft-value" class="text-xl font-bold font-mono text-purple-400">₹0.00</h2>
+                        <h2 id="nft-value" class="text-xl font-bold font-mono text-purple-400">₹0</h2>
                         <p class="text-textGray text-xs mt-1">Your NFT Holdings</p>
                     </div>
                     <div class="glass rounded-xl p-4">
                         <p class="text-textGray text-xs mb-1">Invest Value</p>
-                        <h2 id="invest-value" class="text-xl font-bold font-mono text-primary">₹0.00</h2>
+                        <h2 id="invest-value" class="text-xl font-bold font-mono text-primary">₹0</h2>
                         <p class="text-textGray text-xs mt-1">Active Investments</p>
                     </div>
                     <div class="glass rounded-xl col-span-2 bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20" style="border-radius:12px;overflow:hidden;">
@@ -830,7 +830,7 @@
                                     <button id="curr-mode-usdt" onclick="setCurrencyMode('USDT')" class="px-3 py-1 rounded-full text-xs font-bold text-textGray transition-all">$ USDT</button>
                                 </div>
                             </div>
-                            <h2 id="total-balance-display" class="text-2xl font-bold font-mono text-yellow-400">₹0.00</h2>
+                            <h2 id="total-balance-display" class="text-2xl font-bold font-mono text-yellow-400">₹0</h2>
                             <p class="text-textGray text-xs mt-1">All Accounts Combined</p>
                         </div>
                         <!-- P&L History Tab -->
@@ -1063,15 +1063,15 @@
                             <div class="space-y-1 text-xs">
                                 <div class="flex justify-between">
                                     <span class="text-textGray">Available</span>
-                                    <span id="available-balance-display" class="text-white">0.00 USDT <i class="fas fa-plus-circle text-primary ml-1"></i></span>
+                                    <span id="available-balance-display" class="text-white">0 USDT <i class="fas fa-plus-circle text-primary ml-1"></i></span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-textGray">Max</span>
-                                    <span id="max-order-display" class="text-white">0.00 USDT</span>
+                                    <span id="max-order-display" class="text-white">0 USDT</span>
                                 </div>
                                 <div class="flex justify-between" id="margin-info-row">
                                     <span class="text-textGray">Est. Margin</span>
-                                    <span id="est-margin-display" class="text-white">0.00 USDT</span>
+                                    <span id="est-margin-display" class="text-white">0 USDT</span>
                                 </div>
                                 <div class="flex justify-between text-danger hidden" id="liquidation-row">
                                     <span class="text-textGray">Est. Liquidation</span>
@@ -1083,11 +1083,11 @@
                             <div id="futures-buttons" class="space-y-2 pt-2">
                                 <button id="btn-long" onclick="setActiveSide('long'); placeTradingOrder('long')" class="long-gradient text-white w-full py-4 rounded-lg font-bold text-lg shadow-lg shadow-green-900/50 active:scale-95 transition-transform active-side">
                                     <div>Open Long</div>
-                                    <div class="text-xs font-normal opacity-80" id="long-cost-display">0.00 USDT</div>
+                                    <div class="text-xs font-normal opacity-80" id="long-cost-display">0 USDT</div>
                                 </button>
                                 <button id="btn-short" onclick="setActiveSide('short'); placeTradingOrder('short')" class="short-gradient text-white w-full py-4 rounded-lg font-bold text-lg shadow-lg shadow-red-900/50 active:scale-95 transition-transform">
                                     <div>Open Short</div>
-                                    <div class="text-xs font-normal opacity-80" id="short-cost-display">0.00 USDT</div>
+                                    <div class="text-xs font-normal opacity-80" id="short-cost-display">0 USDT</div>
                                 </button>
                             </div>
 
@@ -1104,11 +1104,11 @@
                                 </div>
                                 <button id="btn-buy" onclick="placeTradingOrder('buy')" class="buy-gradient text-white w-full py-4 rounded-lg font-bold text-lg shadow-lg shadow-green-900/50 active:scale-95 transition-transform">
                                     <div id="buy-btn-label">Buy BTC</div>
-                                    <div class="text-xs font-normal opacity-80" id="buy-cost-display">0.00 USDT</div>
+                                    <div class="text-xs font-normal opacity-80" id="buy-cost-display">0 USDT</div>
                                 </button>
                                 <button id="btn-sell" onclick="placeTradingOrder('sell')" class="sell-gradient text-white w-full py-4 rounded-lg font-bold text-lg shadow-lg shadow-red-900/50 active:scale-95 transition-transform hidden">
                                     <div id="sell-btn-label">Sell BTC</div>
-                                    <div class="text-xs font-normal opacity-80" id="sell-cost-display">0.00 USDT</div>
+                                    <div class="text-xs font-normal opacity-80" id="sell-cost-display">0 USDT</div>
                                 </button>
                             </div>
                         </div>
@@ -1184,7 +1184,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-textGray text-xs">Invest Account</p>
-                            <p id="invest-topbar-balance" class="text-lg font-bold font-mono text-primary">₹0.00</p>
+                            <p id="invest-topbar-balance" class="text-lg font-bold font-mono text-primary">₹0</p>
                         </div>
                         <div id="invest-topbar-actions" class="flex gap-2">
                             <button onclick="navigateTo('transfer')" class="px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 font-bold rounded-lg text-sm flex items-center gap-1">
@@ -1227,7 +1227,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-textGray text-xs">NFT Account</p>
-                            <p id="nft-topbar-balance" class="text-lg font-bold font-mono text-purple-400">₹0.00</p>
+                            <p id="nft-topbar-balance" class="text-lg font-bold font-mono text-purple-400">₹0</p>
                         </div>
                         <div class="flex gap-2">
                             <button onclick="navigateTo('transfer')" class="px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 font-bold rounded-lg text-sm flex items-center gap-1">
@@ -1275,7 +1275,7 @@
                                 </label>
                             </div>
                             <p class="text-textGray text-sm mb-2">Total Estimated Value</p>
-                            <h2 id="wallet-total" class="text-3xl font-bold font-mono mb-4">₹0.00</h2>
+                            <h2 id="wallet-total" class="text-3xl font-bold font-mono mb-4">₹0</h2>
                             <div class="flex gap-3 justify-center">
                                 <button onclick="openPay()" class="btn-animated px-6 py-2 bg-primary text-black font-bold rounded-lg text-sm">Deposit</button>
                                 <button onclick="openWithdrawModal()" class="btn-animated px-6 py-2 bg-surfaceLight border border-border text-white font-bold rounded-lg text-sm">Withdraw</button>
@@ -1287,35 +1287,35 @@
                                     <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"><i class="fas fa-coins text-primary"></i></div>
                                     <div><p class="font-semibold">Spot Account</p><p class="text-textGray text-xs">Trading & Withdrawal</p></div>
                                 </div>
-                                <span id="spot-balance" class="font-mono font-bold">₹0.00</span>
+                                <span id="spot-balance" class="font-mono font-bold">₹0</span>
                             </div>
                             <div class="glass rounded-xl p-4 flex items-center justify-between cursor-pointer" onclick="switchWalletTab('futures', document.querySelector('[data-tab=futures]'))">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center"><i class="fas fa-rocket text-secondary"></i></div>
                                     <div><p class="font-semibold">Futures Account</p><p class="text-textGray text-xs">Derivatives Trading</p></div>
                                 </div>
-                                <span id="futures-balance" class="font-mono font-bold">₹0.00</span>
+                                <span id="futures-balance" class="font-mono font-bold">₹0</span>
                             </div>
                             <div class="glass rounded-xl p-4 flex items-center justify-between cursor-pointer" onclick="switchWalletTab('margin', document.querySelector('[data-tab=margin]'))">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-full bg-danger/10 flex items-center justify-center"><i class="fas fa-layer-group text-danger"></i></div>
                                     <div><p class="font-semibold">Margin Account</p><p class="text-textGray text-xs">Leveraged Trading 5x</p></div>
                                 </div>
-                                <span id="margin-balance" class="font-mono font-bold">₹0.00</span>
+                                <span id="margin-balance" class="font-mono font-bold">₹0</span>
                             </div>
                             <div class="glass rounded-xl p-4 flex items-center justify-between cursor-pointer" onclick="switchWalletTab('nft', document.querySelector('[data-tab=nft]'))">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center"><i class="fas fa-image text-purple-500"></i></div>
                                     <div><p class="font-semibold">NFT Account</p><p class="text-textGray text-xs">NFT Holdings</p></div>
                                 </div>
-                                <span id="nft-balance-display" class="font-mono font-bold text-purple-400">₹0.00</span>
+                                <span id="nft-balance-display" class="font-mono font-bold text-purple-400">₹0</span>
                             </div>
                             <div class="glass rounded-xl p-4 flex items-center justify-between cursor-pointer" onclick="switchWalletTab('invest', document.querySelector('[data-tab=invest]'))">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"><i class="fas fa-chart-pie text-primary"></i></div>
                                     <div><p class="font-semibold">Invest Account</p><p class="text-textGray text-xs">Active Investments</p></div>
                                 </div>
-                                <span id="invest-balance-display" class="font-mono font-bold text-primary">₹0.00</span>
+                                <span id="invest-balance-display" class="font-mono font-bold text-primary">₹0</span>
                             </div>
                         </div>
                     </div>
@@ -1362,7 +1362,7 @@
                                     <i class="fas fa-circle text-[6px] mr-1"></i>Active
                                 </span>
                             </div>
-                            <h3 id="referral-balance-display" class="font-bold font-mono" style="font-size:34px;color:#f5d060;letter-spacing:-0.5px;">₹0.00</h3>
+                            <h3 id="referral-balance-display" class="font-bold font-mono" style="font-size:34px;color:#f5d060;letter-spacing:-0.5px;">₹0</h3>
                             <p class="text-xs mt-1" style="color:#b8bcc4;">Withdrawable or usable across the app</p>
 
                             <button onclick="transferReferralToSpot()" id="referral-transfer-btn" class="btn-animated w-full mt-4 py-3 rounded-xl font-bold text-sm text-black flex items-center justify-center gap-2" style="background:linear-gradient(135deg,#00c853,#00a844);box-shadow:0 6px 18px rgba(0,200,83,0.25);">
@@ -1793,7 +1793,7 @@
                                 <div class="flex items-center justify-between mt-2 pt-2 border-t border-border">
                                     <span class="text-textGray text-xs">Available Balance</span>
                                     <span class="text-primary font-bold text-sm font-mono">
-                                        <span id="from-balance-display">0.00</span> <span id="from-currency">INR</span>
+                                        <span id="from-balance-display">0</span> <span id="from-currency">INR</span>
                                     </span>
                                 </div>
                             </div>
@@ -1825,7 +1825,7 @@
                     <div class="glass rounded-2xl p-5 mb-4">
                         <div class="flex items-center justify-between mb-3">
                             <p class="text-textGray text-xs font-semibold uppercase tracking-wide">Amount</p>
-                            <span class="text-textGray text-xs">Avail: <span id="transfer-available" class="text-white font-bold">0.00</span> <span id="avail-currency">INR</span></span>
+                            <span class="text-textGray text-xs">Avail: <span id="transfer-available" class="text-white font-bold">0</span> <span id="avail-currency">INR</span></span>
                         </div>
                         <div class="relative">
                             <input type="number" id="transfer-amount" 
@@ -2202,7 +2202,7 @@
                     <div class="bg-surfaceLight rounded-lg p-3 border border-border flex items-center justify-between">
                         <div>
                             <p class="text-textGray text-xs">Available Balance</p>
-                            <p id="withdraw-available" class="text-xl font-bold font-mono text-primary">₹0.00</p>
+                            <p id="withdraw-available" class="text-xl font-bold font-mono text-primary">₹0</p>
                         </div>
                         <i class="fas fa-wallet text-primary text-2xl opacity-50"></i>
                     </div>
@@ -2571,7 +2571,7 @@
                 </div>
                 <div class="bg-surface p-3 rounded-lg">
                     <p class="text-textGray text-xs">Estimated Return</p>
-                    <p id="invest-returns" class="text-primary font-bold text-lg">₹0.00</p>
+                    <p id="invest-returns" class="text-primary font-bold text-lg">₹0</p>
                     <p id="invest-returns-daily" class="text-textGray text-xs mt-1"></p>
                 </div>
             </div>
@@ -4438,9 +4438,9 @@
                 'menu-name': data.name || 'User',
                 'profile-name': data.name || 'User',
                 'profile-email': data.email || '',
-                'profile-total': '₹' + total.toFixed(2),
-                'profile-crypto': '₹' + (spot + futures + margin).toFixed(2),
-                'profile-invest': '₹' + invest.toFixed(2)
+                'profile-total': total === 0 ? '₹0' : '₹' + total.toFixed(2),
+                'profile-crypto': (spot + futures + margin) === 0 ? '₹0' : '₹' + (spot + futures + margin).toFixed(2),
+                'profile-invest': invest === 0 ? '₹0' : '₹' + invest.toFixed(2)
             };
 
             Object.entries(elements).forEach(([id, value]) => {
@@ -4463,13 +4463,16 @@
             // Update trading balance display
             // BUG #5 FIX: Futures/Margin mein INR balance hai, USDT nahin
             // Spot = INR (₹), Futures/Margin = INR stored but show ₹ correctly
-            const availDisplay = document.getElementById('available-balance-display');
+                const availDisplay = document.getElementById('available-balance-display');
             if (availDisplay) {
                 const mode = state.currentTradingMode;
                 const balance = mode === 'futures' ? futures : mode === 'margin' ? margin : spot;
-                // BUG #8 FIX: Clear label — INR aur USDT equivalent dono dikhao
                 const usdtEquiv = (balance / (state.usdtToInr || 103)).toFixed(2);
-                availDisplay.innerHTML = `₹${balance.toFixed(2)} <span class="text-textGray text-xs">(≈$${usdtEquiv} USDT)</span> <i class="fas fa-plus-circle text-primary ml-1 cursor-pointer" onclick="openPay()"></i>`;
+                if (balance === 0) {
+                    availDisplay.innerHTML = `₹0 <span class="text-textGray text-xs">(≈$0 USDT)</span> <i class="fas fa-plus-circle text-primary ml-1 cursor-pointer" onclick="openPay()"></i>`;
+                } else {
+                    availDisplay.innerHTML = `₹${balance.toFixed(2)} <span class="text-textGray text-xs">(≈$${usdtEquiv} USDT)</span> <i class="fas fa-plus-circle text-primary ml-1 cursor-pointer" onclick="openPay()"></i>`;
+                }
             }
 
             // Avatar update
@@ -4693,7 +4696,7 @@
             if (pendingEl) pendingEl.textContent = pending;
 
             const balDisplay = document.getElementById('referral-balance-display');
-            if (balDisplay) balDisplay.textContent = '₹' + refBal.toFixed(2);
+            if (balDisplay) balDisplay.textContent = refBal === 0 ? '₹0' : '₹' + refBal.toFixed(2);
 
             // Tab counters
             const t1c = document.getElementById('ref-tab-l1-count');
@@ -4778,7 +4781,7 @@
                 showToast('No referral earnings to transfer', 'error');
                 return;
             }
-            if (!confirm(`Transfer ₹${refBal.toFixed(2)} referral earnings to Spot wallet?`)) return;
+            if (!confirm(`Transfer ${refBal === 0 ? '₹0' : '₹' + refBal.toFixed(2)} referral earnings to Spot wallet?`)) return;
 
             const btn = document.getElementById('referral-transfer-btn');
             if (btn) { btn.disabled = true; btn.textContent = 'Transferring...'; }
@@ -4796,7 +4799,7 @@
                     });
                 });
 
-                showToast(`✅ ₹${refBal.toFixed(2)} transferred to Spot wallet!`);
+                showToast(`✅ ${refBal === 0 ? '₹0' : '₹' + refBal.toFixed(2)} transferred to Spot wallet!`);
                 // Update UI via onSnapshot listener automatically
             } catch (err) {
                 showToast('Transfer failed: ' + err.message, 'error');
@@ -5195,18 +5198,16 @@
         
         // MAX button functions
         function setMaxWithdraw() {
-            // BAL-01 FIX: Use selected account balance, not always spotBalance
             const account = document.getElementById('withdraw-account')?.value || 'spot';
             const max = state.userData?.[account + 'Balance'] || 0;
-            document.getElementById('withdraw-amount').value = max.toFixed(2);
+            document.getElementById('withdraw-amount').value = max === 0 ? '0' : max.toFixed(2);
         }
         
         function setMaxWithdrawUSDT() {
-            // BAL-02 FIX: Use selected account balance, not always spotBalance
             const account = document.getElementById('withdraw-usdt-account')?.value || 'spot';
             const maxINR = state.userData?.[account + 'Balance'] || 0;
             const maxUSDT = maxINR / state.usdtToInr;
-            document.getElementById('withdraw-usdt-amount').value = maxUSDT.toFixed(2);
+            document.getElementById('withdraw-usdt-amount').value = maxUSDT === 0 ? '0' : maxUSDT.toFixed(2);
         }
         
         function setMaxDepositUSDT() {
@@ -5227,9 +5228,10 @@
             const balance = state.userData[balanceKey] || 0;
             
             if (currency === 'USDT') {
-                document.getElementById('transfer-amount').value = (balance / state.usdtToInr).toFixed(2);
+                const usdtBal = balance / state.usdtToInr;
+                document.getElementById('transfer-amount').value = usdtBal === 0 ? '0' : usdtBal.toFixed(2);
             } else {
-                document.getElementById('transfer-amount').value = balance.toFixed(2);
+                document.getElementById('transfer-amount').value = balance === 0 ? '0' : balance.toFixed(2);
             }
             validateTransferAmount(document.getElementById('transfer-amount'));
         }
@@ -5606,11 +5608,11 @@
             
             if (currency === 'USDT') {
                 const usdtBalance = balance / state.usdtToInr;
-                if (availDisplay) availDisplay.textContent = usdtBalance.toFixed(2);
-                if (fromDisplay) fromDisplay.textContent = usdtBalance.toFixed(2);
+                if (availDisplay) availDisplay.textContent = usdtBalance === 0 ? '0' : usdtBalance.toFixed(2);
+                if (fromDisplay) fromDisplay.textContent = usdtBalance === 0 ? '0' : usdtBalance.toFixed(2);
             } else {
-                if (availDisplay) availDisplay.textContent = balance.toFixed(2);
-                if (fromDisplay) fromDisplay.textContent = balance.toFixed(2);
+                if (availDisplay) availDisplay.textContent = balance === 0 ? '0' : balance.toFixed(2);
+                if (fromDisplay) fromDisplay.textContent = balance === 0 ? '0' : balance.toFixed(2);
             }
             
             if (fromCurr) fromCurr.textContent = currency;
@@ -6083,7 +6085,7 @@
             const dailyEl   = document.getElementById('invest-returns-daily');
 
             if (amount <= 0) {
-                returnsEl.textContent = '₹0.00';
+                returnsEl.textContent = '₹0';
                 if (dailyEl) dailyEl.textContent = '';
                 return;
             }
@@ -6339,12 +6341,12 @@
                 const account = document.getElementById('withdraw-account').value;
                 const balance = state.userData[account + 'Balance'] || 0;
                 document.getElementById('withdraw-available').textContent = formatCurrency(balance);
-                document.getElementById('max-withdraw').textContent = balance.toFixed(2);
+                document.getElementById('max-withdraw').textContent = balance === 0 ? '0' : balance.toFixed(2);
             } else {
                 const account = document.getElementById('withdraw-usdt-account').value;
                 const balance = state.userData[account + 'Balance'] || 0;
                 const usdtBalance = balance / (state.usdtToInr || 103);
-                document.getElementById('withdraw-usdt-available').textContent = usdtBalance.toFixed(2) + ' USDT';
+                document.getElementById('withdraw-usdt-available').textContent = (usdtBalance === 0 ? '0' : usdtBalance.toFixed(2)) + ' USDT';
             }
         }
 
@@ -6478,6 +6480,7 @@
         // Utility functions
         function formatCurrency(amount) {
             const val = amount || 0;
+            if (val === 0) return '₹0';
             if (state.currencyMode === 'USDT') {
                 const usdt = val / (state.usdtToInr || 103);
                 return usdt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + ' USDT';
@@ -6768,8 +6771,8 @@
                 openInvestModal(planId);
             } else if (spendable >= planMin) {
                 // User has enough overall — just needs to transfer
-                const need = (planMin - directlyUsable).toFixed(0);
-                showToast(`Transfer ₹${need} to Spot to invest`, 'info');
+                const need = Math.max(0, planMin - directlyUsable);
+                showToast(`Transfer ${need === 0 ? '₹0' : '₹' + need.toFixed(0)} to Spot to invest`, 'info');
                 setTimeout(() => navigateTo('transfer'), 900);
             } else {
                 showToast(`Insufficient balance. Need ₹${(planMin - spendable).toFixed(2)} more.`, 'error');
@@ -6839,7 +6842,7 @@
             amtInput.min = planMin;
             if (planMax > 0) amtInput.max = planMax;
             else amtInput.removeAttribute('max');
-            document.getElementById('invest-returns').textContent = '₹0.00';
+            document.getElementById('invest-returns').textContent = '₹0';
             document.getElementById('invest-modal').style.display = 'flex';
             updateInvestReturns();
         }
@@ -7831,7 +7834,7 @@
                             </div>
                             <div class="text-right">
                                 <span class="font-mono font-bold ${isDeposit ? 'text-primary' : 'text-danger'}">
-                                    ${isDeposit ? '+' : '-'}${symbol === '₹' ? '₹' : ''}${amount.toFixed(2)}${symbol === 'USDT' ? ' USDT' : ''}
+                                    ${isDeposit ? '+' : '-'}${symbol === '₹' ? '₹' : ''}${amount === 0 ? '0' : amount.toFixed(2)}${symbol === 'USDT' ? ' USDT' : ''}
                                 </span>
                                 <p class="text-xs ${statusColor} capitalize">${status}</p>
                             </div>
@@ -8553,18 +8556,17 @@
             const estMargin = document.getElementById('est-margin-display'); 
             const maxDisplay = document.getElementById('max-order-display'); 
             const available = state.userData?.[state.currentTradingMode === 'futures' ? 'futuresBalance' : state.currentTradingMode === 'margin' ? 'marginBalance' : 'spotBalance'] || 0; 
-            // BUG #7 FIX: INR → USDT convert karo
             const availableUSDT = available / (state.usdtToInr || 103);
-            const maxQty = price > 0 ? (availableUSDT * leverage) / price : 0; 
+            // Max qty: account for fee (margin + fee <= available)
+            const maxQty = price > 0 ? (availableUSDT * leverage * 0.999) / price : 0; 
             
-            if (maxDisplay) maxDisplay.textContent = maxQty.toFixed(4) + ' ' + state.pairSymbol.replace('USDT', ''); 
+            if (maxDisplay) maxDisplay.textContent = maxQty > 0 ? maxQty.toFixed(4) + ' ' + state.pairSymbol.replace('USDT', '') : '0 ' + state.pairSymbol.replace('USDT', ''); 
             if (state.currentTradingMode === 'futures' || state.currentTradingMode === 'margin') { 
-                if (longCost) longCost.textContent = margin.toFixed(2) + ' USDT (Fee: ' + tradingFee.toFixed(2) + ')'; 
-                if (shortCost) shortCost.textContent = margin.toFixed(2) + ' USDT (Fee: ' + tradingFee.toFixed(2) + ')'; 
-                if (estMargin) estMargin.textContent = margin.toFixed(2) + ' USDT'; 
+                if (longCost) longCost.textContent = margin > 0 ? margin.toFixed(2) + ' USDT (Fee: ' + tradingFee.toFixed(2) + ')' : '0 USDT'; 
+                if (shortCost) shortCost.textContent = margin > 0 ? margin.toFixed(2) + ' USDT (Fee: ' + tradingFee.toFixed(2) + ')' : '0 USDT'; 
+                if (estMargin) estMargin.textContent = margin > 0 ? margin.toFixed(2) + ' USDT' : '0 USDT'; 
                 const liqDisplay = document.getElementById('liq-price-display'); 
                 if (liqDisplay && qty > 0) { 
-                    // BUG #6 FIX: Long aur Short ke liye alag formula
                     const longBtn = document.getElementById('btn-long');
                     const isLong = longBtn && longBtn.classList.contains('active-side') ? true : 
                                    (document.getElementById('btn-short')?.classList.contains('active-side') ? false : true);
@@ -8572,11 +8574,13 @@
                         ? price * (1 - (1/leverage) + 0.005)
                         : price * (1 + (1/leverage) - 0.005);
                     liqDisplay.textContent = '$' + liqPrice.toFixed(2); 
-                } 
+                } else if (liqDisplay) {
+                    liqDisplay.textContent = '--';
+                }
             } else { 
-                if (buyCost) buyCost.textContent = total.toFixed(2) + ' USDT (Fee: ' + tradingFee.toFixed(2) + ')'; 
-                if (sellCost) sellCost.textContent = total.toFixed(2) + ' USDT (Fee: ' + tradingFee.toFixed(2) + ')'; 
-                if (estMargin) estMargin.textContent = total.toFixed(2) + ' USDT'; 
+                if (buyCost) buyCost.textContent = total > 0 ? total.toFixed(2) + ' USDT (Fee: ' + tradingFee.toFixed(2) + ')' : '0 USDT'; 
+                if (sellCost) sellCost.textContent = total > 0 ? total.toFixed(2) + ' USDT (Fee: ' + tradingFee.toFixed(2) + ')' : '0 USDT'; 
+                if (estMargin) estMargin.textContent = total > 0 ? total.toFixed(2) + ' USDT' : '0 USDT'; 
             } 
         }
         
@@ -9024,7 +9028,7 @@
                 tabContent.innerHTML = `
                     <div class="rounded-lg p-3 mb-3 flex justify-between items-center" style="background:rgba(0,200,83,0.08);border:1px solid rgba(0,200,83,0.2)">
                         <span class="text-sm text-textGray">${mode.charAt(0).toUpperCase() + mode.slice(1)} Balance</span>
-                        <span class="font-mono font-bold text-primary">₹${balance.toFixed(2)}</span>
+                        <span class="font-mono font-bold text-primary">${balance === 0 ? '₹0' : '₹' + balance.toFixed(2)}</span>
                     </div>
                     <p class="text-textGray text-xs mb-2">Open Positions (${positions.length})</p>
                     ${positions.map(p => {
@@ -9037,7 +9041,7 @@
                             </div>
                             <div class="text-right">
                                 <p class="font-mono text-sm">${p.quantity.toFixed(4)}</p>
-                                <p class="text-xs font-bold ${pnlINR >= 0 ? 'text-primary' : 'text-danger'}">${pnlINR >= 0 ? '+' : ''}₹${pnlINR.toFixed(2)}</p>
+                                <p class="text-xs font-bold ${pnlINR >= 0 ? 'text-primary' : 'text-danger'}">${pnlINR >= 0 ? '+' : ''}₹${pnlINR === 0 ? '0' : pnlINR.toFixed(2)}</p>
                             </div>
                         </div>`;
                     }).join('')}`;
@@ -9716,7 +9720,7 @@
                             </div>
                         </div>
                         <div class="text-right">
-                            <div class="font-mono font-bold">${baseBalance.toFixed(2)}</div>
+                            <div class="font-mono font-bold">${baseBalance === 0 ? '0' : baseBalance.toFixed(2)}</div>
                         </div>
                     </div>
                 `;
