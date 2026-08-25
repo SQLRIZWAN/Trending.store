@@ -317,7 +317,11 @@
         .img-fallback { background: linear-gradient(135deg, #1e2329, #0b0e11); display: flex; align-items: center; justify-content: center; color: #848e9c; font-size: 12px; min-height: 100px; }
         
         /* Liquidation Warning */
-        .liquidation-warning { background: rgba(255, 61, 0, 0.2); border: 1px solid #ff3d00; color: #ff3d00; padding: 8px; border-radius: 4px; font-size: 11px; margin-top: 4px; text-align: center; animation: pulse 2s infinite; font-weight: bold; }
+        .liquidation-warning { background: linear-gradient(135deg, rgba(255, 61, 0, 0.15), rgba(255, 61, 0, 0.08)); border: 1px solid rgba(255, 61, 0, 0.5); color: #ff8a65; padding: 10px 12px; border-radius: 8px; font-size: 11px; margin-top: 6px; text-align: left; font-weight: 500; line-height: 1.5; }
+        .liquidation-warning .liq-icon { color: #ff3d00; margin-right: 6px; }
+        .liquidation-warning .liq-title { color: #ff5722; font-weight: 700; font-size: 12px; display: block; margin-bottom: 4px; }
+        .liquidation-warning .liq-action { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; padding: 4px 10px; background: rgba(255, 61, 0, 0.2); border: 1px solid rgba(255, 61, 0, 0.4); border-radius: 6px; color: #ff8a65; font-size: 10px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .liquidation-warning .liq-action:hover { background: rgba(255, 61, 0, 0.35); }
         
         /* Rate Limit Warning */
         .rate-limit-warning { background: rgba(255, 214, 0, 0.1); border: 1px solid #ffd600; color: #ffd600; padding: 8px; border-radius: 4px; font-size: 11px; margin-top: 4px; display: none; }
@@ -1034,28 +1038,31 @@
                                 <input type="range" id="amount-slider" min="0" max="100" value="0" class="leverage-slider-new" oninput="updateTradingSlider(this.value)">
                             </div>
 
-                            <!-- TP/SL Toggle -->
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2 cursor-pointer" onclick="toggleTPSL()">
-                                    <div id="tpsl-checkbox" class="w-4 h-4 border-2 border-textGray rounded flex items-center justify-center">
-                                        <i id="tpsl-check" class="fas fa-check text-xs text-primary hidden"></i>
+                            <!-- TP/SL controls apply to Futures and Margin positions. -->
+                            <div id="tpsl-controls" class="space-y-2">
+                                <div class="flex items-center justify-between p-2 rounded-lg cursor-pointer" style="background:rgba(0,200,83,0.05);border:1px solid rgba(0,200,83,0.15);" onclick="toggleTPSL()">
+                                    <div class="flex items-center gap-2">
+                                        <div id="tpsl-checkbox" class="w-4 h-4 border-2 border-textGray rounded flex items-center justify-center">
+                                            <i id="tpsl-check" class="fas fa-check text-xs text-primary hidden"></i>
+                                        </div>
+                                        <span class="text-sm font-semibold text-white">TP/SL</span>
+                                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary font-bold">PROTECT</span>
                                     </div>
-                                    <span class="text-sm text-textGray">TP/SL</span>
+                                    <i class="fas fa-chevron-down text-xs text-textGray"></i>
                                 </div>
-                                <span class="text-xs text-primary">Advanced</span>
-                            </div>
-
-                            <!-- TP/SL Inputs (Hidden by default) -->
-                            <div id="tpsl-section" class="hidden space-y-2">
-                                <div class="grid grid-cols-2 gap-2">
-                                    <input type="number" id="tp-price" placeholder="Take Profit" class="custom-input-trade text-sm">
-                                    <input type="number" id="sl-price" placeholder="Stop Loss" class="custom-input-trade text-sm">
+                                <div id="tpsl-section" class="hidden space-y-2 p-2 rounded-lg" style="background:rgba(0,200,83,0.03);border:1px solid rgba(0,200,83,0.1);">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="text-textGray text-[10px] mb-1 block">Take Profit (USDT)</label>
+                                            <input type="number" id="tp-price" placeholder="TP price" class="custom-input-trade text-sm">
+                                        </div>
+                                        <div>
+                                            <label class="text-textGray text-[10px] mb-1 block">Stop Loss (USDT)</label>
+                                            <input type="number" id="sl-price" placeholder="SL price" class="custom-input-trade text-sm">
+                                        </div>
+                                    </div>
+                                    <p class="text-[10px] text-textGray"><i class="fas fa-info-circle mr-1 text-primary"></i>Set TP/SL to auto-close position at target price. You can also edit from open positions.</p>
                                 </div>
-                                <!-- BUG #17 FIX: TP/SL auto-execute nahi hota — user ko batao -->
-                                <p class="text-xs text-yellow-500 flex items-center gap-1">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    TP/SL display only — auto-execution coming soon
-                                </p>
                             </div>
 
                             <!-- Rate Limit Warning -->
@@ -1156,7 +1163,7 @@
                 <div class="bg-bgDeep border-t border-border mt-4">
                     <div class="flex gap-6 px-4 pt-4 text-sm border-b border-border overflow-x-auto no-scrollbar">
                         <button onclick="switchPositionTab('positions', this)" id="pos-tab-positions" class="font-semibold text-white border-b-2 border-primary pb-3 whitespace-nowrap">Positions(0)</button>
-                        <button onclick="switchPositionTab('orders', this)" id="pos-tab-orders" class="text-textGray pb-3 whitespace-nowrap">Orders(0)</button>
+                        <button onclick="switchPositionTab('orders', this)" id="pos-tab-orders" class="text-textGray pb-3 whitespace-nowrap">Pending(0)</button>
                         <button onclick="switchPositionTab('trades', this)" id="pos-tab-trades" class="text-textGray pb-3 whitespace-nowrap">Trades</button>
                         <button onclick="switchPositionTab('assets', this)" id="pos-tab-assets" class="text-textGray pb-3 whitespace-nowrap">Assets</button>
                     </div>
@@ -2768,6 +2775,36 @@
         </div>
     </div>
 
+    <!-- Position TP/SL Modal -->
+    <div id="position-tpsl-modal" class="modal-overlay-new" onclick="hideModal(event)">
+        <div class="modal-content-new" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-border">
+                <div>
+                    <h3 class="font-bold text-lg">Set Take Profit / Stop Loss</h3>
+                    <p id="position-tpsl-pair" class="text-textGray text-xs mt-1"></p>
+                </div>
+                <button onclick="closeModal('position-tpsl-modal')" class="text-textGray"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div class="p-3 rounded-lg" style="background:rgba(0,200,83,0.05);border:1px solid rgba(0,200,83,0.2);">
+                    <label class="text-primary text-xs mb-1 block font-semibold"><i class="fas fa-arrow-up mr-1"></i>Take Profit (USDT)</label>
+                    <input type="number" id="position-tp-price" min="0" step="any" placeholder="Optional" class="custom-input-trade text-sm">
+                    <p class="text-[10px] text-textGray mt-1">Auto-close when price reaches this level</p>
+                </div>
+                <div class="p-3 rounded-lg" style="background:rgba(255,61,0,0.05);border:1px solid rgba(255,61,0,0.2);">
+                    <label class="text-danger text-xs mb-1 block font-semibold"><i class="fas fa-arrow-down mr-1"></i>Stop Loss (USDT)</label>
+                    <input type="number" id="position-sl-price" min="0" step="any" placeholder="Optional" class="custom-input-trade text-sm">
+                    <p class="text-[10px] text-textGray mt-1">Auto-close to limit losses</p>
+                </div>
+            </div>
+            <p id="position-tpsl-entry" class="text-textGray text-xs mb-4 p-2 rounded-lg" style="background:rgba(132,142,156,0.1);"></p>
+            <div class="flex gap-2">
+                <button onclick="closeModal('position-tpsl-modal')" class="flex-1 py-3 rounded-lg font-bold text-sm bg-surfaceLight text-textGray">Cancel</button>
+                <button onclick="savePositionTPSL()" class="flex-1 py-3 rounded-lg font-bold text-sm bg-primary text-black">Save TP/SL</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Logout Confirmation Dialog -->
     <div id="logout-dialog" class="dialog-overlay">
         <div class="dialog-box">
@@ -3036,6 +3073,8 @@
             
             // BUG #9 FIX: Track positions currently being liquidated
             liquidatingPositions: new Set(),
+            editingPositionId: null,
+            transferPreset: null,
             
             // NFT pending purchase
             pendingNFT: null,
@@ -3272,7 +3311,9 @@
             if (!state._liqDebounceTimer) {
                 state._liqDebounceTimer = setTimeout(() => {
                     state._liqDebounceTimer = null;
-                    checkLiquidations(parseFloat(price));
+                    const markPrice = parseFloat(price);
+                    checkProtectiveExits(markPrice);
+                    checkLiquidations(markPrice);
                 }, 1000);
             }
             
@@ -3362,6 +3403,7 @@
             // Liquidation check every 500ms
             state.liqPollingInterval = setInterval(() => {
                 if (state.currentPrice > 0) {
+                    checkProtectiveExits(state.currentPrice);
                     checkLiquidations(state.currentPrice);
                 }
             }, 500);
@@ -3479,7 +3521,8 @@
             if (currentPrice <= 0) return; // Prevent NaN
             
             state.positions.forEach(async (pos) => {
-                if (pos.status !== 'open') return;
+                // The active market feed belongs only to the selected pair.
+                if (pos.status !== 'open' || pos.pair !== state.pairSymbol) return;
                 
                 let liquidated = false;
                 
@@ -3499,8 +3542,9 @@
             // BUG 6 FIX: Enhanced double-liquidation guard
             // Set check is synchronous (JS single-threaded) so rapid WebSocket triggers
             // are blocked before the async Firebase transaction starts.
-            if (state.liquidatingPositions.has(position.id)) return;
+            if (state.liquidatingPositions.has(position.id) || state.closingPositions.has(position.id)) return;
             state.liquidatingPositions.add(position.id);
+            state.closingPositions.add(position.id);
             
             try {
                 // BUG-002 FIX: Remaining margin account for unrealized PnL before liquidation.
@@ -3510,6 +3554,7 @@
                 const lossAtLiq = Math.max(0, -unrealizedPnlAtLiq); // only the loss portion
                 const insuranceFee = position.margin * 0.005; // 0.5% insurance fund
                 const remainingMargin = Math.max(0, position.margin - lossAtLiq - insuranceFee);
+                const remainingMarginINR = remainingMargin * (state.usdtToInr || 103);
                 
                 await db.runTransaction(async (transaction) => {
                     const posRef = db.collection('positions').doc(position.id);
@@ -3534,7 +3579,7 @@
                     // BUG #17 FIX: Remaining margin wapas karo user ko
                     if (remainingMargin > 0) {
                         transaction.update(userRef, {
-                            [balanceKey]: firebase.firestore.FieldValue.increment(remainingMargin)
+                            [balanceKey]: firebase.firestore.FieldValue.increment(remainingMarginINR)
                         });
                     }
                 });
@@ -3548,13 +3593,14 @@
                     margin: position.margin,
                     insuranceFee: insuranceFee,
                     remainingMarginReturned: remainingMargin,
+                    remainingMarginReturnedINR: remainingMarginINR,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
                 await db.collection('notifications').add({
                     uid: state.user.uid,
                     title: 'Position Liquidated',
-                    message: `Your ${position.side.toUpperCase()} position on ${position.pair} was liquidated at $${position.liqPrice.toFixed(2)}${remainingMargin > 0 ? `. ₹${remainingMargin.toFixed(2)} returned.` : ''}`,
+                    message: `Your ${position.side.toUpperCase()} position on ${position.pair} was liquidated at $${position.liqPrice.toFixed(2)}${remainingMarginINR > 0 ? `. ₹${remainingMarginINR.toFixed(2)} returned.` : ''}`,
                     type: 'liquidation',
                     read: false,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -3567,7 +3613,24 @@
                 console.error('Liquidation error:', error);
             } finally {
                 state.liquidatingPositions.delete(position.id);
+                state.closingPositions.delete(position.id);
             }
+        }
+
+        function checkProtectiveExits(currentPrice) {
+            if (!state.positions || state.positions.length === 0 || currentPrice <= 0) return;
+
+            state.positions.forEach(pos => {
+                if (pos.status !== 'open' || pos.pair !== state.pairSymbol || state.closingPositions.has(pos.id)) return;
+
+                const tpPrice = Number(pos.tpPrice) || 0;
+                const slPrice = Number(pos.slPrice) || 0;
+                const hitTakeProfit = pos.side === 'long' ? tpPrice > 0 && currentPrice >= tpPrice : tpPrice > 0 && currentPrice <= tpPrice;
+                const hitStopLoss = pos.side === 'long' ? slPrice > 0 && currentPrice <= slPrice : slPrice > 0 && currentPrice >= slPrice;
+
+                if (hitTakeProfit) closePosition(pos.id, 'take_profit', currentPrice);
+                else if (hitStopLoss) closePosition(pos.id, 'stop_loss', currentPrice);
+            });
         }
 
         // ==========================================
@@ -4638,9 +4701,9 @@
                 const balance = mode === 'futures' ? futures : mode === 'margin' ? margin : spot;
                 const usdtEquiv = (balance / (state.usdtToInr || 103)).toFixed(2);
                 if (balance === 0) {
-                    availDisplay.innerHTML = `₹0 <span class="text-textGray text-xs">(≈$0 USDT)</span> <i class="fas fa-plus-circle text-primary ml-1 cursor-pointer" onclick="openPay()"></i>`;
+                    availDisplay.innerHTML = `₹0 <span class="text-textGray text-xs">(≈$0 USDT)</span> <i class="fas fa-plus-circle text-primary ml-1 cursor-pointer" onclick="openTradingFunding()"></i>`;
                 } else {
-                    availDisplay.innerHTML = `₹${balance.toFixed(2)} <span class="text-textGray text-xs">(≈$${usdtEquiv} USDT)</span> <i class="fas fa-plus-circle text-primary ml-1 cursor-pointer" onclick="openPay()"></i>`;
+                    availDisplay.innerHTML = `₹${balance.toFixed(2)} <span class="text-textGray text-xs">(≈$${usdtEquiv} USDT)</span> <i class="fas fa-plus-circle text-primary ml-1 cursor-pointer" onclick="openTradingFunding()"></i>`;
                 }
             }
 
@@ -6489,12 +6552,17 @@
                 // UIF-03 FIX: Reset stale form values when re-entering transfer view
                 const amtField = document.getElementById('transfer-amount');
                 const fromField = document.getElementById('transfer-from');
+                const toField = document.getElementById('transfer-to');
                 const currField = document.getElementById('transfer-currency');
+                const preset = state.transferPreset;
+                state.transferPreset = null;
                 if (amtField) amtField.value = '';
-                if (fromField) fromField.value = 'spot';
+                if (fromField) fromField.value = preset?.from || 'spot';
                 if (currField) currField.value = 'INR';
                 updateTransferTo();
+                if (toField && preset?.to) toField.value = preset.to;
                 updateTransferCurrency();
+                if (preset) showToast(`Transfer funds to your ${preset.to} account`);
             }
             
             // FIX BACK BUTTON: Har navigation pe history stack mein push karo
@@ -7171,6 +7239,37 @@
             goToDepStep(1);
 
             document.getElementById('pay-modal').style.display = 'flex';
+        }
+
+        function openTradingFunding() {
+            const target = state.currentTradingMode;
+            if (target !== 'futures' && target !== 'margin') {
+                openPay();
+                return;
+            }
+
+            // Check all accounts for available balance
+            const spotBal = Number(state.userData?.spotBalance) || 0;
+            const futuresBal = Number(state.userData?.futuresBalance) || 0;
+            const marginBal = Number(state.userData?.marginBalance) || 0;
+            const refBal = Number(state.userData?.referralBalance) || 0;
+            const totalOtherBalance = (target === 'futures' ? spotBal + marginBal : spotBal + futuresBal) + refBal;
+
+            if (totalOtherBalance > 0) {
+                // Find best source account with balance
+                const accounts = ['spot', 'margin', 'futures', 'referral'].filter(a => a !== target);
+                const source = accounts.find(a => {
+                    const key = a === 'referral' ? 'referralBalance' : a + 'Balance';
+                    return Number(state.userData?.[key]) > 0;
+                }) || 'spot';
+                
+                state.transferPreset = { from: source, to: target };
+                navigateTo('transfer');
+                showToast(`Transfer funds from ${source.charAt(0).toUpperCase() + source.slice(1)} to ${target.charAt(0).toUpperCase() + target.slice(1)}`);
+            } else {
+                // No funds anywhere - go to deposit
+                openPay();
+            }
         }
         
         function resetFileUploads() {
@@ -8425,6 +8524,9 @@
             const buyCost = document.getElementById('buy-cost-display');
             const sellCost = document.getElementById('sell-cost-display');
             const estMargin = document.getElementById('est-margin-display');
+            const tpslControls = document.getElementById('tpsl-controls');
+
+            tpslControls?.classList.toggle('hidden', mode === 'spot');
             
             if (mode === 'futures') { 
                 futuresSubtabs?.classList.remove('hidden'); 
@@ -8550,8 +8652,11 @@
             
             const qty = parseFloat(document.getElementById('trade-quantity-input').value); 
             const price = state.currentOrderType === 'Market' ? state.currentPrice : (parseFloat(document.getElementById('trade-price-input').value) || state.currentPrice);
-            const tp = document.getElementById('tp-price')?.value; 
-            const sl = document.getElementById('sl-price')?.value; 
+            const tpslEnabled = !document.getElementById('tpsl-check')?.classList.contains('hidden');
+            const tpInput = document.getElementById('tp-price')?.value.trim();
+            const slInput = document.getElementById('sl-price')?.value.trim();
+            const tp = tpslEnabled && state.currentTradingMode !== 'spot' ? (tpInput === '' ? null : Number(tpInput)) : null;
+            const sl = tpslEnabled && state.currentTradingMode !== 'spot' ? (slInput === '' ? null : Number(slInput)) : null;
             
             // FIX 4: Strict input validation - no negative, zero, or extreme values
             if (!qty || qty <= 0 || isNaN(qty)) { 
@@ -8578,6 +8683,8 @@
                 const slippage = 0.001; // 0.1% slippage
                 executionPrice = side === 'buy' || side === 'long' ? price * (1 + slippage) : price * (1 - slippage);
             }
+
+            if (!isValidPositionTPSL(side, executionPrice, tp, sl)) return;
             
             setProcessing('trade', true); 
             
@@ -8654,8 +8761,8 @@
                         marginINR: margin * usdtRate,
                         tradingFee: tradingFee,
                         tradingFeeINR: tradingFee * usdtRate,
-                        tpPrice: tp || null,
-                        slPrice: sl || null,
+                        tpPrice: tp,
+                        slPrice: sl,
                         status: 'filled',
                         pnl: 0,
                         mode: state.currentTradingMode,
@@ -8710,6 +8817,8 @@
                             margin: margin,
                             marginINR: margin * usdtRate,
                             liqPrice: liqPrice,
+                            tpPrice: tp,
+                            slPrice: sl,
                             unrealizedPnl: 0,
                             realizedPnl: 0,
                             status: 'open',
@@ -8722,6 +8831,8 @@
                 const feeINR = tradingFee * (state.usdtToInr || 103);
                 showToast(`${side.toUpperCase()} order @ $${executionPrice.toFixed(2)}! Fee: ₹${feeINR.toFixed(2)}`);
                 document.getElementById('trade-quantity-input').value = '';
+                document.getElementById('tp-price').value = '';
+                document.getElementById('sl-price').value = '';
                 updateTradingSlider(0);
                 loadPositionsRealtime();
                 loadOrders();
@@ -8862,11 +8973,19 @@
             
             container.innerHTML = positions.map(pos => { 
                 const isSamePair = pos.pair === state.pairSymbol;
-                const priceForPnl = isSamePair ? state.currentPrice : (pos._lastPrice || pos.entryPrice);
+                const hasLiveMarkPrice = isSamePair && state.currentPrice > 0;
+                const priceForPnl = hasLiveMarkPrice ? state.currentPrice : (pos._lastPrice || pos.entryPrice);
                 const currentPnl = priceForPnl > 0 ? ((priceForPnl - pos.entryPrice) * pos.quantity * (pos.side === 'long' ? 1 : -1)) : 0; 
                 const pnlPercent = pos.margin > 0 ? (currentPnl / pos.margin) * 100 : 0; 
                 const isProfit = currentPnl >= 0;
-                const liqWarning = priceForPnl > 0 && (pos.side === 'long' ? priceForPnl <= pos.liqPrice * 1.02 : priceForPnl >= pos.liqPrice * 0.98);
+                const liqDistance = hasLiveMarkPrice && pos.liqPrice
+                    ? (pos.side === 'long'
+                        ? ((priceForPnl - pos.liqPrice) / priceForPnl) * 100
+                        : ((pos.liqPrice - priceForPnl) / priceForPnl) * 100)
+                    : null;
+                const liqWarning = liqDistance !== null && liqDistance >= 0 && liqDistance <= 2;
+                const tpPrice = Number(pos.tpPrice) || null;
+                const slPrice = Number(pos.slPrice) || null;
                 
                 return ` 
                     <div class="position-card border-l-4 ${isProfit ? 'border-primary' : 'border-danger'} ${liqWarning ? 'bg-danger/10' : ''}"> 
@@ -8902,25 +9021,31 @@
                                 ${isProfit ? '+' : ''}${currentPnl.toFixed(2)} USDT (₹${(currentPnl*(state.usdtToInr||83)).toFixed(0)}) (${pnlPercent.toFixed(2)}%)
                             </span> 
                         </div> 
+                        <div class="grid grid-cols-2 gap-2 text-xs mt-2 pt-2 border-t border-border">
+                            <div class="p-2 rounded" style="background:rgba(0,200,83,0.05);"><span class="text-textGray">TP:</span> <span class="text-primary font-bold">${tpPrice ? '$' + tpPrice.toFixed(2) : 'Not set'}</span></div>
+                            <div class="p-2 rounded" style="background:rgba(255,61,0,0.05);"><span class="text-textGray">SL:</span> <span class="text-danger font-bold">${slPrice ? '$' + slPrice.toFixed(2) : 'Not set'}</span></div>
+                        </div>
+                        <button onclick="openPositionTPSL('${pos.id}')" class="mt-2 w-full py-1.5 text-center text-xs font-semibold rounded-lg ${tpPrice || slPrice ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-surfaceLight text-textGray border border-border'}">${tpPrice || slPrice ? 'Edit TP/SL' : 'Set TP/SL'}</button>
                         ${pos.liqPrice ? ` 
                             <div class="flex justify-between items-center mt-1"> 
                                 <span class="text-textGray text-xs">Liq. Price</span> 
-                                <span class="${liqWarning ? 'text-danger font-bold animate-pulse' : 'text-danger text-xs'}">$${pos.liqPrice.toFixed(2)} ${liqWarning ? '⚠️ NEAR' : ''}</span> 
+                                <span class="${liqWarning ? 'text-danger font-bold' : 'text-danger text-xs'}">$${pos.liqPrice.toFixed(2)}</span> 
                             </div> 
-                            ${liqWarning ? `<div class="liquidation-warning mt-2">⚠️ WARNING: Price approaching liquidation!</div>` : ''}
+                            ${liqWarning ? `<div class="liquidation-warning mt-2"><span class="liq-icon"><i class="fas fa-exclamation-triangle"></i></span><span class="liq-title">Liquidation Risk!</span>Price is ${liqDistance.toFixed(2)}% from liquidation ($${pos.liqPrice.toFixed(2)}). Add margin to avoid liquidation.<div class="liq-action" onclick="openPositionTPSL('${pos.id}')"><i class="fas fa-shield-alt"></i>Add Margin / Set TP/SL</div></div>` : ''}
+                            ${!hasLiveMarkPrice ? `<div class="text-textGray text-[11px] mt-2">Select ${pos.pair} to view its live liquidation distance.</div>` : ''}
                         ` : ''} 
                     </div> 
                 `; 
             }).join(''); 
         }
         
-        async function closePosition(positionId) { 
+        async function closePosition(positionId, closeType = 'manual', priceOverride = null) { 
             if (state.closingPositions && state.closingPositions.has(positionId)) {
                 showToast('Position is already being closed...', 'error');
                 return;
             }
             
-            if (!confirm('Are you sure you want to close this position?')) return;
+            if (closeType === 'manual' && !confirm('Are you sure you want to close this position?')) return;
             
             if (!state.closingPositions) state.closingPositions = new Set();
             state.closingPositions.add(positionId);
@@ -8946,14 +9071,16 @@
                 renderPositions();
                 
                 // BAL-10 FIX: Fetch latest price from Binance REST API — state.currentPrice may be stale if WS disconnected
-                let closePrice = state.currentPrice;
-                try {
-                    const priceRes = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${(pos.pair || 'BTCUSDT').replace('/','')}`)
-                    if (priceRes.ok) {
-                        const priceData = await priceRes.json();
-                        if (priceData.price) closePrice = parseFloat(priceData.price);
-                    }
-                } catch (_) { /* fallback to state.currentPrice already set */ }
+                let closePrice = priceOverride || state.currentPrice;
+                if (!priceOverride) {
+                    try {
+                        const priceRes = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${(pos.pair || 'BTCUSDT').replace('/','')}`)
+                        if (priceRes.ok) {
+                            const priceData = await priceRes.json();
+                            if (priceData.price) closePrice = parseFloat(priceData.price);
+                        }
+                    } catch (_) { /* fallback to state.currentPrice already set */ }
+                }
                 const currentPnl = closePrice > 0 ? ((closePrice - pos.entryPrice) * pos.quantity * (pos.side === 'long' ? 1 : -1)) : 0; 
                 const balanceKey = pos.mode + 'Balance';
                 const returnAmount = pos.margin + currentPnl;
@@ -8977,6 +9104,7 @@
                         status: 'closed', 
                         closePrice: closePrice, 
                         realizedPnl: currentPnl, 
+                        closeType: closeType,
                         closedAt: firebase.firestore.FieldValue.serverTimestamp() 
                     });
                     // BUG #3 FIX: Balance credit bhi same transaction mein
@@ -8997,12 +9125,14 @@
                     quantity: pos.quantity, 
                     pnl: currentPnl, 
                     pnlINR: currentPnl * (state.usdtToInr || 103),
+                    closeType: closeType,
                     mode: pos.mode, 
                     ip: state.userIP,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp() 
                 }); 
                 
-                showToast(`Position closed. P&L: ${currentPnl >= 0 ? '+' : ''}${currentPnl.toFixed(2)} USDT (₹${(currentPnl*(state.usdtToInr||83)).toFixed(2)})`); 
+                const closedBy = closeType === 'take_profit' ? 'Take profit hit.' : closeType === 'stop_loss' ? 'Stop loss hit.' : 'Position closed.';
+                showToast(`${closedBy} P&L: ${currentPnl >= 0 ? '+' : ''}${currentPnl.toFixed(2)} USDT (₹${(currentPnl * (state.usdtToInr || 103)).toFixed(2)})`); 
             } catch (error) { 
                 showToast('Close position failed: ' + error.message, 'error');
                 // On error, reload positions to restore correct state
@@ -9080,6 +9210,7 @@
                 const snap = await db.collection('orders')
                     .where('uid', '==', state.user.uid)
                     .where('mode', '==', state.currentTradingMode)
+                    .where('status', '==', 'pending')
                     .limit(50).get();
 
                 const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -9091,26 +9222,20 @@
                 state.orders = docs.slice(0, 30);
 
                 const ordersTab = document.getElementById('pos-tab-orders');
-                if (ordersTab) ordersTab.textContent = `Orders(${state.orders.length})`;
+                if (ordersTab) ordersTab.textContent = `Pending(${state.orders.length})`;
 
                 if (state.orders.length === 0) {
                     container.innerHTML = `<div class="text-center py-8">
                         <div class="w-16 h-16 bg-surface rounded-full mx-auto mb-3 flex items-center justify-center">
-                            <i class="fas fa-list-alt text-textGray text-2xl"></i>
+                            <i class="fas fa-clock text-textGray text-2xl"></i>
                         </div>
-                        <p class="text-textGray text-sm">No orders found</p>
-                        <p class="text-gray-600 text-xs mt-1">Place an order to see it here</p>
+                        <p class="text-textGray text-sm">No pending orders</p>
+                        <p class="text-gray-600 text-xs mt-1">Place a limit order to see it here</p>
                     </div>`;
                     return;
                 }
 
-                const statusColors = { 'filled': '#00c853', 'pending': '#ffd600', 'rejected': '#ff3d00', 'cancelled': '#848e9c' };
-                const statusIcons = { 'filled': 'fa-check-circle', 'pending': 'fa-clock', 'rejected': 'fa-times-circle', 'cancelled': 'fa-ban' };
-
                 container.innerHTML = state.orders.map(order => {
-                    const sColor = statusColors[order.status] || '#848e9c';
-                    const sIcon = statusIcons[order.status] || 'fa-circle';
-                    const canCancel = order.status === 'pending';
                     const side = order.side || 'buy';
                     const isBuy = side === 'buy' || side === 'long';
                     return `<div class="position-card">
@@ -9120,7 +9245,7 @@
                                 <span class="text-xs px-2 py-0.5 rounded font-bold ${isBuy ? 'bg-primary/20 text-primary' : 'bg-danger/20 text-danger'}">${side.toUpperCase()}</span>
                                 <span class="text-xs text-textGray">${order.type || 'Market'}</span>
                             </div>
-                            ${canCancel ? `<button onclick="cancelOrder('${order.id}')" class="text-xs text-danger border border-danger/30 px-2 py-1 rounded hover:bg-danger/10">Cancel</button>` : ''}
+                            <button onclick="cancelOrder('${order.id}')" class="text-xs text-danger border border-danger/30 px-2 py-1 rounded hover:bg-danger/10">Cancel</button>
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-xs mb-2">
                             <div><span class="text-textGray">Price:</span> <span class="font-mono">$${Number(order.price || 0).toFixed(2)}</span></div>
@@ -9130,8 +9255,8 @@
                         </div>
                         <div class="flex justify-between items-center pt-1 border-t border-border">
                             <span class="text-textGray text-xs">${order.createdAt?.toDate?.().toLocaleString('en-IN') || 'Just now'}</span>
-                            <span class="text-xs font-bold flex items-center gap-1" style="color:${sColor}">
-                                <i class="fas ${sIcon}"></i>${order.status?.toUpperCase() || 'FILLED'}
+                            <span class="text-xs font-bold flex items-center gap-1" style="color:#ffd600">
+                                <i class="fas fa-clock"></i>PENDING
                             </span>
                         </div>
                     </div>`;
@@ -9492,15 +9617,102 @@
             const checkbox = document.getElementById('tpsl-checkbox'); 
             const check = document.getElementById('tpsl-check'); 
             const section = document.getElementById('tpsl-section'); 
-            if (check.classList.contains('hidden')) { 
-                check.classList.remove('hidden'); 
-                checkbox.classList.add('border-primary'); 
+            if (section.classList.contains('hidden')) { 
                 section.classList.remove('hidden'); 
+                checkbox.classList.add('border-primary');
+                checkbox.style.background = 'rgba(0,200,83,0.1)';
+                check.classList.remove('hidden');
             } else { 
-                check.classList.add('hidden'); 
-                checkbox.classList.remove('border-primary'); 
                 section.classList.add('hidden'); 
+                checkbox.classList.remove('border-primary');
+                checkbox.style.background = 'transparent';
+                check.classList.add('hidden');
             } 
+        }
+
+        function isValidPositionTPSL(side, entryPrice, tpPrice, slPrice) {
+            if (tpPrice !== null && (!Number.isFinite(tpPrice) || tpPrice <= 0)) {
+                showToast('Take profit must be a valid positive price', 'error');
+                return false;
+            }
+            if (slPrice !== null && (!Number.isFinite(slPrice) || slPrice <= 0)) {
+                showToast('Stop loss must be a valid positive price', 'error');
+                return false;
+            }
+            if (side === 'long') {
+                if (tpPrice !== null && tpPrice <= entryPrice) {
+                    showToast('Long take profit must be above entry price', 'error');
+                    return false;
+                }
+                if (slPrice !== null && slPrice >= entryPrice) {
+                    showToast('Long stop loss must be below entry price', 'error');
+                    return false;
+                }
+            } else {
+                if (tpPrice !== null && tpPrice >= entryPrice) {
+                    showToast('Short take profit must be below entry price', 'error');
+                    return false;
+                }
+                if (slPrice !== null && slPrice <= entryPrice) {
+                    showToast('Short stop loss must be above entry price', 'error');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        async function openPositionTPSL(positionId) {
+            let position = state.positions.find(pos => pos.id === positionId);
+            if (!position) {
+                const posDoc = await db.collection('positions').doc(positionId).get();
+                position = posDoc.exists ? { id: posDoc.id, ...posDoc.data() } : null;
+            }
+            if (!position || position.uid !== state.user.uid || position.status !== 'open') {
+                showToast('Open position not found', 'error');
+                return;
+            }
+
+            state.editingPositionId = positionId;
+            document.getElementById('position-tpsl-pair').textContent = `${position.pair} ${position.side.toUpperCase()} ${position.leverage}x`;
+            document.getElementById('position-tpsl-entry').textContent = `Entry price: $${Number(position.entryPrice).toFixed(2)}`;
+            document.getElementById('position-tp-price').value = position.tpPrice || '';
+            document.getElementById('position-sl-price').value = position.slPrice || '';
+            document.getElementById('position-tpsl-modal').style.display = 'flex';
+        }
+
+        async function savePositionTPSL() {
+            const positionId = state.editingPositionId;
+            if (!positionId) return;
+
+            const tpInput = document.getElementById('position-tp-price').value.trim();
+            const slInput = document.getElementById('position-sl-price').value.trim();
+            const tpPrice = tpInput === '' ? null : Number(tpInput);
+            const slPrice = slInput === '' ? null : Number(slInput);
+            const posRef = db.collection('positions').doc(positionId);
+
+            try {
+                await db.runTransaction(async transaction => {
+                    const posDoc = await transaction.get(posRef);
+                    if (!posDoc.exists) throw new Error('Position not found');
+                    const position = posDoc.data();
+                    if (position.uid !== state.user.uid || position.status !== 'open') {
+                        throw new Error('Position is no longer open');
+                    }
+                    if (!isValidPositionTPSL(position.side, Number(position.entryPrice), tpPrice, slPrice)) {
+                        throw new Error('Invalid TP/SL values');
+                    }
+                    transaction.update(posRef, {
+                        tpPrice,
+                        slPrice,
+                        protectionUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                });
+                showToast('TP/SL updated');
+                state.editingPositionId = null;
+                closeModal('position-tpsl-modal');
+            } catch (error) {
+                showToast('TP/SL update failed: ' + error.message, 'error');
+            }
         }
         
         function showOrderTypeModal() { 
