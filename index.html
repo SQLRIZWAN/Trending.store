@@ -4063,6 +4063,13 @@
                     loadInitialOrderBook();
                 }, 300);
 
+                // FIX: Periodic auto-payout check every 5 minutes
+                setInterval(() => {
+                    if (state.user && state.userInvestments && state.userInvestments.length > 0) {
+                        processMaturedInvestments(state.userInvestments).catch(()=>{});
+                    }
+                }, 5 * 60 * 1000);
+
             } catch(err) {
                 console.error('initializeApp error:', err);
                 // Even if error, show app — don't leave user stuck
@@ -5102,9 +5109,10 @@
                 const amount = Number(payData.amount) || 0;
 
                 const isFirstDeposit = !state.userData.referralFirstDepositRewarded;
-                const userFirstBonus = isFirstDeposit ? Math.round(amount * 0.15 * 100) / 100 : 0; // 15%
-                const fastReferralBonus = isFirstDeposit ? 50 : 0; // ₹50 one-time to L1
-                const l1Commission = Math.round(amount * 0.10 * 100) / 100; // 10% every deposit
+                const userFirstBonus = isFirstDeposit ? Math.round(amount * 0.15 * 100) / 100 : 0; // 15% to user on first deposit
+                const fastReferralBonus = isFirstDeposit ? 50 : 0; // ₹50 one-time to L1 on first deposit
+                // FIX: On first deposit L1 gets ONLY ₹50 fast bonus, NOT 10% + ₹50
+                const l1Commission = isFirstDeposit ? 0 : Math.round(amount * 0.10 * 100) / 100; // 10% on subsequent deposits only
                 const l2Commission = l2Id ? Math.round(amount * 0.02 * 100) / 100 : 0; // 2% every deposit
 
                 await db.runTransaction(async (txn) => {
@@ -5161,7 +5169,7 @@
                         uid: l1Id,
                         title: '🎉 Referral Reward!',
                         message: (!alreadyFirstRewarded && isFirstDeposit)
-                            ? `${state.userData.name || 'Your referral'} made first deposit of ₹${amount}. You earned ₹${totalForL1.toFixed(2)} (₹50 fast bonus + 10% commission).`
+                            ? `${state.userData.name || 'Your referral'} made first deposit of ₹${amount}. You earned ₹${fastReferralBonus.toFixed(2)} fast referral bonus.`
                             : `${state.userData.name || 'Your referral'} deposited ₹${amount}. You earned ₹${l1Commission.toFixed(2)} (10% commission).`,
                         type: 'referral_reward',
                         read: false,
@@ -6410,10 +6418,11 @@
                     // If enough free invest balance, no spot needed — no balance change at all
                 });
 
-                const minRate = (plan.minReturnRate || 5) / 100;
-                const maxRate = (plan.maxReturnRate || 15) / 100;
-                const minEstimatedReturn = amount * minRate * (duration / 365);
-                const maxEstimatedReturn = amount * maxRate * (duration / 365);
+                // FIX: Use total percentage formula consistently (same as payout calculation)
+                const minRate = plan.minReturnRate || 5;
+                const maxRate = plan.maxReturnRate || 15;
+                const minEstimatedReturn = amount * (minRate / 100);
+                const maxEstimatedReturn = amount * (maxRate / 100);
 
                 await db.collection('investments').add({
                     uid: state.user.uid,
@@ -9960,7 +9969,16 @@
                 const end = inv.endDate?.toDate ? inv.endDate.toDate().getTime()
                           : inv.endDate?.seconds ? inv.endDate.seconds * 1000
                           : new Date(inv.endDate || 0).getTime();
-                return end > 0 && now >= end;
+                if (end <= 0 || now < end) return false;
+                // FIX: Validate maturity - investment must have been active for at least duration
+                const start = inv.startDate?.toDate ? inv.startDate.toDate().getTime()
+                            : inv.startDate?.seconds ? inv.startDate.seconds * 1000
+                            : 0;
+                const duration = inv.duration || 30;
+                const minEndTime = start + (duration * 24 * 60 * 60 * 1000);
+                // If endDate is suspiciously early (client clock manipulation), use calculated minEndTime
+                if (start > 0 && now < minEndTime) return false;
+                return true;
             });
             if (matured.length === 0) return;
 
@@ -10037,10 +10055,21 @@
                     if (invData.status !== 'active') throw new Error('Investment is not active');
                     // BAL-03: Calculate returns from Firestore fields only
                     const principal = invData.amount || 0;
-                    const earned = invData.totalReturned || invData.actualReturn || 0;
+                    // FIX: If totalReturned not set (not auto-processed yet), calculate profit now
+                    let earned = invData.totalReturned || invData.actualReturn || 0;
+                    if (earned === 0) {
+                        const minRate = invData.minReturnRate || 5;
+                        const maxRate = invData.maxReturnRate || 15;
+                        const avgRate = (minRate + maxRate) / 2;
+                        earned = principal * (avgRate / 100);
+                    }
                     const total = principal + earned;
                     totalForToast = total;
-                    t.update(invRef, { status: 'withdrawn', withdrawnAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    t.update(invRef, { 
+                        status: 'withdrawn', 
+                        totalReturned: earned,
+                        withdrawnAt: firebase.firestore.FieldValue.serverTimestamp() 
+                    });
                     const userRef = db.collection('users').doc(state.user.uid);
                     if (invData.usedInvestBalance) {
                         t.update(userRef, { spotBalance: firebase.firestore.FieldValue.increment(total) });
@@ -10189,6 +10218,10 @@
             try { 
                 const snapshot = await db.collection('investments').where('uid', '==', state.user.uid).where('status', 'in', ['active', 'matured']).get(); 
                 state.userInvestments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
+                // FIX: Auto-process matured investments on load
+                if (state.userInvestments.length > 0) {
+                    processMaturedInvestments(state.userInvestments).catch(e => console.log('Auto-payout check:', e.message));
+                }
             } catch (error) { 
                 console.error('Error loading investments:', error);
                 state.userInvestments = []; // FIX: Set to empty array on error
