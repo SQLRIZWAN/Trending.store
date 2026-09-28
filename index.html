@@ -49,6 +49,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Font Awesome -->
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
     <!-- SweetAlert2 (dialogs: OTP, SL/TP, internal transfer) -->
@@ -134,7 +135,7 @@
             } else {
                 // iOS / already installed fallback
                 if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
-                    alert('📲 iOS pe install karne ke liye:\n\nSafari mein Share button tap karein aur "Add to Home Screen" select karein.');
+                    alert('📲 To install on iOS:\n\nTap the Share button in Safari, then choose "Add to Home Screen".');
                 } else {
                     alert('✅ App already installed or browser does not support installation.');
                 }
@@ -563,7 +564,7 @@
             .fx-sheet .card { left:50%; right:auto; transform:translateX(-50%); width:560px; bottom:6vh; border-radius:16px; border:1px solid var(--border,#2b3139); }
         }
         .fx-sheet h4 { font-size:14px; font-weight:800; margin-bottom:10px; }
-        .fx-opt { display:flex; justify-content:space-between; align-items:center; padding:13px 12px; border-radius:10px;
+        .fx-opt { display:flex; justify-content:space-between; align-items:center; width:100%; padding:13px 12px; border-radius:10px;
             background:var(--surface,#151a21); border:1px solid var(--border,#2b3139); margin-bottom:8px; font-size:13px; font-weight:700; }
         .fx-opt.sel { border-color:var(--primary,#00c853); background:rgba(0,200,83,.09); }
         .fx-lev-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
@@ -573,6 +574,32 @@
 
         .fx-chart-shell { width:100%; height:300px; }
         .fx-chart-shell.closed { display:none; }
+
+        /* ── minimal re-skin ── */
+        .fx-mini-btn { padding:8px 14px; border-radius:9px; font-size:12px; font-weight:800; white-space:nowrap;
+            background:var(--surfaceL,#22282f); color:var(--text,#eaecef); border:1px solid var(--border,#2b3139); }
+        .fx-mini-btn.primary { background:rgba(0,200,83,.16); color:var(--primary,#00c853); border-color:rgba(0,200,83,.4); }
+        .fx-icon-btn { width:42px; height:42px; flex-shrink:0; border-radius:12px; display:flex; align-items:center; justify-content:center;
+            background:var(--surface,#151a21); border:1px solid var(--border,#2b3139); color:var(--textGray,#848e9c); font-size:15px; }
+        .fx-icon-btn.on { color:var(--primary,#00c853); border-color:rgba(0,200,83,.5); background:rgba(0,200,83,.1); }
+        .fx-icon-btn.sm { width:28px; height:28px; font-size:12px; border-radius:8px; }
+        .fx-big { font-size:30px; line-height:1.05; font-weight:800; font-family:'JetBrains Mono',monospace; letter-spacing:-.6px; }
+        .fx-chg { font-size:12.5px; font-weight:700; font-family:'JetBrains Mono',monospace; margin-top:3px; }
+        .fx-tfrow { display:flex; align-items:center; gap:6px; padding:8px 10px; border-bottom:1px solid var(--border,#2b3139); }
+        .fx-tfrow .flex-1 { min-width:0; }
+        .fx-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; background:var(--surface,#151a21);
+            border:1px solid var(--border,#2b3139); border-radius:12px; padding:9px 6px; }
+        .fx-strip > div { text-align:center; min-width:0; }
+        .fx-strip span { display:block; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--textGray,#848e9c); }
+        .fx-strip b { display:block; font-size:12.5px; font-weight:800; font-family:'JetBrains Mono',monospace; margin-top:3px;
+            overflow:hidden; text-overflow:ellipsis; }
+        .fx-switch { width:40px; height:23px; border-radius:20px; background:var(--surfaceL,#22282f); border:1px solid var(--border,#2b3139);
+            position:relative; transition:.16s; flex-shrink:0; }
+        .fx-switch i { position:absolute; top:2px; left:2px; width:17px; height:17px; border-radius:50%; background:#848e9c; transition:.16s; display:block; }
+        .fx-switch[aria-checked="true"] { background:rgba(0,200,83,.28); border-color:var(--primary,#00c853); }
+        .fx-switch[aria-checked="true"] i { left:19px; background:var(--primary,#00c853); }
+        .fx-tabs2 button.icon { margin-left:auto; font-size:12px; padding:9px 4px; }
+        #fx-price, #fx-cfd-balance { font-variant-numeric:tabular-nums; }
 
         .swal2-confirm { background:var(--surfaceL,#1e2329) !important; color:var(--text,#eaecef) !important;
             border:1px solid var(--border,#2b3139) !important; border-radius:8px !important; padding:8px 12px !important;
@@ -612,7 +639,7 @@
         <h2>Supported Cryptocurrencies</h2>
         <p>Bitcoin (BTC), Ethereum (ETH), BNB, Solana (SOL), XRP, Cardano (ADA), Dogecoin (DOGE), Polygon (MATIC), Avalanche (AVAX), Chainlink (LINK), Polkadot (DOT), Litecoin (LTC), Shiba Inu (SHIB) and many more.</p>
 
-        <p><strong>Start trading at <a href="https://treding.store">treding.store</a> — India ka crypto exchange.</strong></p>
+        <p><strong>Start trading at <a href="https://treding.store">treding.store</a> — India&#39;s crypto exchange.</strong></p>
       </div>
     </noscript>
 
@@ -755,7 +782,7 @@
                 <div>
                     <label class="text-xs text-textGray uppercase font-semibold mb-2 block">Gmail or Phone</label>
                     <input type="text" id="login-email" class="input-trade" placeholder="you@gmail.com or 9876543210" autocomplete="username" inputmode="email">
-                    <p class="text-textGray text-[10px] mt-1">Gmail se login karein ya registered phone number daalein</p>
+                    <p class="text-textGray text-[10px] mt-1">Sign in with Gmail, or use your registered phone number</p>
                 </div>
                 <div>
                     <label class="text-xs text-textGray uppercase font-semibold mb-2 block">Password</label>
@@ -779,7 +806,7 @@
                 <div>
                     <label class="text-xs text-textGray uppercase font-semibold mb-2 block">Gmail or Phone <span class="text-danger">*</span></label>
                     <input type="text" id="reg-identity" class="input-trade" placeholder="you@gmail.com ya 9876543210" autocomplete="username">
-                    <p class="text-textGray text-[10px] mt-1">Sirf ek chahiye — Gmail <b>ya</b> Phone. Baaki profile mein baad mein bhar lein.</p>
+                    <p class="text-textGray text-[10px] mt-1">Only one is required — Gmail <b>or</b> Phone. You can fill the rest later in your profile.</p>
                 </div>
                 <div>
                     <label class="text-xs text-textGray uppercase font-semibold mb-2 block">Password <span class="text-danger">*</span></label>
@@ -791,7 +818,7 @@
                 </div>
                 <div>
                     <label class="text-xs text-textGray uppercase font-semibold mb-2 block">Name (Optional)</label>
-                    <input type="text" id="reg-name" class="input-trade" placeholder="Baad mein bhi bhar sakte hain">
+                    <input type="text" id="reg-name" class="input-trade" placeholder="You can fill this later">
                 </div>
                 <div>
                     <label class="text-xs text-textGray uppercase font-semibold mb-2 block">Referral Code (Optional)</label>
@@ -799,7 +826,7 @@
                 </div>
                 <div id="recaptcha-holder"></div>
                 <button id="register-submit-btn" onclick="handleRegister()" class="btn-animated w-full bg-primary text-black font-bold py-3 rounded-lg mt-4">Create Account</button>
-                <p class="text-center text-textGray text-sm mt-4">Pehle se account hai? <span onclick="toggleAuthMode('login')" class="text-primary cursor-pointer font-semibold">Login</span></p>
+                <p class="text-center text-textGray text-sm mt-4">Already have an account? <span onclick="toggleAuthMode('login')" class="text-primary cursor-pointer font-semibold">Login</span></p>
             </div>
         </div>
     </div>
@@ -887,8 +914,7 @@
         <div id="guest-bar" class="guest-bar hidden">
             <i class="fas fa-eye text-yellow-400"></i>
             <div class="flex-1">
-                <b>Guest Mode</b> — Markets, Forex &amp; charts free me dekh sakte hain.
-                Deposit/trade/withdraw ke liye login karein.
+                <b>Guest Mode</b> — Browse markets &amp; charts without an account.
             </div>
             <button onclick="openAuthModal('login')" class="px-3 py-1.5 bg-primary text-black rounded-lg text-xs font-bold whitespace-nowrap">Login</button>
             <button onclick="openAuthModal('register')" class="px-3 py-1.5 bg-surfaceLight border border-border rounded-lg text-xs font-bold whitespace-nowrap">Register</button>
@@ -1085,10 +1111,11 @@
                 <div class="sticky top-[57px] bg-bgDeep z-40 border-b border-border p-3">
                     <div class="relative">
                         <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-textGray"></i>
-                        <input type="text" id="market-search" class="search-box pl-10" placeholder="Search cryptocurrency..." oninput="debouncedMarketSearch()">
+                        <input type="text" id="market-search" class="search-box pl-10" placeholder="Search markets..." oninput="debouncedMarketSearch()">
                     </div>
                     <div class="flex items-center gap-2 mt-2 overflow-x-auto no-scrollbar">
                         <button onclick="filterMarket('all', event)" class="market-filter active px-4 py-2 rounded-full text-sm font-medium bg-primary text-black whitespace-nowrap">All</button>
+                        <button onclick="filterMarket('forex', event)" class="market-filter px-4 py-2 rounded-full text-sm font-medium bg-surfaceLight text-textGray whitespace-nowrap"><i class="fas fa-globe text-[11px] mr-1.5"></i>Forex</button>
                         <button onclick="filterMarket('gainers', event)" class="market-filter px-4 py-2 rounded-full text-sm font-medium bg-surfaceLight text-textGray whitespace-nowrap">Top Gainers</button>
                         <button onclick="filterMarket('losers', event)" class="market-filter px-4 py-2 rounded-full text-sm font-medium bg-surfaceLight text-textGray whitespace-nowrap">Top Losers</button>
                         <button onclick="filterMarket('volume', event)" class="market-filter px-4 py-2 rounded-full text-sm font-medium bg-surfaceLight text-textGray whitespace-nowrap">Volume</button>
@@ -1435,24 +1462,21 @@
 
             <!-- ══ FOREX / CFD VIEW ══ -->
             <div id="view-forex" class="view-section hidden animate-fade-in pb-24">
-                <!-- Account strip -->
-                <div class="sticky top-[57px] z-30 bg-bgDeep border-b border-border px-4 py-2.5">
+
+                <!-- Account bar -->
+                <div class="sticky top-[57px] z-30 bg-bgDeep border-b border-border px-4 py-2">
                     <div class="flex items-center justify-between gap-3">
                         <div class="min-w-0">
-                            <div class="text-[10px] text-textGray font-bold uppercase tracking-wide">CFD Account</div>
-                            <div class="flex items-baseline gap-2">
+                            <div class="text-[10px] text-textGray font-bold uppercase tracking-wide">CFD Balance</div>
+                            <div class="flex items-baseline gap-1.5">
                                 <span id="fx-cfd-balance" class="text-[17px] font-extrabold font-mono text-primary">0.00</span>
-                                <span class="text-[11px] text-textGray font-semibold">USDT</span>
+                                <span id="fx-cfd-unit" class="text-[11px] text-textGray font-semibold">USDT</span>
                                 <span id="fx-cfd-balance-inr" class="usdt-sub" style="display:inline">₹0.00</span>
                             </div>
                         </div>
                         <div class="flex gap-2 shrink-0">
-                            <button onclick="openFxTransfer('toCfd')" class="px-3 py-2 rounded-lg text-[11px] font-bold" style="background:var(--surfaceL);color:var(--text);">
-                                <i class="fas fa-arrow-right-arrow-left mr-1"></i>Transfer
-                            </button>
-                            <button onclick="openPay()" class="px-3 py-2 rounded-lg text-[11px] font-bold" style="background:var(--primary);color:#000;">
-                                <i class="fas fa-plus mr-1"></i>Deposit
-                            </button>
+                            <button onclick="openFxTransfer('toCfd')" class="fx-mini-btn">Transfer</button>
+                            <button onclick="openPay()" class="fx-mini-btn primary">Deposit</button>
                         </div>
                     </div>
                 </div>
@@ -1461,44 +1485,41 @@
                     <div id="fx-maintenance-notice" class="hidden rounded-lg border px-3 py-2 text-[12px]" style="border-color:rgba(246,70,93,.6);background:rgba(246,70,93,.14);color:#ff6b81;"></div>
                     <div id="insufficient-balance-cfd" class="insufficient-balance hidden"></div>
 
-                    <!-- Pair bar -->
-                    <button class="fx-pairbar" onclick="openFxSheet('pair')">
-                        <div class="min-w-0 flex-1">
-                            <div class="flex items-center gap-2">
-                                <span class="sym" id="fx-pair-name">EURUSD</span>
-                                <span class="fx-cat-pill cat-forex" id="fx-pair-cat">forex</span>
+                    <!-- Pair + chart toggle -->
+                    <div class="flex items-center gap-2">
+                        <button class="fx-pairbar flex-1" onclick="openFxSheet('pair')">
+                            <div class="min-w-0 flex-1 text-left">
+                                <div class="flex items-center gap-2">
+                                    <span class="sym" id="fx-pair-name">EURUSD</span>
+                                    <span class="fx-cat-pill cat-forex" id="fx-pair-cat">forex</span>
+                                </div>
+                                <div class="sub truncate" id="fx-pair-full">—</div>
                             </div>
-                            <div class="sub truncate" id="fx-pair-full">—</div>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <span class="fx-lev-pill" id="fx-lev-pill">2000x</span>
                             <i class="fas fa-chevron-down text-textGray text-[11px]"></i>
-                        </div>
-                    </button>
+                        </button>
+                        <button id="fx-chart-toggle" class="fx-icon-btn" onclick="toggleFxChart()" title="Chart">
+                            <i class="fas fa-chart-simple"></i>
+                        </button>
+                    </div>
 
                     <!-- Price -->
-                    <div class="fx-priceblk">
+                    <div class="flex items-end justify-between gap-3">
                         <div class="min-w-0">
-                            <div class="big" id="fx-price">—</div>
-                            <div class="chg" id="fx-chg" style="color:var(--textGray)">—</div>
+                            <div class="fx-big" id="fx-price">—</div>
+                            <div class="fx-chg" id="fx-chg">—</div>
                         </div>
-                        <div class="meta">
-                            <div><span id="fx-price-age">—</span> · live market</div>
-                            <div style="margin-top:6px;"><span id="fx-live-dot" class="price-live-dot"></span></div>
+                        <div class="text-[11px] text-textGray text-right shrink-0">
+                            <span id="fx-price-live-dot" class="price-live-dot" style="display:inline-block;vertical-align:middle;margin-right:5px;"></span>
+                            <span id="fx-price-age">Live</span>
                         </div>
                     </div>
 
-                    <!-- Chart -->
-                    <div class="fx-card p-2">
-                        <div class="flex items-center justify-between gap-2 mb-2">
-                            <button onclick="toggleFxChart()" class="text-[12px] font-extrabold flex items-center gap-1.5">
-                                <i class="fas fa-chart-candlestick text-primary"></i>
-                                <span id="fx-chart-title">Chart</span>
-                                <i class="fas fa-chevron-down text-textGray text-[10px]" id="fx-chart-caret"></i>
-                            </button>
-                            <div class="flex gap-1 overflow-x-auto" id="fx-chart-tfs"></div>
+                    <!-- Chart (candle icon se khulta hai) -->
+                    <div id="fx-chart-card" class="fx-card hidden">
+                        <div class="fx-tfrow">
+                            <div class="flex gap-1 overflow-x-auto flex-1" id="fx-chart-tfs"></div>
+                            <button onclick="toggleFxChart()" class="fx-icon-btn sm" title="Close chart"><i class="fas fa-xmark"></i></button>
                         </div>
-                        <div class="flex gap-1 overflow-x-auto mb-2" id="fx-chart-types"></div>
                         <div class="fx-chart-shell" id="fx-chart-shell"><div id="fx-tradingview"></div></div>
                     </div>
 
@@ -1542,24 +1563,21 @@
                             <span>Leverage</span>
                             <span><b id="fx-leverage-display" class="text-primary">2000x</b><i class="fas fa-chevron-right text-[10px] text-textGray ml-2"></i></span>
                         </button>
-                        <div id="fx-leverage-options" class="hidden"></div>
 
                         <!-- TP / SL -->
-                        <div class="fx-sum">
-                            <label class="r" style="cursor:pointer;">
-                                <span>TP / SL <span class="text-[10px]" style="color:var(--textGray)">(optional)</span></span>
-                                <input type="checkbox" id="fx-tpsl-toggle" onchange="toggleFxTPSL()" class="w-4 h-4 accent-primary">
-                            </label>
-                            <div id="fx-tpsl-wrap" class="hidden" style="padding:6px 0 10px;">
-                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                                    <div>
-                                        <div class="fx-lbl mb-1">Take profit</div>
-                                        <div class="fx-lot" style="padding:4px 8px;"><input type="number" step="any" id="fx-tp" placeholder="—" oninput="updateForexOrderPreview()"></div>
-                                    </div>
-                                    <div>
-                                        <div class="fx-lbl mb-1">Stop loss</div>
-                                        <div class="fx-lot" style="padding:4px 8px;"><input type="number" step="any" id="fx-sl" placeholder="—" oninput="updateForexOrderPreview()"></div>
-                                    </div>
+                        <div class="fx-opt" style="margin-bottom:0;">
+                            <span>TP / SL <span class="text-[10px] font-normal" style="color:var(--textGray)">optional</span></span>
+                            <button id="fx-tpsl-toggle" class="fx-switch" role="switch" aria-checked="false" onclick="toggleFxTPSL()"><i></i></button>
+                        </div>
+                        <div id="fx-tpsl-wrap" class="hidden" style="padding:0 0 4px;">
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                                <div>
+                                    <div class="fx-lbl mb-1">Take profit</div>
+                                    <div class="fx-lot" style="padding:4px 8px;"><input type="number" step="any" id="fx-tp" placeholder="—" oninput="updateForexOrderPreview()"></div>
+                                </div>
+                                <div>
+                                    <div class="fx-lbl mb-1">Stop loss</div>
+                                    <div class="fx-lot" style="padding:4px 8px;"><input type="number" step="any" id="fx-sl" placeholder="—" oninput="updateForexOrderPreview()"></div>
                                 </div>
                             </div>
                         </div>
@@ -1569,58 +1587,48 @@
                         <div id="fx-tp-wrap" class="hidden"></div>
 
                         <div class="fx-sum">
-                            <div class="r"><span>Order value</span><b id="fx-notional">0.00 USDT</b></div>
                             <div class="r"><span>Margin</span><b id="fx-margin">0.00 USDT</b></div>
                             <div class="r"><span>Broker fee</span><b id="fx-fee">0.00 USDT</b></div>
-                            <div class="r"><span>Liq. price</span><b id="fx-liq" style="color:#ffd600;">—</b></div>
                             <div class="r"><span>Total debit</span><b id="fx-total">0.00 USDT</b></div>
                             <div class="r"><span>Available</span><b id="fx-avail">0.00 USDT</b></div>
                         </div>
+                        <div class="fx-sum hidden">
+                            <div class="r"><span>Order value</span><b id="fx-notional">0.00 USDT</b></div>
+                            <div class="r"><span>Liq. price</span><b id="fx-liq">—</b></div>
+                        </div>
 
-                        <p id="fx-oneclick-note" class="text-[11px]" style="color:var(--textGray)"></p>
+                        <!-- One-click switch -->
+                        <div class="fx-opt" style="margin-bottom:0;">
+                            <span>One-Click Trading</span>
+                            <button id="fx-oneclick-toggle" class="fx-switch" role="switch" aria-checked="true" onclick="toggleOneClick()"><i></i></button>
+                        </div>
+
                         <p id="fx-insufficient" class="hidden text-[11px] text-danger"></p>
-                        <p id="fx-market-note" class="text-[10px]" style="color:var(--textGray)">
-                            <i class="fas fa-shield-halved mr-1"></i>Order exact live chart price par lagti hai — 0 spread, 0 hidden slippage.
-                        </p>
+                        <p id="fx-oneclick-note" class="hidden"></p>
+                        <p id="fx-market-note" class="hidden"></p>
 
                         <button id="btn-fx-buy" class="fx-main-btn buy" onclick="onFxMainBtn()">Buy</button>
                         <button id="btn-fx-sell" class="hidden" onclick="placeForexOrder('sell')"></button>
                     </div>
 
-                    <!-- Account card -->
-                    <div class="fx-acct">
-                        <div class="top">
-                            <span style="color:var(--textGray)">CFD balance <b id="fx-bal" class="font-mono" style="color:#eaecef;">0.00</b> <span style="font-size:11px;">USDT</span></span>
-                            <span style="color:var(--textGray)">Margin ratio <b id="fx-mratio" class="font-mono" style="color:var(--primary);">—</b></span>
-                        </div>
-                        <div class="top" style="padding-top:8px;border-top:1px dashed var(--border,#2b3139);">
-                            <span style="color:var(--textGray)">Unrealized PnL <b id="fx-upnl" class="font-mono" style="color:#eaecef;">0.00 USDT</b></span>
-                            <span style="color:var(--textGray)">Equity <b id="fx-marg-eq-top" class="font-mono" style="color:#eaecef;">—</b></span>
-                        </div>
-                        <div class="grid">
-                            <div><div class="k">Available margin</div><div class="v" id="fx-marg-avail" style="color:var(--primary);">0.00</div></div>
-                            <div><div class="k">Used margin</div><div class="v" id="fx-marg-used">0.00</div></div>
-                            <div><div class="k">Equity</div><div class="v" id="fx-marg-eq">0.00</div></div>
-                        </div>
-                        <div style="display:flex;gap:8px;margin-top:11px;">
-                            <button onclick="openFxTransfer('toCfd')" class="flex-1 py-2.5 rounded-lg text-[12px] font-bold" style="background:var(--surfaceL);color:var(--text);">Transfer in</button>
-                            <button onclick="openFxTransfer('toSpot')" class="flex-1 py-2.5 rounded-lg text-[12px] font-bold" style="background:var(--surfaceL);color:var(--text);">Transfer out</button>
-                        </div>
+                    <!-- Stats strip -->
+                    <div class="fx-strip">
+                        <div><span>Equity</span><b id="fx-marg-eq">0.00</b></div>
+                        <div><span>Avail</span><b id="fx-marg-avail" style="color:var(--primary)">0.00</b></div>
+                        <div><span>Used</span><b id="fx-marg-used">0.00</b></div>
+                        <div><span>PnL</span><b id="fx-upnl">0.00</b></div>
                     </div>
 
                     <!-- Tabs -->
                     <div class="fx-tabs2" id="fx-tabs">
                         <button data-ft="positions" onclick="setForexTab('positions')">Positions<span class="cnt" id="fx-pos-badge">0</span></button>
-                        <button data-ft="orders" onclick="setForexTab('orders')">Open orders<span class="cnt" id="fx-ord-badge">0</span></button>
+                        <button data-ft="orders" onclick="setForexTab('orders')">Orders<span class="cnt" id="fx-ord-badge">0</span></button>
                         <button data-ft="history" onclick="setForexTab('history')">History</button>
+                        <button class="icon" onclick="refreshForexLists()" title="Refresh"><i class="fas fa-rotate-right"></i></button>
                     </div>
-                    <div class="flex items-center justify-between gap-2">
-                        <select id="fx-pair-filter" class="fx-filtersel" onchange="setFxPairFilter(this.value)"></select>
-                        <div class="flex gap-2">
-                            <button id="fx-closeall-btn" onclick="closeAllForexPositions()" class="hidden px-3 py-1.5 rounded-lg text-[11px] font-bold" style="background:rgba(246,70,93,.14);color:#f6465d;border:1px solid rgba(246,70,93,.35);">Close all</button>
-                            <button id="fx-cancelall-btn" onclick="cancelAllForexOrders()" class="hidden px-3 py-1.5 rounded-lg text-[11px] font-bold" style="background:var(--surfaceL);color:var(--text);border:1px solid var(--border);">Cancel all</button>
-                            <button onclick="refreshForexLists()" class="px-3 py-1.5 rounded-lg text-[11px] font-bold" style="background:var(--surfaceL);color:var(--text);border:1px solid var(--border);"><i class="fas fa-rotate-right mr-1"></i>Refresh</button>
-                        </div>
+                    <div class="flex items-center justify-end gap-2 -mt-1">
+                        <button id="fx-closeall-btn" onclick="closeAllForexPositions()" class="hidden px-3 py-1.5 rounded-lg text-[11px] font-bold" style="background:rgba(246,70,93,.14);color:#f6465d;border:1px solid rgba(246,70,93,.35);">Close all</button>
+                        <button id="fx-cancelall-btn" onclick="cancelAllForexOrders()" class="hidden px-3 py-1.5 rounded-lg text-[11px] font-bold" style="background:var(--surfaceL);color:var(--text);border:1px solid var(--border);">Cancel all</button>
                     </div>
 
                     <div id="fx-panel-positions" class="hidden"><div id="fx-positions"></div></div>
@@ -1653,18 +1661,18 @@
                         <h4>Leverage</h4>
                         <button onclick="closeFxSheet('lev')" class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:var(--surfaceL);"><i class="fas fa-times text-textGray text-xs"></i></button>
                     </div>
-                    <p class="text-[11px] mb-3" style="color:var(--textGray)">Zyada leverage = kam margin, zyada liquidation risk. Admin ke set kiye hi options dikhte hain.</p>
+                    <p class="text-[11px] mb-3" style="color:var(--textGray)">Higher leverage = lower margin, higher liquidation risk.</p>
                     <div class="fx-lev-grid" id="fx-lev-grid"></div>
                 </div>
             </div>
 
-            <!-- ═══ Transfer sheet (Bitget Add funds style) ═══ -->
+            <!-- ═══ Transfer sheet ═══ -->
             <div class="fx-sheet" id="fx-sheet-transfer">
                 <div class="bd" onclick="closeFxSheet('transfer')"></div>
                 <div class="card">
                     <div class="grab"></div>
                     <div class="flex items-center justify-between mb-4">
-                        <h4>Transfer funds</h4>
+                        <h4>Transfer</h4>
                         <button onclick="closeFxSheet('transfer')" class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:var(--surfaceL);"><i class="fas fa-times text-textGray text-xs"></i></button>
                     </div>
 
@@ -1683,28 +1691,18 @@
                         </div>
                     </div>
 
-                    <div class="fx-lbl mb-1.5" style="margin-top:14px;">Coin</div>
-                    <div class="fx-opt" style="margin-bottom:8px;">
-                        <span class="flex items-center gap-2"><span style="width:20px;height:20px;border-radius:50%;background:#26a17b;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:800;">T</span> USDT</span>
-                        <span style="color:var(--textGray);font-weight:600;">Tether</span>
-                    </div>
-
-                    <div class="fx-lbl mb-1.5">Transfer amount</div>
+                    <div class="fx-lbl mb-1.5" style="margin-top:14px;">Amount</div>
                     <div class="fx-lot" style="padding:8px 10px;">
-                        <input type="number" step="any" inputmode="decimal" id="fx-tr-amount" placeholder="Enter quantity" oninput="fxTransferPreview()">
+                        <input type="number" step="any" inputmode="decimal" id="fx-tr-amount" placeholder="0.00" oninput="fxTransferPreview()">
                         <span class="text-[12px] font-bold shrink-0" style="color:var(--textGray)">USDT</span>
                         <button onclick="fxTransferMax()" class="shrink-0 px-2.5 py-1.5 rounded-md text-[11px] font-bold" style="background:rgba(0,200,83,.16);color:var(--primary);">Max</button>
                     </div>
                     <div class="flex justify-between mt-2 text-[11.5px]" style="color:var(--textGray);">
-                        <span>Transferable <b id="fx-tr-avail" style="color:var(--text);">0.00</b> USDT</span>
+                        <span>Available <b id="fx-tr-avail" style="color:var(--text);">0.00</b> USDT</span>
                         <span id="fx-tr-inr">≈ ₹0.00</span>
                     </div>
 
-                    <p class="text-[11px] mt-4 leading-relaxed" style="color:var(--textGray);">
-                        Internal transfer — instant aur zero fee. CFD account ka paisa sirf margin ke liye use hota hai, spot wallet se alag rakha jata hai.
-                    </p>
-
-                    <button id="fx-tr-confirm" onclick="fxTransferConfirm()" class="fx-main-btn buy" style="margin-top:14px;">Confirm transfer</button>
+                    <button id="fx-tr-confirm" onclick="fxTransferConfirm()" class="fx-main-btn buy" style="margin-top:16px;">Confirm transfer</button>
                 </div>
             </div>
 
@@ -2045,7 +2043,7 @@
                             </label>
                         </div>
                         <h2 id="profile-name" class="text-xl font-bold mb-1">User Name</h2>
-                        <p id="profile-email" class="text-textGray text-sm"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b9cccadccbf9dcd4d8d0d597dad6d4">[email&#160;protected]</a></p>
+                        <p id="profile-email" class="text-textGray text-sm"></p>
                         <p id="profile-referral" class="text-textGray text-xs mt-1">Ref: <span class="text-primary">-</span></p>
                         
                         <button onclick="openEditProfile()" class="mt-4 px-4 py-2 bg-surfaceLight border border-border rounded-lg text-sm font-semibold text-primary">
@@ -2096,7 +2094,7 @@
                     <div class="space-y-4">
                         <div>
                             <label class="text-textGray text-xs mb-2 block">Full Name <span class="text-danger">*</span></label>
-                            <input type="text" id="edit-name" class="input-trade" placeholder="Apna naam likhein">
+                            <input type="text" id="edit-name" class="input-trade" placeholder="Enter your name">
                         </div>
                         <div>
                             <label class="text-textGray text-xs mb-2 block">Phone Number <span class="text-textGray">(optional)</span></label>
@@ -2106,7 +2104,7 @@
                         <div>
                             <label class="text-textGray text-xs mb-2 block">Email / Phone (Login ID)</label>
                             <input type="text" id="edit-email" class="input-trade bg-surfaceLight cursor-not-allowed" disabled>
-                            <p class="text-textGray text-xs mt-1">Login ID nahi badal sakte. DP upar camera icon se lagayein.</p>
+                            <p class="text-textGray text-xs mt-1">Login ID cannot be changed. Tap the camera icon to set a profile picture.</p>
                         </div>
                         <button onclick="saveProfile()" class="btn-animated w-full bg-primary text-black font-bold py-3 rounded-lg mt-4">Save Changes</button>
                     </div>
@@ -2352,7 +2350,7 @@
                     
                     <div class="glass rounded-xl p-6 space-y-4">
                         <div id="report-guest-note" class="hidden rounded-lg border px-3 py-2 text-[12px]" style="border-color:rgba(255,214,0,.4);background:rgba(255,214,0,.1);color:#ffd600;">
-                            Bina login ke report bhej rahe hain — hum aapko wapas contact kar sakein, apna <b>Gmail ya phone</b> zaroor likhein.
+                            You are sending this report without an account — add your <b>Gmail or phone</b> so we can reply.
                         </div>
                         <div id="report-contact-wrap">
                             <label class="text-textGray text-xs mb-2 block">Your Gmail / Phone <span class="text-danger">*</span></label>
@@ -2977,7 +2975,7 @@
                     <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2.5">
                         <p class="text-yellow-400 text-[11px] flex items-start gap-1.5">
                             <i class="fas fa-info-circle mt-0.5"></i>
-                            <span>USDT bhejne ke baad, neeche Verify Payment par click karke screenshot aur TXN ID submit karein. Amount aapke UPI par 10&ndash;30 minutes mein aa jayega.</span>
+                            <span>After sending USDT, click Verify Payment below and submit the screenshot and TXN ID. The amount usually reaches your UPI within 10&ndash;30 minutes.</span>
                         </p>
                     </div>
                 </div>
@@ -3283,7 +3281,7 @@
         </div>
         <div class="flex-1 min-w-0">
             <p class="font-bold text-sm text-white">Install Treding Store</p>
-            <p class="text-textGray text-xs mt-0.5">Home screen pe add karein – faster & offline!</p>
+            <p class="text-textGray text-xs mt-0.5">Add to home screen — faster &amp; works offline!</p>
         </div>
         <div class="flex gap-2 flex-shrink-0">
             <button onclick="triggerPWAInstall()" class="px-3 py-2 rounded-lg font-bold text-xs text-black btn-animated" style="background:linear-gradient(135deg,#d4af37,#ffd700);">Install</button>
@@ -3313,7 +3311,7 @@
     <!-- Toast -->
     <div id="toast" class="toast"></div>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    <script>
         // ==========================================
         // 🔥 FIREBASE CONFIGURATION
         // ==========================================
@@ -3493,7 +3491,7 @@
                 brokerFeeClosePct: 0.02,
                 defaultLeverage: 2000,
                 minLeverage: 1,
-                maxLeverage: 1000,          // admin 1 se "unlimited" (100000) tak set kar sakta hai
+                maxLeverage: 100000,        // admin 1 se "unlimited" (100000) tak set kar sakta hai
                 leverageOptions: [1, 2, 3, 5, 10, 20, 30, 50, 100, 200, 500, 1000, 2000, 5000],
                 maintenanceMarginPct: 50,   // % of margin kept as MM
                 minDepositUSDT: 10,
@@ -3524,7 +3522,7 @@
             forexLeverage: 2000,
             forexTab: 'positions',
             fxPairFilter: 'all',
-            fxChartOpen: true,
+            fxChartOpen: false,
             fxTransfer: null,
             oneTapSide: 'buy',
             pendingForexConfirmation: null,
@@ -3832,6 +3830,7 @@
             const asksContainer = document.getElementById('asks-container');
             
             if (!bidsContainer || !asksContainer) return;
+            if (!Array.isArray(bids) || !Array.isArray(asks)) return;
 
             // Update Asks (Sell orders) - Top 6
             asksContainer.innerHTML = asks.slice(0, 6).map(ask => {
@@ -4458,9 +4457,12 @@
         // Guest ne koi protected action kiya (deposit / trade / withdraw / transfer) →
         // login/OTP modal kholo, login ke baad wahi action chala do.
         function requireAuth(reason, callback) {
-            if (state.user) { if (callback) callback(); return true; }
+            // Logged-in ho to bas true wapas karo — caller apna kaam khud karega.
+            // (callback yahan dobara mat chalao: warna same function dubara call hota hai
+            //  aur stack overflow ho jata hai — profile edit / transfer / order mar jaate the)
+            if (state.user) return true;
             state.pendingAuthAction = callback ? { reason, cb: callback } : { reason, cb: null };
-            showToast(reason ? reason : 'Pehle login karein', 'info');
+            showToast(reason || 'Please log in to continue', 'info');
             setTimeout(() => openAuthModal('login'), 220);
             return false;
         }
@@ -4745,14 +4747,14 @@
                 if (holder) { holder.innerHTML = ''; holder.style.display = 'none'; }
             }
             const otpRes = await swal({
-                title: 'OTP Verify karein',
-                html: `<p style="font-size:13px;color:#848e9c;margin-bottom:12px;">${phone} par 6-digit OTP bheja gaya hai. (Purane account ke liye)</p>
+                title: 'Verify OTP',
+                html: `<p style="font-size:13px;color:#848e9c;margin-bottom:12px;">A 6-digit OTP was sent to ${phone}. (Older accounts only)</p>
                        <input id="lg-otp-input" inputmode="numeric" maxlength="6" style="width:100%;padding:14px;text-align:center;font-size:22px;letter-spacing:8px;border-radius:10px;background:#0b0e11;border:1.5px solid #2b3139;color:#eaecef;font-family:monospace;" placeholder="000000">`,
                 showCancelButton: true,
                 confirmButtonText: 'Verify',
                 preConfirm: () => {
                     const v = (document.getElementById('lg-otp-input')?.value || '').replace(/\D/g, '');
-                    if (v.length !== 6) { swal.showValidationMessage('6 digit OTP daalein'); return false; }
+                    if (v.length !== 6) { swal.showValidationMessage('Enter the 6-digit OTP'); return false; }
                     return v;
                 }
             });
@@ -4778,7 +4780,7 @@
             const rememberMe = document.getElementById('remember-me').checked;
 
             if (!rawIdentity || !password) {
-                showToast('Gmail/Phone aur password dono daalein', 'error');
+                showToast('Enter both Gmail/phone and password', 'error');
                 return;
             }
 
@@ -4846,28 +4848,28 @@
                 let errorMsg = 'Login fail: ';
                 switch(error.code) {
                     case 'auth/user-not-found':
-                        errorMsg += 'Ye account nahi mila. Pehle register karein.';
+                        errorMsg += 'Account not found. Please register first.';
                         break;
                     case 'auth/wrong-password':
-                        errorMsg += 'Password galat hai.';
+                        errorMsg += 'Incorrect password.';
                         break;
                     case 'auth/invalid-email':
-                        errorMsg += 'Gmail ya sahi phone number daalein.';
+                        errorMsg += 'Enter a valid Gmail address or phone number.';
                         break;
                     case 'auth/invalid-phone':
-                        errorMsg += 'Phone number sahi nahi hai.';
+                        errorMsg += 'Invalid phone number.';
                         break;
                     case 'auth/invalid-verification-code':
-                        errorMsg += 'OTP galat hai.';
+                        errorMsg += 'Incorrect OTP.';
                         break;
                     case 'auth/cancelled':
                         return;
                     case 'auth/invalid-credential':
                     case 'auth/invalid-login-credentials':
-                        errorMsg += 'Phone number ya password galat hai.';
+                        errorMsg += 'Invalid phone number or password.';
                         break;
                     case 'auth/code-expired':
-                        errorMsg += 'OTP expire ho gaya. Dobara try karein.';
+                        errorMsg += 'OTP expired. Please try again.';
                         break;
                     case 'auth/user-disabled':
                         errorMsg += 'Account disable kar diya gaya hai.';
@@ -4905,9 +4907,9 @@
         // Password reset = sirf Gmail par Firebase reset LINK (koi OTP nahi, koi console leak nahi)
         async function sendForgotOTP() {
             const email = sanitizeInput(document.getElementById('forgot-email').value.trim());
-            if (!email) { showToast('Email address daalein', 'error'); return; }
+            if (!email) { showToast('Enter your email address', 'error'); return; }
             if (!isEmailIdentity(email)) {
-                showToast('Phone number wale account ka password reset link nahi bhej sakte. Login screen pe "Problem login?" → Report karein.', 'error');
+                showToast('Password reset is only available for Gmail accounts. On the sign-in screen use "Problem login?" → Report instead.', 'error');
                 return;
             }
 
@@ -4920,14 +4922,14 @@
                 state._forgotEmail = email;
                 const disp = document.getElementById('reset-email-display');
                 if (disp) disp.textContent = email;
-                showToast('Reset link bhej diya gaya — apne Gmail inbox / Spam folder me dekhein.', 'success');
+                showToast('Reset link sent — check your Gmail inbox or Spam folder.', 'success');
                 setTimeout(() => { closeForgotPasswordModal(); toggleAuthMode('login'); }, 1600);
             } catch (error) {
                 let msg = 'Reset link nahi bheja ja saka';
                 if (error.code === 'auth/user-not-found') msg = 'Is email ka account nahi mila.';
-                else if (error.code === 'auth/too-many-requests') msg = 'Bahut zyada try. Thodi der baad karein.';
-                else if (error.code === 'auth/invalid-email') msg = 'Email address sahi nahi hai.';
-                else if (error.code === 'auth/network-request-failed') msg = 'Network problem. Dobara try karein.';
+                else if (error.code === 'auth/too-many-requests') msg = 'Too many attempts. Please try again later.';
+                else if (error.code === 'auth/invalid-email') msg = 'Invalid email address.';
+                else if (error.code === 'auth/network-request-failed') msg = 'Network problem. Please try again.';
                 showToast(msg, 'error');
             } finally {
                 btn.innerHTML = 'Send Reset Link';
@@ -5090,6 +5092,7 @@
         // ==========================================
 
         function renderMarketList() {
+            if ((state.marketFilter || 'all') === 'forex') { renderMarketForexList(); return; }
             const container = document.getElementById('market-list');
             const searchTerm = sanitizeInput(document.getElementById('market-search')?.value.toLowerCase() || '');
             const filter = state.marketFilter || 'all';
@@ -5134,6 +5137,45 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        // Forex/CFD rows inside the Markets page
+        function renderMarketForexList() {
+            const container = document.getElementById('market-list');
+            if (!container) return;
+            const term = sanitizeInput(document.getElementById('market-search')?.value.toLowerCase() || '');
+            const list = (state.forexInstruments || []).filter(i => {
+                if (!i || i.enabled === false) return false;
+                if (!term) return true;
+                return (String(i.symbol || '') + ' ' + String(i.name || '')).toLowerCase().indexOf(term) >= 0;
+            });
+            if (!list.length) {
+                container.innerHTML = '<p class="text-textGray text-xs text-center py-8">No instruments found.</p>';
+                return;
+            }
+            const catLabel = i => `<span class="fx-cat-pill cat-${i.category || 'forex'}">${i.category || 'forex'}</span>`;
+            container.innerHTML = list.map(i => {
+                const q = (_fxCache.quotes && _fxCache.quotes[i.tvSymbol]) || 0;
+                const chg = (_fxCache.change && _fxCache.change[i.tvSymbol]);
+                const hasChg = typeof chg === 'number' && isFinite(chg);
+                return `<div class="market-item" onclick="goForex('${i.symbol}')">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                        <div class="w-8 h-8 rounded-full bg-blue-500/15 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-globe text-blue-400 text-xs"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="font-bold text-sm flex items-center gap-2">${i.symbol} ${catLabel(i)}</p>
+                            <p class="text-textGray text-xs truncate">${i.name || ''}</p>
+                        </div>
+                    </div>
+                    <div class="w-24 text-right">
+                        <p class="font-mono font-bold text-sm">${q > 0 ? fmtPx(i, q) : '<span class="text-textGray">—</span>'}</p>
+                    </div>
+                    <div class="w-20 text-right">
+                        <span class="text-sm font-bold ${hasChg ? (chg >= 0 ? 'text-primary' : 'text-danger') : 'text-textGray'}">${hasChg ? (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%' : '—'}</span>
+                    </div>
+                </div>`;
+            }).join('');
         }
 
         function renderTrending() {
@@ -5457,7 +5499,7 @@
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-bold" style="color:#fff;">Deposit &#8377;${need} more</p>
-                            <p class="text-[11px] mt-0.5" style="color:#b8bcc4;">${label} buy karne ke liye aur funds chahiye.</p>
+                            <p class="text-[11px] mt-0.5" style="color:#b8bcc4;">You need more funds to buy ${label}.</p>
                             <button onclick="openPay()" class="btn-animated mt-2 px-4 py-1.5 rounded-lg font-bold text-xs text-black" style="background:linear-gradient(135deg,#f5d060,#d4af37);">
                                 <i class="fas fa-plus mr-1"></i>Deposit
                             </button>
@@ -6851,7 +6893,7 @@
             //    Markets / Home / Forex / Investing / Trade sirf dekhne ke liye free hain.
             const GUEST_BLOCKED = ['wallet', 'history', 'transfer', 'kyc', 'referral', 'profile'];
             if (state.isGuest && !state.user && GUEST_BLOCKED.includes(view)) {
-                showToast(`${view.charAt(0).toUpperCase() + view.slice(1)} dekhne ke liye login karein`, 'info');
+                showToast(`Sign in to open ${view.charAt(0).toUpperCase() + view.slice(1)}`, 'info');
                 setTimeout(() => openAuthModal('login'), 200);
                 return;
             }
@@ -7522,7 +7564,7 @@
             document.getElementById('register-form').classList.toggle('hidden', mode !== 'register');
             document.getElementById('auth-modal-title').textContent = mode === 'register' ? 'Create Account' : 'Welcome Back';
             document.getElementById('auth-subtitle').textContent = mode === 'register'
-                ? 'Sirf Gmail ya Phone + Password. Baaki baad mein.'
+                ? 'Gmail or Phone + Password is all you need. The rest is optional.'
                 : 'Login to deposit, trade & withdraw';
         }
 
@@ -7548,9 +7590,9 @@
             const confirmPassword = document.getElementById('reg-confirm-password').value;
             const referralCode = sanitizeInput(document.getElementById('reg-referral').value.trim());
 
-            if (!identity) { showToast('Gmail ya phone number daalein', 'error'); return; }
-            if (password.length < 6) { showToast('Password kam se kam 6 characters ka hona chahiye', 'error'); return; }
-            if (password !== confirmPassword) { showToast('Passwords match nahi hain', 'error'); return; }
+            if (!identity) { showToast('Enter your Gmail or phone number', 'error'); return; }
+            if (password.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
+            if (password !== confirmPassword) { showToast('Passwords do not match', 'error'); return; }
 
             const btn = document.getElementById('register-submit-btn');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Account...';
@@ -7560,7 +7602,7 @@
             const phone = useEmail ? '' : normPhone(identity);
             if (!useEmail && !phone) {
                 btn.innerHTML = 'Create Account'; btn.disabled = false;
-                showToast('Phone number sahi nahi hai (10 digit Indian ya +country)', 'error');
+                showToast('Invalid phone number (10-digit Indian or +country format)', 'error');
                 return;
             }
 
@@ -7574,7 +7616,7 @@
                     const already = await db.collection('users').where('phone', '==', phone).limit(1).get();
                     if (!already.empty) {
                         btn.innerHTML = 'Create Account'; btn.disabled = false;
-                        showToast('Ye number pehle se registered hai — Login karein', 'error');
+                        showToast('This number is already registered — please sign in', 'error');
                         return;
                     }
                     const cred = await auth.createUserWithEmailAndPassword(phonePseudoEmail(phone), password);
@@ -7625,7 +7667,7 @@
                     userAgent: navigator.userAgent
                 }).catch(() => {});
 
-                showToast('Account ban gaya! Ab profile mein naam aur DP set kar lein.');
+                showToast('Account created! Set your name and photo in your profile.');
                 closeAuthModal(true);
                 setTimeout(() => { try { navigateTo('profile'); } catch(e){} }, 400);
 
@@ -7635,10 +7677,10 @@
             } catch (error) {
                 console.error('Register error:', error);
                 const m = (error && error.code) || '';
-                if (m === 'auth/email-already-in-use') showToast('Is Gmail/phone ka account pehle se hai — Login karein', 'error');
-                else if (m === 'auth/phone-number-already-in-use') showToast('Ye number pehle se registered hai — Login karein', 'error');
-                else if (m === 'auth/invalid-verification-code') showToast('OTP galat hai', 'error');
-                else if (m === 'auth/too-many-requests') showToast('Bahut zyada try. Thodi der baad karein.', 'error');
+                if (m === 'auth/email-already-in-use') showToast('An account with this Gmail/phone already exists — please sign in', 'error');
+                else if (m === 'auth/phone-number-already-in-use') showToast('This number is already registered — please sign in', 'error');
+                else if (m === 'auth/invalid-verification-code') showToast('Incorrect OTP', 'error');
+                else if (m === 'auth/too-many-requests') showToast('Too many attempts. Please try again later.', 'error');
                 else showToast((error && error.message) || 'Registration fail hua', 'error');
             } finally {
                 btn.innerHTML = 'Create Account';
@@ -8045,7 +8087,7 @@
         function filterInvestByRisk(r,b){ filterInvestByCategory(r,b); }
         
         function openEditProfile() { 
-            if (!requireAuth('Profile edit karne ke liye login karein', () => openEditProfile())) return;
+            if (!requireAuth('Sign in to edit your profile', () => openEditProfile())) return;
             document.getElementById('edit-profile-modal').classList.remove('hidden'); 
             document.getElementById('edit-profile-modal').classList.add('flex'); 
             document.getElementById('edit-name').value = state.userData?.name || ''; 
@@ -8065,13 +8107,13 @@
             const phone = sanitizeInput(document.getElementById('edit-phone').value.trim()); 
             
             if (!name) { 
-                showToast('Naam daalna zaroori hai', 'error'); 
+                showToast('Name is required', 'error'); 
                 return; 
             } 
             
             // Phone optional — Gmail wale users ke liye khali chhod sakte hain
             if (phone && !validatePhone(document.getElementById('edit-phone'))) {
-                showToast('Phone number sahi nahi hai', 'error');
+                showToast('Invalid phone number', 'error');
                 return;
             }
             
@@ -8089,7 +8131,7 @@
                     phone, 
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp() 
                 }); 
-                showToast('Profile update ho gaya!'); 
+                showToast('Profile updated!'); 
                 closeEditProfile(); 
             } catch (error) { 
                 showToast(error.message, 'error'); 
@@ -8680,7 +8722,7 @@
                 }
                 if (last && Date.now() - last < day) {
                     const hrs = Math.ceil((day - (Date.now() - last)) / 3600000);
-                    return { ok: false, msg: `Report 24 ghante me ek baar bhej sakte hain. Lagbhag ${hrs} ghante baad try karein.` };
+                    return { ok: false, msg: `You can send one report every 24 hours. Try again in about ${hrs} hour(s).` };
                 }
             } catch (e) { /* index/network fail ho to allow */ }
             return { ok: true };
@@ -8702,11 +8744,11 @@
                 return;
             }
             if (guest && !contact) {
-                showToast('Apna Gmail ya phone number daalein — taaki hum jawab de sakein', 'error');
+                showToast('Enter your Gmail or phone number so we can reply', 'error');
                 return;
             }
             if (contact && !(isEmailIdentity(contact) || looksLikePhone(contact))) {
-                showToast('Contact sahi Gmail ya 10-digit phone number hona chahiye', 'error');
+                showToast('Contact must be a valid Gmail or 10-digit phone number', 'error');
                 return;
             }
 
@@ -8751,7 +8793,7 @@
                 });
                 try { localStorage.setItem('reportLastAt', String(Date.now())); } catch (e) {}
 
-                showToast('Report submitted! Hum 24 ghante me jawab denge.');
+                showToast('Report submitted! Our team will reply within 24 hours.');
 
                 // Reset form
                 document.getElementById('report-subject').value = '';
@@ -9428,6 +9470,8 @@
         }
         
         function loadPositionsRealtime() {
+            // Guest par null user se crash hota tha (Trade view)
+            if (!state.user) return;
             // Pehle purana listener cleanup karo
             if (state.pnlListener && typeof state.pnlListener === 'function') {
                 state.pnlListener();
@@ -9682,6 +9726,7 @@
         }
         
         async function loadOrders() { 
+            if (!state.user) return;
             try { 
                 // CRITICAL FIX: orderBy hata diya — composite index nahi chahiye
                 // uid + mode se filter, JS mein sort karo
@@ -10320,7 +10365,7 @@
         async function loadWalletCFD() {
             const container = document.getElementById('wallet-cfd-list');
             if (!container) return;
-            if (!state.user) { container.innerHTML = '<p class="text-textGray text-center py-8">Dekhne ke liye login karein.</p>'; return; }
+            if (!state.user) { container.innerHTML = '<p class="text-textGray text-center py-8">Sign in to view this.</p>'; return; }
             try {
                 const snap = await db.collection('cfdPositions')
                     .where('uid', '==', state.user.uid)
@@ -10358,7 +10403,7 @@
                     </div>`;
                 }).join('');
             } catch (e) {
-                container.innerHTML = '<p class="text-danger text-center py-8">CFD positions load nahi hui.</p>';
+                container.innerHTML = '<p class="text-danger text-center py-8">Could not load CFD positions.</p>';
             }
         }
 
@@ -10984,6 +11029,12 @@
                     if (Array.isArray(d.leverageOptions) && d.leverageOptions.length) {
                         state.forexConfig.leverageOptions = d.leverageOptions;
                     }
+                    // Migration: pre-2000x admin doc (no leveragePresetVersion) → new leverage caps.
+                    // Admin ke Forex tab se Save karne par version 2 save ho jata hai.
+                    if ((Number(d.leveragePresetVersion) || 1) < 2) {
+                        state.forexConfig.maxLeverage = 100000;
+                        state.forexConfig.defaultLeverage = 2000;
+                    }
                 }
             } catch (e) { /* defaults stand */ }
             applyOneClickMode();
@@ -11074,7 +11125,8 @@
                 const body = JSON.stringify({ symbols: { tickers: groups[market] }, columns: ['close', 'change'] });
                 return fetchJson('https://scanner.tradingview.com/' + market + '/scan', 8000, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    // text/plain = simple request, avoids the CORS preflight the scanner rejects
+                    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
                     body: body
                 }).then(j => {
                     ((j && j.data) || []).forEach(row => {
@@ -11164,6 +11216,11 @@
         function startForexPriceFeed() {
             if (state.forexFeedTimer) clearInterval(state.forexFeedTimer);
             const tick = async () => {
+                // Markets → Forex tab live prices
+                if (state.currentView === 'market' && state.marketFilter === 'forex') {
+                    await refreshFxQuotes(false);
+                    if (state.currentView === 'market' && state.marketFilter === 'forex') renderMarketForexList();
+                }
                 const inst = state.currentForex;
                 if (!inst || !fxEnabled(inst)) return;
                 // Agar forex view band hai aur koi open position nahi → quota bachao
@@ -11222,16 +11279,16 @@
                     chgEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%';
                     chgEl.style.color = chg >= 0 ? '#00c853' : '#f6465d';
                 } else {
-                    chgEl.textContent = px > 0 ? 'live' : 'connecting…';
+                    chgEl.textContent = px > 0 ? 'Live' : 'Connecting…';
                     chgEl.style.color = '#848e9c';
                 }
             }
-            const dot = document.getElementById('fx-live-dot');
+            const dot = document.getElementById('fx-price-live-dot');
             if (dot) dot.classList.toggle('stale', fxPriceStale());
             const age = document.getElementById('fx-price-age');
             if (age) {
                 const s = Math.round((Date.now() - state.forexPriceAt) / 1000);
-                age.textContent = !state.forexPriceAt ? 'wait' : (s < 3 ? 'live' : s + 's ago');
+                age.textContent = !state.forexPriceAt ? 'Connecting' : (s < 3 ? 'Live' : s + 's ago');
             }
             updateForexOrderPreview();
             renderForexPositionsLive();
@@ -11253,7 +11310,7 @@
             if (!wrap) return;
             const list = forexFiltered();
             if (!list.length) {
-                wrap.innerHTML = '<p class="text-textGray text-sm text-center py-8">Is category mein koi instrument nahi hai.</p>';
+                wrap.innerHTML = '<p class="text-textGray text-sm text-center py-8">No instruments in this category.</p>';
                 return;
             }
             wrap.innerHTML = list.map(i => {
@@ -11306,28 +11363,29 @@
             else { buildForexChart(); resetForexOrderForm(); }
         }
 
-        // ── Chart (TradingView Advanced — all chart types + all TFs) ──
-        const FX_CHART_TYPES = [
-            { id: 'candles',  label: 'Candles' },
-            { id: 'bars',     label: 'Bars' },
-            { id: 'hollow',   label: 'Hollow' },
-            { id: 'line',     label: 'Line' },
-            { id: 'area',     label: 'Area' },
-            { id: 'baseline', label: 'Baseline' },
-            { id: 'histic',   label: 'Histogram' }
+        // ── Chart (TradingView) ────────────────────────────────────────
+        const FX_TIMEFRAMES = [
+            { id: '1',   label: '1m' },  { id: '5',   label: '5m' },  { id: '15', label: '15m' },
+            { id: '60',  label: '1H' },  { id: '240', label: '4H' },  { id: 'D',  label: '1D' },
+            { id: 'W',   label: '1W' }
         ];
-        const FX_TIMEFRAMES = ['1', '3', '5', '15', '30', '60', '120', '240', 'D', 'W', 'M'];
 
-        function setForexChartType(t) {
-            state.forexChartType = t;
-            document.querySelectorAll('#fx-chart-types button').forEach(b =>
-                b.classList.toggle('active', b.dataset.ct === t));
-            buildForexChart();
+        function renderChartTFs() {
+            const wrap = document.getElementById('fx-chart-tfs');
+            if (!wrap) return;
+            if (wrap.dataset.done !== '1') {
+                wrap.innerHTML = FX_TIMEFRAMES.map(t =>
+                    `<button data-tf="${t.id}" onclick="setForexChartTF('${t.id}')">${t.label}</button>`).join('');
+                wrap.dataset.done = '1';
+            }
+            wrap.querySelectorAll('button').forEach(b =>
+                b.classList.toggle('active', b.dataset.tf === state.forexChartTf));
         }
+
         function setForexChartTF(tf) {
             state.forexChartTf = tf;
-            document.querySelectorAll('#fx-chart-tfs button').forEach(b =>
-                b.classList.toggle('active', b.dataset.tf === tf));
+            renderChartTFs();
+            state._tvKey = null; state._tvRetry = 0;
             buildForexChart();
         }
 
@@ -11336,20 +11394,21 @@
             const inst = state.currentForex;
             const el = document.getElementById('fx-tradingview');
             if (!inst || !el) return;
+            if (state.fxChartOpen === false) return;
             const tvSymbol = (inst.tvSymbol && String(inst.tvSymbol).trim()) || ('FX:' + inst.symbol);
 
             // tv.js async load — ready nahi to thodi der me dobara try karo
             if (typeof window.TradingView === 'undefined' || typeof window.TradingView.widget !== 'function') {
                 if (_tvBuildTries < 25) {
                     _tvBuildTries++;
-                    setTimeout(() => { if (state.currentView === 'forex') buildForexChart(); }, 400);
+                    setTimeout(() => { if (state.currentView === 'forex' && state.fxChartOpen !== false) buildForexChart(); }, 400);
                 }
                 return;
             }
             _tvBuildTries = 0;
 
-            // Same symbol/interval/type pe bar-bar widget destroy mat karo
-            const chartKey = [tvSymbol, state.forexChartTf, state.forexChartType].join('|');
+            // Same symbol/interval pe bar-bar widget destroy mat karo
+            const chartKey = tvSymbol + '|' + state.forexChartTf;
             if (window.tvWidget && state._tvKey === chartKey) {
                 // View chhupa tha → widget 0-height iframe banata hai. Aise me force rebuild.
                 const ifr = el.querySelector('iframe');
@@ -11360,9 +11419,6 @@
             state._tvKey = chartKey;
             state._tvBuiltAt = Date.now();
 
-            const studies = state.forexChartType === 'baseline'
-                ? { area: { visible: true, lineColor: '#00c853', topColor: 'rgba(0,200,83,.28)', bottomColor: 'rgba(0,200,83,0)', lineThickness: 2 } }
-                : {};
             try {
                 if (window.tvWidget) { try { window.tvWidget.remove(); } catch(e){} window.tvWidget = null; }
                 el.innerHTML = '';
@@ -11375,23 +11431,42 @@
                     style: '1',
                     locale: 'en',
                     autosize: true,
-                    hide_side_toolbar: false,
-                    allow_symbol_change: true,
-                    withdateranges: true,
+                    toolbar_bg: '#151a21',
+                    enable_publishing: false,
+                    hide_top_toolbar: true,
+                    hide_side_toolbar: true,
+                    allow_symbol_change: false,
+                    save_image: false,
+                    withdateranges: false,
                     details: false,
-                    studies: Object.keys(studies).length ? studies : undefined,
+                    studies: [],
+                    loading_screen: { backgroundColor: '#0b0e11', foregroundColor: '#00c853' },
                     overrides: {
                         "paneProperties.background": "#0b0e11",
                         "paneProperties.backgroundType": "solid",
                         "paneProperties.vertGridProperties.color": "#1e2329",
                         "paneProperties.horzGridProperties.color": "#1e2329",
                         "scalesProperties.textColor": "#848e9c",
-                        "mainSeriesProperties.style": state.forexChartType === 'histic' ? 4
-                            : state.forexChartType === 'line' ? 2
-                            : state.forexChartType === 'area' ? 6 : 1,
-                        "mainSeriesProperties.candleStyle": state.forexChartType === 'hollow' ? 2 : 1
+                        "symbolWatermarkProperties.transparency": 90,
+                        "mainSeriesProperties.candleStyle.wickUpColor": '#00c853',
+                        "mainSeriesProperties.candleStyle.wickDownColor": '#ff3d00',
+                        "mainSeriesProperties.candleStyle.borderUpColor": '#00c853',
+                        "mainSeriesProperties.candleStyle.borderDownColor": '#ff3d00',
+                        "mainSeriesProperties.candleStyle.upColor": '#00c853',
+                        "mainSeriesProperties.candleStyle.downColor": '#ff3d00'
                     }
                 });
+                // iframe ka size 0 raha to ek baar force rebuild
+                setTimeout(() => {
+                    if (state.currentView !== 'forex' || state.fxChartOpen === false) return;
+                    if (state._tvKey !== chartKey) return;
+                    const ifr = el.querySelector('iframe');
+                    if (ifr && ifr.offsetHeight > 40) return;
+                    state._tvRetry = (state._tvRetry || 0) + 1;
+                    if (state._tvRetry > 3) return;
+                    state._tvKey = null;
+                    buildForexChart();
+                }, 1400);
             } catch (e) { console.warn('Chart build failed', e); }
         }
 
@@ -11457,7 +11532,7 @@
             if (slOn) slOn.checked = false;
             ['fx-sl-wrap', 'fx-tp-wrap'].forEach(id => { const e = document.getElementById(id); if (e) e.classList.add('hidden'); });
             const tpsl = document.getElementById('fx-tpsl-toggle');
-            if (tpsl) tpsl.checked = false;
+            if (tpsl) tpsl.setAttribute('aria-checked', 'false');
             const tpslW = document.getElementById('fx-tpsl-wrap');
             if (tpslW) tpslW.classList.add('hidden');
             updateForexOrderPreview();
@@ -11570,7 +11645,7 @@
             const warn = document.getElementById('fx-insufficient');
             if (warn) {
                 warn.classList.toggle('hidden', !insuf);
-                warn.textContent = insuf ? `Insufficient margin — chahiye ${U(totalUSDT, 2)} USDT` : '';
+                warn.textContent = insuf ? `Insufficient margin — required ${U(totalUSDT, 2)} USDT` : '';
             }
         }
 
@@ -11590,38 +11665,49 @@
             const sell = document.getElementById('btn-fx-sell');
             if (buy) buy.dataset.oneclick = one ? '1' : '0';
             if (sell) sell.dataset.oneclick = one ? '1' : '0';
+            const sw = document.getElementById('fx-oneclick-toggle');
+            if (sw) sw.setAttribute('aria-checked', one ? 'true' : 'false');
             const note = document.getElementById('fx-oneclick-note');
             if (note) {
-                note.textContent = one
-                    ? '⚡ One-Click ON — ek tap me order. Tabhi badlein jab confirmation chahiye.'
-                    : '🔒 One-Click OFF — har order pe confirm screen aayega.';
-                note.className = 'text-[11px] mb-3 ' + (one ? 'text-yellow-400' : 'text-textGray');
+                note.textContent = one ? '' : 'Confirmation screen will appear before every order.';
+                note.className = one ? 'hidden' : 'text-[11px] text-textGray';
             }
+        }
+        function toggleOneClick() {
+            if (!requireAuth('Sign in to change this setting', toggleOneClick)) return;
+            state.forexConfig.oneClickTrading = state.forexConfig.oneClickTrading === false;
+            applyOneClickMode();
+            const c = document.getElementById('admin-forex-oneclick');
+            if (c) c.checked = state.forexConfig.oneClickTrading !== false;
+            try {
+                db.collection('admin').doc('forexConfig').set({ oneClickTrading: state.forexConfig.oneClickTrading !== false }, { merge: true }).catch(() => {});
+            } catch (e) {}
+            showToast('One-Click Trading ' + (state.forexConfig.oneClickTrading !== false ? 'enabled' : 'disabled'), 'success');
         }
 
         async function placeForexOrder(side) {
             // ── Guest: login ke baad wapas yahi action chalega
-            if (!requireAuth('Order place karne ke liye login karein', () => placeForexOrder(side))) return;
+            if (!requireAuth('Sign in to place an order', () => placeForexOrder(side))) return;
 
             const inst = state.currentForex;
-            if (!inst) { showToast('Pehle ek instrument chunein', 'error'); return; }
-            if (!fxEnabled(inst)) { showToast('Forex/CFD abhi admin ne band kar rakha hai', 'error'); return; }
+            if (!inst) { showToast('Select an instrument first', 'error'); return; }
+            if (!fxEnabled(inst)) { showToast('Trading for this instrument is currently disabled', 'error'); return; }
             if (String(state.forexConfig.maintenanceNotice || '').trim()) {
                 showToast(state.forexConfig.maintenanceNotice.trim(), 'error'); return;
             }
 
             const ot = state.forexOrderType || 'Market';
             const qty = getForexQty();
-            if (qty <= 0) { showToast('Lot size daalein', 'error'); return; }
+            if (qty <= 0) { showToast('Enter the lot size', 'error'); return; }
 
             const px = state.forexPrice;
-            if (ot === 'Market' && (!px || px <= 0)) { showToast('Live price load nahi hui, thodi der me try karein', 'error'); return; }
+            if (ot === 'Market' && (!px || px <= 0)) { showToast('Live price is not available yet — please try again shortly', 'error'); return; }
 
             // Fresh live price right before execution — zero synthetic slippage
             const live = (ot === 'Market') ? (await getForexPrice(inst)) || px : px;
             if (ot !== 'Market') {
                 const lp = parseFloat(document.getElementById('fx-limit-price')?.value);
-                if (!Number.isFinite(lp) || lp <= 0) { showToast('Limit/Stop price daalein', 'error'); return; }
+                if (!Number.isFinite(lp) || lp <= 0) { showToast('Enter the limit/stop price', 'error'); return; }
             }
             const execPx = (ot === 'Market') ? live : parseFloat(document.getElementById('fx-limit-price').value);
 
@@ -11657,11 +11743,11 @@
 
         function validateForexTPSL(side, px, tp, sl) {
             if (!tp && !sl) return true;
-            if (tp && sl && (sl >= tp)) { showToast('SL, TP se chhota hona chahiye', 'error'); return false; }
-            if (tp && side === 'buy'  && tp <= px) { showToast('Buy order ka TP entry se upar hona chahiye', 'error'); return false; }
-            if (tp && side === 'sell' && tp >= px) { showToast('Sell order ka TP entry se neeche hona chahiye', 'error'); return false; }
-            if (sl && side === 'buy'  && sl >= px) { showToast('Buy order ka SL entry se neeche hona chahiye', 'error'); return false; }
-            if (sl && side === 'sell' && sl <= px) { showToast('Sell order ka SL entry se upar hona chahiye', 'error'); return false; }
+            if (tp && sl && (sl >= tp)) { showToast('Stop loss must be below take profit', 'error'); return false; }
+            if (tp && side === 'buy'  && tp <= px) { showToast('Buy take profit must be above the entry price', 'error'); return false; }
+            if (tp && side === 'sell' && tp >= px) { showToast('Sell take profit must be below the entry price', 'error'); return false; }
+            if (sl && side === 'buy'  && sl >= px) { showToast('Buy stop loss must be below the entry price', 'error'); return false; }
+            if (sl && side === 'sell' && sl <= px) { showToast('Sell stop loss must be above the entry price', 'error'); return false; }
             return true;
         }
 
@@ -11700,7 +11786,7 @@
         }
 
         async function submitForexOrder(o) {
-            if (state.processing.trade) { showToast('Pehla order process ho raha hai', 'info'); return; }
+            if (state.processing.trade) { showToast('Your previous order is still processing', 'info'); return; }
             setProcessing('trade', true);
             const userRef = db.collection('users').doc(state.user.uid);
             const posRef = db.collection('cfdPositions').doc();
@@ -11725,7 +11811,7 @@
                             const hint = o.side === 'buy'
                                 ? (o.ot === 'Limit' ? 'market se kam' : 'market se zyada')
                                 : (o.ot === 'Limit' ? 'market se zyada' : 'market se kam');
-                            throw new Error(`${o.side.toUpperCase()} ${o.ot} price ${hint} hona chahiye (market ${fmtPx(o.inst, cur)})`);
+                            throw new Error(`${o.side.toUpperCase()} ${o.ot} price must be ${hint} (market ${fmtPx(o.inst, cur)})`);
                         }
                     }
                     await db.runTransaction(async (t) => {
@@ -11733,7 +11819,7 @@
                         if (!uDoc.exists) throw new Error('User not found');
                         const cur2 = Math.max(0, Number(uDoc.data()[balKey]) || 0);
                         if (o.totalINR > cur2) {
-                            throw new Error(`Insufficient CFD balance. Chahiye ${money(o.totalINR)}, hai ${money(cur2)}`);
+                            throw new Error(`Insufficient CFD balance. Required ${money(o.totalINR)}, available ${money(cur2)}`);
                         }
                         t.set(orderRef, {
                             uid: state.user.uid,
@@ -11776,7 +11862,7 @@
 
                     // ── STRICT: balance kabhi negative nahi. safeDebit clamp karta hai.
                     if (o.totalINR > cur) {
-                        throw new Error(`Insufficient CFD balance. Chahiye ${money(o.totalINR)}, hai ${money(cur)}`);
+                        throw new Error(`Insufficient CFD balance. Required ${money(o.totalINR)}, available ${money(cur)}`);
                     }
 
                     t.set(posRef, {
@@ -11909,7 +11995,7 @@
         }
 
         async function cancelForexOrder(id) {
-            if (!requireAuth('Cancel karne ke liye login karein', () => cancelForexOrder(id))) return;
+            if (!requireAuth('Sign in to cancel this order', () => cancelForexOrder(id))) return;
             if (state._fxOrdBusy) return;
             state._fxOrdBusy = true;
             const od = state.forexPending.find(o => o.id === id);
@@ -11921,7 +12007,7 @@
                 await db.runTransaction(async (t) => {
                     const oDoc = await t.get(orderRef);
                     if (!oDoc.exists) throw new Error('Order nahi mili');
-                    if (oDoc.data().status !== 'pending') throw new Error('Order pehle hi process ho chuki hai');
+                    if (oDoc.data().status !== 'pending') throw new Error('This order was already processed');
                     const refundINR = Number(oDoc.data().marginINR) || toINR(Number(oDoc.data().marginUSDT) || 0);
                     const feeINR = Number(oDoc.data().feeINR) || toINR(Number(oDoc.data().feeUSDT) || 0);
                     t.update(orderRef, {
@@ -11932,7 +12018,7 @@
                         t.update(userRef, { [balKey]: firebase.firestore.FieldValue.increment(refundINR + feeINR) });
                     }
                 });
-                showToast('Order cancelled — margin refund ho gaya');
+                showToast('Order cancelled — margin refunded');
                 await loadForexOrders();
                 updateFxAccountCard();
             } catch (e) {
@@ -11941,10 +12027,10 @@
         }
 
         async function cancelAllForexOrders() {
-            if (!requireAuth('Pehle login karein', () => cancelAllForexOrders())) return;
+            if (!requireAuth('Please sign in', () => cancelAllForexOrders())) return;
             const n = state.forexPending.length;
             if (!n) return;
-            const res = await swal({ title: `${n} order cancel karein?`, text: 'Margin aapko refund ho jayega.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Sab cancel karo' });
+            const res = await swal({ title: `Cancel ${n} order(s)?`, text: 'Locked margin will be refunded.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Cancel all' });
             if (!res || !res.isConfirmed) return;
             for (const o of state.forexPending.slice()) { await cancelForexOrder(o.id); }
         }
@@ -12022,10 +12108,10 @@
         }
 
         async function closeAllForexPositions() {
-            if (!requireAuth('Pehle login karein', () => closeAllForexPositions())) return;
+            if (!requireAuth('Please sign in', () => closeAllForexPositions())) return;
             const n = state.forexPositions.filter(p => fxFilterMatch(p.symbol)).length;
             if (!n) return;
-            const res = await swal({ title: `${n} position close karein?`, text: 'Har position live price par band hogi.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Sab close karo' });
+            const res = await swal({ title: `Close ${n} position(s)?`, text: 'Every position will close at the live price.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Close all' });
             if (!res || !res.isConfirmed) return;
             for (const pos of state.forexPositions.slice()) {
                 if (!fxFilterMatch(pos.symbol)) continue;
@@ -12054,10 +12140,9 @@
             const eq = cfd + pnl;
             const avail = Math.max(0, cfd - used);
             const ratio = eq > 0 ? (used / eq) * 100 : 0;
-            set('fx-upnl', (pnl >= 0 ? '+' : '') + U(pnl, 2) + ' USDT');
+            set('fx-upnl', (pnl >= 0 ? '+' : '') + U(pnl, 2));
             const u = document.getElementById('fx-upnl');
             if (u) u.style.color = pnl > 0 ? '#00c853' : pnl < 0 ? '#f6465d' : '#eaecef';
-            set('fx-mratio', eq > 0 ? ratio.toFixed(2) + '%' : '—');
             set('fx-marg-avail', U(avail, 2));
             set('fx-marg-used', U(used, 2));
             set('fx-marg-eq', U(eq, 2));
@@ -12111,7 +12196,7 @@
             if (ca) ca.classList.toggle('hidden', state.forexTab !== 'positions' || !list.length);
             if (!list.length) {
                 wrap.innerHTML = '<p class="text-textGray text-sm text-center py-8">' +
-                    (all.length ? 'Is pair ki koi open position nahi.' : 'Abhi koi open CFD position nahi hai.') + '</p>';
+                    (all.length ? 'No open positions for this pair.' : 'No open CFD positions yet.') + '</p>';
                 renderForexPosBadge();
                 updateFxAccountCard();
                 return;
@@ -12166,7 +12251,7 @@
 
         // ── SL/TP edit ────────────────────────────────────────────────
         function editForexTPSL(id) {
-            if (!requireAuth('Pehle login karein', () => editForexTPSL(id))) return;
+            if (!requireAuth('Please sign in', () => editForexTPSL(id))) return;
             const pos = state.forexPositions.find(p => p.id === id);
             if (!pos) return;
             const inst = state.forexInstruments.find(i => i.symbol === pos.symbol) || { digits: 5 };
@@ -12190,14 +12275,14 @@
                     slPrice: res.value.sl || 0,
                     tpPrice: res.value.tp || 0,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                }).then(() => { showToast('SL/TP update ho gaya'); loadForexPositions(); })
+                }).then(() => { showToast('Stop loss / take profit updated'); loadForexPositions(); })
                   .catch(e => showToast(e.message, 'error'));
             }).catch(() => {});
         }
 
         // ── Close position ────────────────────────────────────────────
         async function closeForexPosition(id, priceOverride) {
-            if (!requireAuth('Close karne ke liye login karein', () => closeForexPosition(id, priceOverride))) return;
+            if (!requireAuth('Sign in to close this position', () => closeForexPosition(id, priceOverride))) return;
             if (state.closingPositions.has(id)) return;
             state.closingPositions.add(id);
 
@@ -12223,7 +12308,7 @@
 
                 await db.runTransaction(async (t) => {
                     const pDoc = await t.get(posRef);
-                    if (!pDoc.exists || pDoc.data().status !== 'open') throw new Error('Position pehle hi band ho chuki hai');
+                    if (!pDoc.exists || pDoc.data().status !== 'open') throw new Error('This position was already closed');
                     t.update(posRef, {
                         status: 'closed',
                         closePrice: closePx,
@@ -12329,7 +12414,7 @@
         async function loadForexTradeHistory() {
             const el = document.getElementById('fx-history-list');
             if (!el) return;
-            if (!state.user) { el.innerHTML = '<p class="text-textGray text-sm text-center py-8">History dekhne ke liye login karein.</p>'; return; }
+            if (!state.user) { el.innerHTML = '<p class="text-textGray text-sm text-center py-8">Sign in to view your trade history.</p>'; return; }
             try {
                 const snap = await db.collection('cfdTrades')
                     .where('uid', '==', state.user.uid).limit(60).get();
@@ -12337,7 +12422,7 @@
                 docs.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
                 state.forexTrades = docs;
                 const hist = docs.filter(d => fxFilterMatch(d.symbol));
-                if (!hist.length) { el.innerHTML = '<p class="text-textGray text-sm text-center py-8">' + (docs.length ? 'Is pair ki koi trade nahi.' : 'Abhi koi CFD trade history nahi.') + '</p>'; return; }
+                if (!hist.length) { el.innerHTML = '<p class="text-textGray text-sm text-center py-8">' + (docs.length ? 'No trades for this pair.' : 'No CFD trade history yet.') + '</p>'; return; }
                 const tot = hist.reduce((s, d) => s + (Number(d.pnl) || 0), 0);
                 const wins = hist.filter(d => (Number(d.pnl) || 0) > 0).length;
                 el.innerHTML = `
@@ -12365,7 +12450,7 @@
                         </div>`;
                     }).join('');
             } catch (e) {
-                el.innerHTML = '<p class="text-textGray text-sm text-center py-8">History load nahi hui.</p>';
+                el.innerHTML = '<p class="text-textGray text-sm text-center py-8">Could not load history.</p>';
             }
         }
 
@@ -12377,7 +12462,6 @@
                 const f = document.getElementById('fx-pair-full'); if (f) f.textContent = inst.name || '';
                 const c = document.getElementById('fx-pair-cat');
                 if (c) { c.textContent = inst.category || 'forex'; c.className = 'fx-cat-pill cat-' + (inst.category || 'forex'); }
-                const ct = document.getElementById('fx-chart-title'); if (ct) ct.textContent = inst.symbol + ' Chart';
                 const lo = document.getElementById('fx-lot-min'); if (lo) lo.textContent = state.forexConfig.minLot || 0.01;
             }
 
@@ -12392,20 +12476,7 @@
             renderForexInstrumentList();
 
             // Chart controls
-            const tt = document.getElementById('fx-chart-types');
-            if (tt && !tt.dataset.done) {
-                tt.innerHTML = FX_CHART_TYPES.map(t =>
-                    `<button data-ct="${t.id}" onclick="setForexChartType('${t.id}')">${t.label}</button>`).join('');
-                tt.dataset.done = '1';
-            }
-            const tf = document.getElementById('fx-chart-tfs');
-            if (tf && !tf.dataset.done) {
-                tf.innerHTML = FX_TIMEFRAMES.map(t =>
-                    `<button data-tf="${t}" onclick="setForexChartTF('${t}')">${t}</button>`).join('');
-                tf.dataset.done = '1';
-            }
-            setForexChartType(state.forexChartType);
-            setForexChartTF(state.forexChartTf);
+            renderChartTFs();
 
             // Order types
             const ot = document.getElementById('fx-order-types');
@@ -12484,18 +12555,16 @@
         function toggleFxChart() {
             state.fxChartOpen = state.fxChartOpen === false;
             syncFxChartShell();
-            if (state.fxChartOpen) { state._tvKey = null; setTimeout(buildForexChart, 60); }
+            if (state.fxChartOpen) { state._tvKey = null; state._tvRetry = 0; renderChartTFs(); setTimeout(buildForexChart, 60); }
         }
         function syncFxChartShell() {
-            const sh = document.getElementById('fx-chart-shell');
-            const car = document.getElementById('fx-chart-caret');
             const open = state.fxChartOpen !== false;
+            const card = document.getElementById('fx-chart-card');
+            const sh = document.getElementById('fx-chart-shell');
+            const btn = document.getElementById('fx-chart-toggle');
+            if (card) card.classList.toggle('hidden', !open);
             if (sh) sh.classList.toggle('closed', !open);
-            if (car) { car.className = 'fas fa-chevron-' + (open ? 'down' : 'right') + ' text-textGray text-[10px]'; }
-            const ct = document.getElementById('fx-chart-types');
-            if (ct) ct.classList.toggle('hidden', !open);
-            const tfs = document.getElementById('fx-chart-tfs');
-            if (tfs) tfs.classList.toggle('hidden', !open);
+            if (btn) btn.classList.toggle('on', open);
         }
 
         // ── Order side (Bitget: Buy box / Sell box → ek bada button) ──
@@ -12543,7 +12612,9 @@
 
         // ── TP / SL (ek hi row) ───────────────────────────────────────
         function toggleFxTPSL() {
-            const on = document.getElementById('fx-tpsl-toggle')?.checked;
+            const sw = document.getElementById('fx-tpsl-toggle');
+            const on = sw && sw.getAttribute('aria-checked') !== 'true';
+            if (sw) sw.setAttribute('aria-checked', on ? 'true' : 'false');
             const w = document.getElementById('fx-tpsl-wrap');
             if (w) w.classList.toggle('hidden', !on);
             const slT = document.getElementById('fx-sl-toggle'); if (slT) slT.checked = !!on;
@@ -12564,24 +12635,8 @@
         }
 
         // ── Pair filter (positions / orders / history) ────────────────
-        function buildFxPairFilter() {
-            const sel = document.getElementById('fx-pair-filter');
-            if (!sel) return;
-            const cur = state.fxPairFilter || 'all';
-            const inst = state.currentForex;
-            sel.innerHTML = `<option value="all">All pairs</option><option value="selected">Selected pair only</option>` +
-                (inst ? `<option value="${inst.symbol}" disabled>${inst.symbol}</option>` : '');
-            sel.value = cur;
-            if (sel.selectedIndex < 0) sel.value = 'selected';
-        }
-        function markFxPairFilter() {
-            const sel = document.getElementById('fx-pair-filter');
-            if (!sel) return;
-            const inst = state.currentForex;
-            const opts = Array.from(sel.options);
-            const selOpt = opts.find(o => o.value === 'selected');
-            if (selOpt && inst) selOpt.textContent = inst.symbol + ' only';
-        }
+        function buildFxPairFilter() {}
+        function markFxPairFilter() {}
         function setFxPairFilter(v) { state.fxPairFilter = v; renderForexPositionsLive(); renderForexOrders(); if (state.forexTab === 'history') loadForexTradeHistory(); }
         function fxFilterMatch(sym) {
             const f = state.fxPairFilter || 'all';
@@ -12607,7 +12662,7 @@
             };
         }
         function openFxTransfer(dir) {
-            if (!requireAuth('Transfer karne ke liye login karein', () => openFxTransfer(dir))) return;
+            if (!requireAuth('Sign in to transfer funds', () => openFxTransfer(dir))) return;
             fxTransferState().dir = dir || 'toCfd';
             const k = fxTransferKeys();
             const f = document.getElementById('fx-tr-from'), t = document.getElementById('fx-tr-to');
@@ -12652,17 +12707,17 @@
         }
         function fxTransferConfirm() {
             const amt = parseFloat(document.getElementById('fx-tr-amount')?.value) || 0;
-            if (!(amt > 0)) { showToast('Amount daalein', 'error'); return; }
-            if (amt > fxTransferAvailableUSDT() + 1e-9) { showToast('Balance kam hai', 'error'); return; }
+            if (!(amt > 0)) { showToast('Enter an amount', 'error'); return; }
+            if (amt > fxTransferAvailableUSDT() + 1e-9) { showToast('Insufficient balance', 'error'); return; }
             const dir = fxTransferState().dir;
             const fn = dir === 'toCfd' ? forexTransferToCfd : forexTransferToSpot;
             fn(amt).then(ok => { if (ok !== false) { closeFxSheet('transfer'); fxTransferPreview(); } });
         }
 
         async function forexTransferToCfd(usdtAmount) {
-            if (!requireAuth('Transfer karne ke liye login karein', () => forexTransferToCfd(usdtAmount))) return false;
+            if (!requireAuth('Sign in to transfer funds', () => forexTransferToCfd(usdtAmount))) return false;
             const amt = Number(usdtAmount);
-            if (!Number.isFinite(amt) || amt <= 0) { showToast('Sahi amount daalein', 'error'); return false; }
+            if (!Number.isFinite(amt) || amt <= 0) { showToast('Enter a valid amount', 'error'); return false; }
             const inr = toINR(amt);
             const userRef = db.collection('users').doc(state.user.uid);
             const balKey = (state.userData && state.userData.cfdBalance !== undefined) ? 'cfdBalance' : 'futuresBalance';
@@ -12687,9 +12742,9 @@
             } catch (e) { showToast(e.message, 'error'); return false; }
         }
         async function forexTransferToSpot(usdtAmount) {
-            if (!requireAuth('Transfer karne ke liye login karein', () => forexTransferToSpot(usdtAmount))) return false;
+            if (!requireAuth('Sign in to transfer funds', () => forexTransferToSpot(usdtAmount))) return false;
             const amt = Number(usdtAmount);
-            if (!Number.isFinite(amt) || amt <= 0) { showToast('Sahi amount daalein', 'error'); return false; }
+            if (!Number.isFinite(amt) || amt <= 0) { showToast('Enter a valid amount', 'error'); return false; }
             const inr = toINR(amt);
             const userRef = db.collection('users').doc(state.user.uid);
             const balKey = (state.userData && state.userData.cfdBalance !== undefined) ? 'cfdBalance' : 'futuresBalance';
@@ -12750,7 +12805,7 @@
         // ── Guard every protected entry point ─────────────────────────
         const _origOpenPay = window.openPay;
         window.openPay = function (...a) {
-            if (!requireAuth('Deposit karne ke liye login karein', () => _origOpenPay.apply(this, a))) return;
+            if (!requireAuth('Sign in to deposit funds', () => _origOpenPay.apply(this, a))) return;
             return _origOpenPay.apply(this, a);
         };
 
@@ -12775,7 +12830,7 @@
                     || (i.category || '').toLowerCase().includes(q);
             });
             if (!list.length) {
-                wrap.innerHTML = '<p class="text-textGray text-sm text-center py-8">Koi instrument nahi mila.</p>';
+                wrap.innerHTML = '<p class="text-textGray text-sm text-center py-8">No instruments found.</p>';
                 return;
             }
             wrap.innerHTML = list.map(i => {
@@ -12801,8 +12856,10 @@
             const usdt = inr / rate();
             const el = document.getElementById('fx-cfd-balance');
             const el2 = document.getElementById('fx-cfd-balance-inr');
-            if (el)  el.textContent  = isUSDT() ? `${U(usdt, 2)} USDT` : `₹${U(inr, 2)}`;
-            if (el2) el2.textContent = isUSDT() ? `₹${U(inr, 2)}` : `${U(usdt, 2)} USDT`;
+            const unit = document.getElementById('fx-cfd-unit');
+            if (el)  el.textContent  = isUSDT() ? U(usdt, 2) : U(inr, 2);
+            if (unit) unit.textContent = isUSDT() ? 'USDT' : 'INR';
+            if (el2) el2.textContent = isUSDT() ? `₹${U(inr, 2)}` : `$${U(usdt, 2)}`;
             updateForexOrderPreview();
             updateFxAccountCard();
         }
