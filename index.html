@@ -659,6 +659,25 @@
             scrollbar-width:none; }
         .fx-tfscroll::-webkit-scrollbar { display:none; }
         .fx-tfscroll.hidden { display:none; }
+        .fx-chart-lot { display:flex; align-items:center; gap:5px; padding:9px 8px; border-top:1px solid var(--border,#2b3139); }
+        .fx-chart-lot .fx-lbl { flex:none; }
+        .fx-chart-lot input { flex:1; min-width:0; background:var(--surfaceL,#22282f); border:1px solid var(--border,#2b3139);
+            border-radius:8px; color:var(--text,#eaecef); outline:0; text-align:center; padding:7px 4px; font-size:15px; font-weight:800;
+            font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; -moz-appearance:textfield; }
+        .fx-chart-lot input:focus { border-color:#00c853; }
+        .fx-chart-lot input::-webkit-outer-spin-button, .fx-chart-lot input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+        .fx-chart-lot .fx-step { width:30px; height:30px; font-size:15px; cursor:pointer; }
+        .fx-chart-lot .fx-lotmax { flex:none; padding:7px 8px; border-radius:8px; background:var(--surfaceL,#22282f);
+            color:var(--text,#eaecef); font-size:11px; font-weight:800; border:1px solid var(--border,#2b3139); }
+        .fx-chart-lot .fx-lotmax:active { border-color:#00c853; color:#00c853; }
+        .fx-chart-lot .fx-chart-marg { flex:none; font-size:10px; color:var(--textGray,#848e9c); white-space:nowrap; letter-spacing:-.1px; }
+        .fx-chart-lot .fx-chart-marg b { color:var(--text,#eaecef); font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; }
+        .fx-exec-hint { font-size:11px; color:var(--textGray,#848e9c); margin:-2px 0 8px; }
+        .fx-exec-hint b { font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; font-weight:800; }
+        .fx-ocard .sltp-chip { display:inline-block; margin-left:5px; padding:1px 6px; border-radius:5px; font-size:9px;
+            font-weight:800; letter-spacing:.3px; vertical-align:middle; }
+        .fx-ocard .sltp-chip.on { background:rgba(240,185,11,.16); color:#f0b90b; border:1px solid rgba(240,185,11,.35); }
+        .fx-ocard .sltp-chip.off { background:rgba(132,142,156,.14); color:#848e9c; border:1px solid rgba(132,142,156,.3); }
         .fx-oneclick-bar { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:10px; border-top:1px solid var(--border,#2b3139); }
         .fx-oneclick-bar .oc { display:flex; flex-direction:column; align-items:center; gap:2px; padding:9px 6px; border-radius:10px;
             font-weight:800; }
@@ -1622,7 +1641,8 @@
                         <div class="fx-lot">
                             <span class="fx-lbl nowrap">Lots</span>
                             <span class="fx-min">min <b id="fx-lot-min">0.01</b></span>
-                            <input type="number" step="any" inputmode="decimal" id="fx-qty" placeholder="0.01" oninput="updateForexOrderPreview()">
+                            <input type="number" step="any" inputmode="decimal" id="fx-qty" placeholder="0.01"
+                                   oninput="onForexQtyInput('fx-qty')" onchange="commitForexQty('fx-qty')">
                             <div class="fx-step" onclick="stepForexQty(-1)">&minus;</div>
                             <div class="fx-step" onclick="stepForexQty(1)">+</div>
                         </div>
@@ -1713,6 +1733,15 @@
                                 <div id="fx-ind-list"></div>
                             </div>
                             <div class="fx-chart-shell" id="fx-chart-shell"><div id="fx-tradingview"></div></div>
+                            <div class="fx-chart-lot">
+                                <span class="fx-lbl">Lots</span>
+                                <div class="fx-step" onclick="stepForexQty(-1)">&minus;</div>
+                                <input type="number" step="any" inputmode="decimal" id="fx-qty-chart" placeholder="0.01"
+                                       oninput="onForexQtyInput('fx-qty-chart')" onchange="commitForexQty('fx-qty-chart')">
+                                <div class="fx-step" onclick="stepForexQty(1)">+</div>
+                                <button class="fx-lotmax" onclick="setForexQtyPct(100)">Max</button>
+                                <span class="fx-chart-marg">Margin <b id="fx-chart-margin">—</b></span>
+                            </div>
                             <div class="fx-oneclick-bar">
                                 <button class="oc buy" onclick="fxOneClick('buy')"><span>Buy</span><b id="fx-oc-buy">—</b></button>
                                 <button class="oc sell" onclick="fxOneClick('sell')"><span>Sell</span><b id="fx-oc-sell">—</b></button>
@@ -11880,8 +11909,8 @@
         }
 
         function resetForexOrderForm() {
-            const q = document.getElementById('fx-qty');
-            if (q) { q.value = ''; }
+            // Lot size user ka choice hai — order/place, pair change, chart open pe bhi wahi rehta hai.
+            syncFxQtyInputs();
             ['fx-limit-price', 'fx-sl', 'fx-tp'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
             const slOn = document.getElementById('fx-sl-toggle');
             if (slOn) slOn.checked = false;
@@ -11920,16 +11949,75 @@
             }
         }
 
-        function getForexQty() {
-            const el = document.getElementById('fx-qty');
-            let v = parseFloat(el && el.value);
-            const cfg = state.forexConfig;
-            const step = Number(cfg.lotStep) || 0.01;
+        // ── Lot size: ek hi source of truth, user jab tak badle tab tak set rahe ──
+        const FX_QTY_KEY = 'ts_fx_lot';
+        function fxLotCfg() {
+            const cfg = state.forexConfig || {};
+            return {
+                step: Number(cfg.lotStep) || 0.01,
+                min: Number(cfg.minLot) || 0.01,
+                max: Number(cfg.maxLot) || 100
+            };
+        }
+        function fxSnapQty(v) {
+            const c = fxLotCfg();
             if (!Number.isFinite(v) || v <= 0) return 0;
-            v = Math.max(Number(cfg.minLot) || 0.01, v);
-            v = Math.min(Number(cfg.maxLot) || 100, v);
-            v = Math.floor(v / step) * step;
+            v = Math.max(c.min, Math.min(c.max, v));
+            v = Math.floor(v / c.step + 1e-9) * c.step;
             return Number(v.toFixed(8));
+        }
+        function fxQtyValue() {
+            if (!Number.isFinite(state.forexQty) || state.forexQty <= 0) {
+                let v = NaN;
+                try { v = parseFloat(localStorage.getItem(FX_QTY_KEY)); } catch (e) {}
+                state.forexQty = (Number.isFinite(v) && v > 0) ? fxSnapQty(v) : 0;
+            }
+            if (!state.forexQty) state.forexQty = fxSnapQty(fxLotCfg().min);
+            return state.forexQty;
+        }
+        function saveFxQty(v) {
+            state.forexQty = v;
+            try { localStorage.setItem(FX_QTY_KEY, v > 0 ? String(v) : ''); } catch (e) {}
+        }
+        function syncFxQtyInputs(exceptId) {
+            const txt = fxQtyValue() > 0 ? String(fxQtyValue()) : '';
+            ['fx-qty', 'fx-qty-chart'].forEach(id => {
+                if (id === exceptId) return;
+                const el = document.getElementById(id);
+                if (el && el.value !== txt) el.value = txt;
+            });
+        }
+        function onForexQtyInput(id) {
+            const srcId = id || 'fx-qty';
+            const src = document.getElementById(srcId);
+            let v = parseFloat(src ? src.value : NaN);
+            const c = fxLotCfg();
+            if (!Number.isFinite(v)) v = 0;
+            if (v > c.max) v = c.max;
+            if (v > 0) v = Math.floor(v / c.step + 1e-9) * c.step;
+            saveFxQty(Number(v.toFixed(8)));
+            syncFxQtyInputs(srcId);
+            updateForexOrderPreview();
+        }
+        function commitForexQty(id) {
+            saveFxQty(fxQtyValue());
+            syncFxQtyInputs();
+            updateForexOrderPreview();
+        }
+        function setForexQty(v) {
+            saveFxQty(fxSnapQty(v));
+            syncFxQtyInputs();
+            updateForexOrderPreview();
+            return state.forexQty;
+        }
+        function getForexQty() {
+            const a = document.getElementById('fx-qty');
+            const b = document.getElementById('fx-qty-chart');
+            let v = NaN;
+            if (a && a.value !== '') v = parseFloat(a.value);
+            if (!Number.isFinite(v) && b && b.value !== '') v = parseFloat(b.value);
+            if (!Number.isFinite(v) || v <= 0) v = fxQtyValue();
+            return fxSnapQty(v) || fxSnapQty(fxLotCfg().min);
         }
 
         function setForexQtyPct(pct) {
@@ -11939,14 +12027,12 @@
             const feePct = (Number(state.forexConfig.brokerFeeOpenPct) || 0);
             const lev = Number(state.forexLeverage) || 1;
             const mm = Math.max(1, Number(state.forexConfig.maintenanceMarginPct) || 50) / 100;
-            const q = document.getElementById('fx-qty');
             // Lots = (balance * leverage * pct) / (notional per lot)
             const perLot = (Number(inst.contractSize) || 1) * px;
             const raw = (balUSDT * lev * mm * (pct / 100)) / (perLot || 1);
             const step = Number(state.forexConfig.lotStep) || 0.01;
             const snapped = Math.floor(raw / step) * step;
-            q.value = Math.max(0, snapped).toFixed(2);
-            updateForexOrderPreview();
+            setForexQty(Math.max(fxLotCfg().min, snapped));
         }
 
         // Available (USDT me) — storage INR me hai, isliye hamesha convert karo
@@ -11983,6 +12069,7 @@
             set('fx-total', fxAmt(totalUSDT, 2));
             set('fx-avail', fxAmt(availUSDT, 2));
             set('fx-liq', liq > 0 ? fmtPx(inst, liq) : '—');
+            set('fx-chart-margin', qty > 0 ? fxAmt(marginUSDT, 2) : '—');
 
             const insuf = totalUSDT > availUSDT + 1e-9;
             const b = document.getElementById('btn-fx-buy');
@@ -12336,11 +12423,13 @@
                             <div class="text-textGray text-[10px]">${when}</div>
                         </div>
                     </div>
+                    <div class="fx-exec-hint">${o.side === 'buy' ? 'Buy' : 'Sell'} ${o.type} executes when price reaches <b>${fmtPx(inst, o.price)}</b></div>
                     <div class="kv">
                         <div><span>Qty</span><b>${o.quantity} lot</b></div>
+                        <div><span>Trigger</span><b style="color:${accent};">${fmtPx(inst, o.price)}</b></div>
+                        <div><span>TP</span><b style="color:${o.tpPrice ? '#00c853' : '#5e6673'};">${o.tpPrice ? fmtPx(inst, o.tpPrice) : '—'}</b></div>
+                        <div><span>SL</span><b style="color:${o.slPrice ? '#f6465d' : '#5e6673'};">${o.slPrice ? fmtPx(inst, o.slPrice) : '—'}</b></div>
                         <div><span>Margin</span><b>${U(o.marginUSDT || 0, 2)} USDT</b></div>
-                        ${o.tpPrice ? `<div><span>TP</span><b>${fmtPx(inst, o.tpPrice)}</b></div>` : ''}
-                        ${o.slPrice ? `<div><span>SL</span><b>${fmtPx(inst, o.slPrice)}</b></div>` : ''}
                         ${cur ? `<div><span>Market</span><b>${fmtPx(inst, cur)}</b></div>` : ''}
                     </div>
                     <div class="acts">
@@ -12625,6 +12714,7 @@
                             <span class="tag ${buy ? 'tag-buy' : 'tag-sell'}">${pos.side.toUpperCase()}</span>
                             <b>${pos.symbol}</b>
                             <span class="text-textGray text-[10px] ml-1">${pos.leverage}x · ${pos.quantity} lot</span>
+                            <span class="sltp-chip ${(pos.tpPrice || pos.slPrice) ? 'on' : 'off'}">${(pos.tpPrice || pos.slPrice) ? 'SL/TP SET' : 'NO SL/TP'}</span>
                         </div>
                         <div class="pnl" style="color:${col};">
                             <div>${r.net >= 0 ? '+' : ''}${U(r.net, 2)} USDT</div>
@@ -12635,8 +12725,8 @@
                         <div><span>Entry</span><b>${fmtPx(inst, pos.entryPrice)}</b></div>
                         <div><span>Mark</span><b style="color:${col};">${fmtPx(inst, live)}</b></div>
                         <div><span>Liq</span><b style="color:#ffd600;">${pos.liqPrice ? fmtPx(inst, pos.liqPrice) : '—'}</b></div>
-                        ${pos.tpPrice ? `<div><span>TP</span><b>${fmtPx(inst, pos.tpPrice)}</b></div>` : ''}
-                        ${pos.slPrice ? `<div><span>SL</span><b>${fmtPx(inst, pos.slPrice)}</b></div>` : ''}
+                        <div><span>TP</span><b style="color:${pos.tpPrice ? '#00c853' : '#5e6673'};">${pos.tpPrice ? fmtPx(inst, pos.tpPrice) : '—'}</b></div>
+                        <div><span>SL</span><b style="color:${pos.slPrice ? '#f6465d' : '#5e6673'};">${pos.slPrice ? fmtPx(inst, pos.slPrice) : '—'}</b></div>
                         <div><span>Margin</span><b>${U(mrUsed, 2)}</b></div>
                         <div><span>MR</span><b style="color:${mrRatio >= 85 ? '#f6465d' : mrRatio >= 60 ? '#f0b90b' : '#00c853'};">${mrRatio.toFixed(1)}%</b></div>
                         <div><span>Fee</span><b>${U(pos.openFeeUSDT || 0, 2)}</b></div>
@@ -12896,6 +12986,8 @@
                 const c = document.getElementById('fx-pair-cat');
                 if (c) { c.textContent = inst.category || 'forex'; c.className = 'fx-cat-pill cat-' + (inst.category || 'forex'); }
                 const lo = document.getElementById('fx-lot-min'); if (lo) lo.textContent = state.forexConfig.minLot || 0.01;
+                state.forexQty = fxSnapQty(fxQtyValue());
+                syncFxQtyInputs();
             }
 
             // Category chips (pair sheet)
@@ -13043,20 +13135,12 @@
 
         // ── Lot stepper / quick size ──────────────────────────────────
         function stepForexQty(dir) {
-            const el = document.getElementById('fx-qty');
-            if (!el) return;
-            const step = Number(state.forexConfig.lotStep) || 0.01;
-            let v = parseFloat(el.value);
-            if (!Number.isFinite(v) || v <= 0) v = Number(state.forexConfig.minLot) || 0.01;
-            v = Math.max(0, v + dir * step);
-            el.value = v.toFixed(Math.max(2, String(step).split('.')[1] ? String(step).split('.')[1].length : 2));
-            updateForexOrderPreview();
+            const c = fxLotCfg();
+            let v = getForexQty() || c.min;
+            v = Math.max(c.min, Math.min(c.max, v + dir * c.step));
+            setForexQty(v);
         }
-        function setForexQtyAbs(v) {
-            const el = document.getElementById('fx-qty');
-            if (el) el.value = v;
-            updateForexOrderPreview();
-        }
+        function setForexQtyAbs(v) { setForexQty(v); }
 
         // ── TP / SL (ek hi row) ───────────────────────────────────────
         function toggleFxTPSL() {
