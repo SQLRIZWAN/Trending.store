@@ -15,7 +15,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://treding.store/">
     <meta property="og:title" content="Treding Store — Crypto, Forex & CFD Trading">
-    <meta property="og:description" content="India ka crypto + forex platform — Bitcoin aur Gold/Nasdaq trade karo, daily investment plans se kamaao. UPI deposit supported.">
+    <meta property="og:description" content="India's crypto + forex platform — trade Bitcoin, Gold, Nasdaq and Forex with daily investment plans. UPI deposit supported.">
     <meta property="og:image" content="https://treding.store/icon.svg">
     <meta property="og:site_name" content="Treding Store">
     <meta property="og:locale" content="en_IN">
@@ -23,7 +23,7 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Treding Store — Crypto, Forex & CFD Trading India">
-    <meta name="twitter:description" content="India ka crypto + forex platform. Bitcoin, Gold, Forex pairs trade karo. Daily investment plans. UPI deposit.">
+    <meta name="twitter:description" content="India's crypto + forex platform. Trade Bitcoin, Gold and Forex pairs. Daily investment plans. UPI deposit.">
     <meta name="twitter:image" content="https://treding.store/icon.svg">
 
     <meta name="theme-color" content="#0b0e11">
@@ -451,12 +451,12 @@
             background:var(--surface,#1e2329); border:1px solid var(--border,#2b3139); color:var(--textG,#848e9c);
         }
         .lev-btn.active { background:var(--primary,#00c853); color:#000; border-color:var(--primary,#00c853); }
-        #fx-chart-types button, #fx-chart-tfs button, #fx-order-types button {
-            padding:5px 10px; font-size:10px; font-weight:700; border-radius:6px; white-space:nowrap;
+        #fx-chart-tfs button {
+            padding:7px 14px; font-size:12px; font-weight:700; border-radius:8px; white-space:nowrap;
             background:var(--surface,#1e2329); border:1px solid var(--border,#2b3139); color:var(--textG,#848e9c);
         }
-        #fx-chart-types button.active, #fx-chart-tfs button.active, #fx-order-types button.active {
-            background:rgba(0,200,83,.16); border-color:var(--primary,#00c853); color:var(--primary,#00c853);
+        #fx-chart-tfs button.active {
+            background:var(--primary,#00c853); border-color:var(--primary,#00c853); color:#000;
         }
         #fx-tradingview { width:100%; height:100%; }
 
@@ -466,22 +466,27 @@
         .fx-card { background: var(--surface,#151a21); border: 1px solid var(--border,#2b3139); border-radius: 14px; }
         .fx-lbl { font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--textGray,#848e9c); }
 
-        .fx-pairbar { display:flex; align-items:center; gap:10px; width:100%; padding:10px 14px; background:var(--surface,#151a21);
-            border:1px solid var(--border,#2b3139); border-radius:12px; cursor:pointer; text-align:left; }
-        .fx-pairbar:active { transform: scale(.99); }
-        .fx-pairbar .sym { font-size:19px; font-weight:800; font-family:'JetBrains Mono',monospace; }
-        .fx-pairbar .sub { font-size:11px; color:var(--textGray,#848e9c); }
-        .fx-lev-pill { font-size:11px; font-weight:800; padding:3px 8px; border-radius:6px;
-            background:rgba(0,200,83,.14); color:var(--primary,#00c853); border:1px solid rgba(0,200,83,.35); }
+        /* ── compact pair header ── */
+        .fx-pair-inline { display:inline-flex; align-items:center; gap:7px; padding:5px 6px; border-radius:9px;
+            background:transparent; border:0; min-width:0; }
+        .fx-pair-inline:active { background:var(--surfaceL,#22282f); }
+        .fx-pair-inline .sym { font-size:17px; font-weight:800; font-family:'JetBrains Mono',monospace; letter-spacing:-.3px; }
+        .fx-pair-inline .caret { font-size:10px; color:var(--textGray,#848e9c); }
+        .fx-lev-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 8px; border-radius:7px; font-size:11.5px;
+            background:var(--surface,#151a21); border:1px solid var(--border,#2b3139); color:var(--textGray,#848e9c); }
+        .fx-lev-btn b { color:var(--primary,#00c853); font-weight:800; font-family:'JetBrains Mono',monospace; }
+        .fx-lev-btn i { font-size:9px; }
+        .fx-subrow { display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
+        .fx-subrow > span:first-child { font-size:12px; color:var(--textGray,#848e9c); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .fx-subrow .rt { display:flex; align-items:center; gap:7px; flex-shrink:0; }
+        .fx-subrow .rt b { font-size:16px; font-weight:800; font-family:'JetBrains Mono',monospace; }
+        .fx-subrow .rt span#fx-chg { font-size:12px; font-weight:700; font-family:'JetBrains Mono',monospace; }
 
-        .fx-priceblk { display:flex; align-items:flex-end; justify-content:space-between; gap:10px; padding:8px 2px 2px; }
-        .fx-priceblk .big { font-size:34px; line-height:1; font-weight:800; font-family:'JetBrains Mono',monospace; letter-spacing:-.5px; }
-        .fx-priceblk .chg { font-size:13px; font-weight:700; margin-top:6px; }
-        .fx-priceblk .meta { text-align:right; font-size:11px; color:var(--textGray,#848e9c); }
-
-        .fx-seg { display:flex; background:var(--surface,#151a21); border:1px solid var(--border,#2b3139); border-radius:10px; padding:3px; gap:3px; }
-        .fx-seg button { flex:1; padding:8px 4px; font-size:12px; font-weight:700; border-radius:7px; color:var(--textGray,#848e9c); transition:.15s; }
-        .fx-seg button.active { background:var(--primary,#00c853); color:#000; }
+        /* ── compact order-type segmented ── */
+        .fx-seg-sm { display:inline-flex; gap:3px; padding:3px; background:var(--surfaceL,#22282f); border-radius:9px; }
+        .fx-seg-sm button { flex:none; padding:6px 15px; font-size:12px; font-weight:700; border-radius:7px;
+            background:transparent; border:0; color:var(--textGray,#848e9c); transition:.15s; }
+        .fx-seg-sm button.active { background:#eaecef; color:#0b0e11; }
 
         .fx-sides { display:flex; gap:8px; }
         .fx-side { flex:1; padding:9px 12px; border-radius:10px; border:1.5px solid var(--border,#2b3139);
@@ -528,9 +533,10 @@
         .fx-tabs2 button { padding:11px 2px; font-size:13px; font-weight:700; color:var(--textGray,#848e9c); position:relative; white-space:nowrap; }
         .fx-tabs2 button.active { color:var(--text,#eaecef); }
         .fx-tabs2 button.active::after { content:''; position:absolute; left:0; right:0; bottom:-1px; height:2px; background:var(--primary,#00c853); border-radius:2px; }
-        .fx-tabs2 .cnt { display:inline-block; min-width:16px; padding:0 4px; margin-left:3px; font-size:10px; line-height:16px;
-            border-radius:8px; background:var(--surfaceL,#22282f); color:var(--textGray,#848e9c); }
-        .fx-tabs2 button.active .cnt { background:rgba(0,200,83,.18); color:var(--primary,#00c853); }
+        .fx-tabs2 .cnt { font-size:12.5px; font-weight:600; color:var(--textGray,#848e9c); }
+        .fx-tabs2 .cnt::before { content:'('; }
+        .fx-tabs2 .cnt::after { content:')'; }
+        .fx-tabs2 button.active .cnt { color:var(--primary,#00c853); }
         .fx-filtersel { background:var(--surface,#151a21); border:1px solid var(--border,#2b3139); color:var(--text,#eaecef);
             font-size:11px; font-weight:700; border-radius:8px; padding:6px 8px; max-width:132px; }
 
@@ -572,7 +578,7 @@
             border:1px solid var(--border,#2b3139); color:var(--text,#eaecef); font-size:12.5px; font-weight:800; }
         .fx-lev-grid button.sel { border-color:var(--primary,#00c853); background:rgba(0,200,83,.14); color:var(--primary,#00c853); }
 
-        .fx-chart-shell { width:100%; height:300px; }
+        .fx-chart-shell { width:100%; height:330px; }
         .fx-chart-shell.closed { display:none; }
 
         /* ── minimal re-skin ── */
@@ -598,7 +604,60 @@
         .fx-switch i { position:absolute; top:2px; left:2px; width:17px; height:17px; border-radius:50%; background:#848e9c; transition:.16s; display:block; }
         .fx-switch[aria-checked="true"] { background:rgba(0,200,83,.28); border-color:var(--primary,#00c853); }
         .fx-switch[aria-checked="true"] i { left:19px; background:var(--primary,#00c853); }
-        .fx-tabs2 button.icon { margin-left:auto; font-size:12px; padding:9px 4px; }
+        .fx-tabs2 button.icon { margin-left:auto; font-size:12px; padding:9px 4px; color:var(--textGray,#848e9c); }
+
+        /* ── Bitget-style CFD order block ── */
+        .nowrap { white-space:nowrap; }
+        #fx-market-note { font-size:11.5px; color:var(--textGray,#848e9c); margin:0 2px; }
+        .fx-lot { gap:6px; padding:5px 6px 5px 10px; }
+        .fx-lot .fx-lbl { flex:none; }
+        .fx-lot .fx-min { flex:none; font-size:10.5px; color:var(--textGray,#848e9c); white-space:nowrap; }
+        .fx-lot .fx-min b { color:var(--text,#eaecef); font-family:'JetBrains Mono',monospace; font-weight:700; }
+        .fx-lot input { flex:1; min-width:0; text-align:right; font-size:16px; padding:6px 4px; }
+        .fx-lot .fx-step { width:32px; height:32px; font-size:16px; background:var(--surfaceL,#22282f); }
+        .fx-quick { gap:6px; }
+        .fx-quick button { padding:8px 0; font-size:12px; border-radius:8px; background:var(--surfaceL,#22282f); }
+
+        .fx-info { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px;
+            color:var(--textGray,#848e9c); padding:0 2px; }
+        .fx-info b { color:var(--text,#eaecef); font-family:'JetBrains Mono',monospace; font-weight:700; }
+        .fx-info.dim { font-size:11px; opacity:.75; }
+        .fx-info .l { display:flex; align-items:center; gap:7px; min-width:0; }
+        .fx-plus { width:20px; height:20px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center;
+            background:var(--surfaceL,#22282f); border:1px solid var(--border,#2b3139); color:var(--primary,#00c853); font-size:9px; }
+
+        .fx-tog-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .fx-tog { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 11px; border-radius:10px;
+            background:var(--surface,#151a21); border:1px solid var(--border,#2b3139); font-size:12.5px; font-weight:700;
+            color:var(--text,#eaecef); }
+
+        .fx-acct2 { background:var(--surface,#151a21); border:1px solid var(--border,#2b3139); border-radius:12px; padding:11px 12px; }
+        .fx-acct2 .r1 { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12px;
+            color:var(--textGray,#848e9c); padding-bottom:9px; border-bottom:1px solid rgba(255,255,255,.06); }
+        .fx-acct2 .r1 b { color:var(--text,#eaecef); font-family:'JetBrains Mono',monospace; font-weight:800; margin-left:4px; }
+        .fx-acct2 .r2 { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; padding-top:9px; }
+        .fx-acct2 .r2 > div:nth-child(2) { text-align:center; }
+        .fx-acct2 .r2 > div:nth-child(3) { text-align:right; }
+        .fx-acct2 .r2 span { display:block; font-size:10px; color:var(--textGray,#848e9c); }
+        .fx-acct2 .r2 b { display:block; font-size:13px; font-weight:800; font-family:'JetBrains Mono',monospace; margin-top:3px; }
+
+        /* ── Chart mode ── */
+        .fx-tfbar { display:flex; align-items:center; gap:8px; padding:8px 8px 8px 10px; border-bottom:1px solid var(--border,#2b3139); }
+        .fx-tf-chip { display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:7px; font-size:12px; font-weight:700;
+            background:var(--surfaceL,#22282f); border:1px solid var(--border,#2b3139); color:var(--text,#eaecef); }
+        .fx-tf-chip i { font-size:9px; color:var(--textGray,#848e9c); }
+        .fx-tfscroll { display:flex; gap:6px; overflow-x:auto; padding:8px 10px; border-bottom:1px solid var(--border,#2b3139);
+            scrollbar-width:none; }
+        .fx-tfscroll::-webkit-scrollbar { display:none; }
+        .fx-tfscroll.hidden { display:none; }
+        .fx-oneclick-bar { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:10px; border-top:1px solid var(--border,#2b3139); }
+        .fx-oneclick-bar .oc { display:flex; flex-direction:column; align-items:center; gap:2px; padding:9px 6px; border-radius:10px;
+            font-weight:800; }
+        .fx-oneclick-bar .oc span { font-size:11px; font-weight:700; opacity:.85; }
+        .fx-oneclick-bar .oc b { font-size:16px; font-family:'JetBrains Mono',monospace; }
+        .fx-oneclick-bar .oc.buy { background:#00c853; color:#000; }
+        .fx-oneclick-bar .oc.sell { background:#f6465d; color:#fff; }
+        .fx-oneclick-bar .oc:active { transform:scale(.985); }
         #fx-price, #fx-cfd-balance { font-variant-numeric:tabular-nums; }
 
         .swal2-confirm { background:var(--surfaceL,#1e2329) !important; color:var(--text,#eaecef) !important;
@@ -797,7 +856,7 @@
                 </div>
                 <button id="login-submit-btn" onclick="handleEmailLogin()" class="btn-animated w-full bg-primary text-black font-bold py-3 rounded-lg mt-4">Login</button>
                 <p class="text-center text-textGray text-[12px] mt-3">
-                    Password ya account nahi khul raha?
+                    Password or account not working?
                     <span onclick="openReportFromAuth()" class="text-yellow-400 cursor-pointer font-semibold">Problem login?</span>
                 </p>
                 <p class="text-center text-textGray text-sm mt-3">Naya account banayein? <span onclick="toggleAuthMode('register')" class="text-primary cursor-pointer font-semibold">Register</span></p>
@@ -1462,71 +1521,47 @@
 
             <!-- ══ FOREX / CFD VIEW ══ -->
             <div id="view-forex" class="view-section hidden animate-fade-in pb-24">
+                <div class="px-4 pt-3 space-y-2.5">
 
-                <!-- Account bar -->
-                <div class="sticky top-[57px] z-30 bg-bgDeep border-b border-border px-4 py-2">
-                    <div class="flex items-center justify-between gap-3">
-                        <div class="min-w-0">
-                            <div class="text-[10px] text-textGray font-bold uppercase tracking-wide">CFD Balance</div>
-                            <div class="flex items-baseline gap-1.5">
-                                <span id="fx-cfd-balance" class="text-[17px] font-extrabold font-mono text-primary">0.00</span>
-                                <span id="fx-cfd-unit" class="text-[11px] text-textGray font-semibold">USDT</span>
-                                <span id="fx-cfd-balance-inr" class="usdt-sub" style="display:inline">₹0.00</span>
-                            </div>
-                        </div>
-                        <div class="flex gap-2 shrink-0">
-                            <button onclick="openFxTransfer('toCfd')" class="fx-mini-btn">Transfer</button>
-                            <button onclick="openPay()" class="fx-mini-btn primary">Deposit</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="px-4 pt-3 space-y-3">
                     <div id="fx-maintenance-notice" class="hidden rounded-lg border px-3 py-2 text-[12px]" style="border-color:rgba(246,70,93,.6);background:rgba(246,70,93,.14);color:#ff6b81;"></div>
-                    <div id="insufficient-balance-cfd" class="insufficient-balance hidden"></div>
 
-                    <!-- Pair + chart toggle -->
+                    <!-- ── Pair header (compact) ── -->
                     <div class="flex items-center gap-2">
-                        <button class="fx-pairbar flex-1" onclick="openFxSheet('pair')">
-                            <div class="min-w-0 flex-1 text-left">
-                                <div class="flex items-center gap-2">
-                                    <span class="sym" id="fx-pair-name">EURUSD</span>
-                                    <span class="fx-cat-pill cat-forex" id="fx-pair-cat">forex</span>
-                                </div>
-                                <div class="sub truncate" id="fx-pair-full">—</div>
-                            </div>
-                            <i class="fas fa-chevron-down text-textGray text-[11px]"></i>
+                        <button class="fx-pair-inline" onclick="openFxSheet('pair')">
+                            <span class="sym" id="fx-pair-name">EURUSD</span>
+                            <span class="fx-cat-pill cat-forex" id="fx-pair-cat">forex</span>
+                            <i class="fas fa-chevron-down caret"></i>
                         </button>
+                        <button class="fx-lev-btn" onclick="openFxSheet('lev')" title="Leverage">
+                            <b id="fx-leverage-display">2000x</b><i class="fas fa-chevron-down"></i>
+                        </button>
+                        <span class="flex-1"></span>
                         <button id="fx-chart-toggle" class="fx-icon-btn" onclick="toggleFxChart()" title="Chart">
                             <i class="fas fa-chart-simple"></i>
                         </button>
                     </div>
 
-                    <!-- Price -->
-                    <div class="flex items-end justify-between gap-3">
-                        <div class="min-w-0">
-                            <div class="fx-big" id="fx-price">—</div>
-                            <div class="fx-chg" id="fx-chg">—</div>
-                        </div>
-                        <div class="text-[11px] text-textGray text-right shrink-0">
-                            <span id="fx-price-live-dot" class="price-live-dot" style="display:inline-block;vertical-align:middle;margin-right:5px;"></span>
-                            <span id="fx-price-age">Live</span>
-                        </div>
+                    <!-- ── Name / price / change ── -->
+                    <div class="fx-subrow">
+                        <span id="fx-pair-full">—</span>
+                        <span class="rt">
+                            <b id="fx-price">—</b>
+                            <span id="fx-chg">—</span>
+                            <span id="fx-price-live-dot" class="price-live-dot"></span>
+                        </span>
                     </div>
 
-                    <!-- Chart (candle icon se khulta hai) -->
-                    <div id="fx-chart-card" class="fx-card hidden">
-                        <div class="fx-tfrow">
-                            <div class="flex gap-1 overflow-x-auto flex-1" id="fx-chart-tfs"></div>
-                            <button onclick="toggleFxChart()" class="fx-icon-btn sm" title="Close chart"><i class="fas fa-xmark"></i></button>
+                    <!-- ═══ ORDER MODE ═══ -->
+                    <div id="fx-order-mode" class="space-y-2.5">
+
+                        <div class="fx-seg-sm" id="fx-order-types"></div>
+
+                        <div id="fx-limit-wrap" class="hidden">
+                            <div class="fx-lbl mb-1">Limit / Stop price</div>
+                            <div class="fx-lot"><input type="number" step="any" id="fx-limit-price" placeholder="0.00000" oninput="updateForexOrderPreview()"></div>
                         </div>
-                        <div class="fx-chart-shell" id="fx-chart-shell"><div id="fx-tradingview"></div></div>
-                    </div>
 
-                    <!-- Order ticket -->
-                    <div class="fx-card p-3 space-y-3">
-                        <div class="fx-seg" id="fx-order-types"></div>
-
+                        <!-- Buy / Sell -->
                         <div class="fx-sides">
                             <button class="fx-side on-buy" id="fx-side-buy" onclick="setOrderSide('buy')">
                                 <span class="t">Buy</span><span class="p" id="fx-buy-px">—</span>
@@ -1536,40 +1571,43 @@
                             </button>
                         </div>
 
-                        <div id="fx-limit-wrap" class="hidden">
-                            <div class="fx-lbl mb-1.5">Limit / Stop price</div>
-                            <div class="fx-lot"><input type="number" step="any" id="fx-limit-price" placeholder="0.00000" oninput="updateForexOrderPreview()"></div>
+                        <!-- Lots -->
+                        <div class="fx-lot">
+                            <span class="fx-lbl nowrap">Lots</span>
+                            <span class="fx-min">min <b id="fx-lot-min">0.01</b></span>
+                            <input type="number" step="any" inputmode="decimal" id="fx-qty" placeholder="0.01" oninput="updateForexOrderPreview()">
+                            <div class="fx-step" onclick="stepForexQty(-1)">&minus;</div>
+                            <div class="fx-step" onclick="stepForexQty(1)">+</div>
+                        </div>
+                        <div class="fx-quick">
+                            <button onclick="setForexQtyAbs(0.01)">0.01</button>
+                            <button onclick="setForexQtyAbs(0.1)">0.10</button>
+                            <button onclick="setForexQtyAbs(1)">1.00</button>
+                            <button onclick="setForexQtyPct(100)">Max</button>
                         </div>
 
-                        <div>
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="fx-lbl">Lots</span>
-                                <span class="text-[10px] text-textGray">min <b id="fx-lot-min" class="text-white">0.01</b></span>
-                            </div>
-                            <div class="fx-lot">
-                                <div class="fx-step" onclick="stepForexQty(-1)">&minus;</div>
-                                <input type="number" step="any" inputmode="decimal" id="fx-qty" placeholder="0.01" oninput="updateForexOrderPreview()">
-                                <div class="fx-step" onclick="stepForexQty(1)">+</div>
-                            </div>
-                            <div class="fx-quick">
-                                <button onclick="setForexQtyAbs(0.01)">0.01</button>
-                                <button onclick="setForexQtyAbs(0.1)">0.10</button>
-                                <button onclick="setForexQtyAbs(1)">1.00</button>
-                                <button onclick="setForexQtyPct(100)">Max</button>
-                            </div>
+                        <!-- Available / margin -->
+                        <div class="fx-info">
+                            <span class="l">Available <b id="fx-avail">0.00 USDT</b>
+                                <button class="fx-plus" onclick="openFxTransfer('toCfd')" title="Transfer"><i class="fas fa-plus"></i></button>
+                            </span>
+                            <span class="r">Margin &asymp; <b id="fx-margin">0.00 USDT</b></span>
+                        </div>
+                        <div class="fx-info dim">
+                            <span class="l">Broker fee <b id="fx-fee">0.00 USDT</b></span>
+                            <span class="r">Total debit <b id="fx-total">0.00 USDT</b></span>
                         </div>
 
-                        <button class="fx-opt" style="margin-bottom:0" onclick="openFxSheet('lev')">
-                            <span>Leverage</span>
-                            <span><b id="fx-leverage-display" class="text-primary">2000x</b><i class="fas fa-chevron-right text-[10px] text-textGray ml-2"></i></span>
-                        </button>
-
-                        <!-- TP / SL -->
-                        <div class="fx-opt" style="margin-bottom:0;">
-                            <span>TP / SL <span class="text-[10px] font-normal" style="color:var(--textGray)">optional</span></span>
-                            <button id="fx-tpsl-toggle" class="fx-switch" role="switch" aria-checked="false" onclick="toggleFxTPSL()"><i></i></button>
+                        <!-- TP/SL + One-Click -->
+                        <div class="fx-tog-row">
+                            <div class="fx-tog"><span>TP / SL</span>
+                                <button id="fx-tpsl-toggle" class="fx-switch" role="switch" aria-checked="false" onclick="toggleFxTPSL()"><i></i></button>
+                            </div>
+                            <div class="fx-tog"><span>One-Click</span>
+                                <button id="fx-oneclick-toggle" class="fx-switch" role="switch" aria-checked="true" onclick="toggleOneClick()"><i></i></button>
+                            </div>
                         </div>
-                        <div id="fx-tpsl-wrap" class="hidden" style="padding:0 0 4px;">
+                        <div id="fx-tpsl-wrap" class="hidden" style="padding:0 0 2px;">
                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                                 <div>
                                     <div class="fx-lbl mb-1">Take profit</div>
@@ -1586,47 +1624,57 @@
                         <div id="fx-sl-wrap" class="hidden"></div>
                         <div id="fx-tp-wrap" class="hidden"></div>
 
-                        <div class="fx-sum">
-                            <div class="r"><span>Margin</span><b id="fx-margin">0.00 USDT</b></div>
-                            <div class="r"><span>Broker fee</span><b id="fx-fee">0.00 USDT</b></div>
-                            <div class="r"><span>Total debit</span><b id="fx-total">0.00 USDT</b></div>
-                            <div class="r"><span>Available</span><b id="fx-avail">0.00 USDT</b></div>
-                        </div>
-                        <div class="fx-sum hidden">
-                            <div class="r"><span>Order value</span><b id="fx-notional">0.00 USDT</b></div>
-                            <div class="r"><span>Liq. price</span><b id="fx-liq">—</b></div>
-                        </div>
-
-                        <!-- One-click switch -->
-                        <div class="fx-opt" style="margin-bottom:0;">
-                            <span>One-Click Trading</span>
-                            <button id="fx-oneclick-toggle" class="fx-switch" role="switch" aria-checked="true" onclick="toggleOneClick()"><i></i></button>
-                        </div>
-
-                        <p id="fx-insufficient" class="hidden text-[11px] text-danger"></p>
+                        <p id="fx-insufficient" class="hidden text-[11px] text-danger" style="margin:0;"></p>
                         <p id="fx-oneclick-note" class="hidden"></p>
                         <p id="fx-market-note" class="hidden"></p>
 
                         <button id="btn-fx-buy" class="fx-main-btn buy" onclick="onFxMainBtn()">Buy</button>
                         <button id="btn-fx-sell" class="hidden" onclick="placeForexOrder('sell')"></button>
+
+                        <!-- Account card -->
+                        <div class="fx-acct2">
+                            <div class="r1">
+                                <span>Unrealized PnL <b id="fx-upnl">0.00</b></span>
+                                <span>Margin ratio: <b id="fx-mratio">—</b></span>
+                            </div>
+                            <div class="r2">
+                                <div><span>Available margin</span><b id="fx-marg-avail">0.00</b></div>
+                                <div><span>Used margin</span><b id="fx-marg-used">0.00</b></div>
+                                <div><span>Equity</span><b id="fx-marg-eq">0.00</b></div>
+                            </div>
+                        </div>
+                        <div class="hidden">
+                            <span id="fx-notional">0.00</span><span id="fx-liq">—</span>
+                        </div>
                     </div>
 
-                    <!-- Stats strip -->
-                    <div class="fx-strip">
-                        <div><span>Equity</span><b id="fx-marg-eq">0.00</b></div>
-                        <div><span>Avail</span><b id="fx-marg-avail" style="color:var(--primary)">0.00</b></div>
-                        <div><span>Used</span><b id="fx-marg-used">0.00</b></div>
-                        <div><span>PnL</span><b id="fx-upnl">0.00</b></div>
+                    <!-- ═══ CHART MODE (candle icon) ═══ -->
+                    <div id="fx-chart-mode" class="hidden">
+                        <div class="fx-card">
+                            <div class="fx-tfbar">
+                                <button class="fx-tf-chip" id="fx-tf-chip" onclick="toggleFxTFs()">
+                                    <span id="fx-tf-chip-label">1m</span><i class="fas fa-chevron-down"></i>
+                                </button>
+                                <span class="flex-1"></span>
+                                <button class="fx-icon-btn sm" onclick="toggleFxChart()" title="Close chart"><i class="fas fa-xmark"></i></button>
+                            </div>
+                            <div id="fx-chart-tfs" class="fx-tfscroll hidden"></div>
+                            <div class="fx-chart-shell" id="fx-chart-shell"><div id="fx-tradingview"></div></div>
+                            <div class="fx-oneclick-bar">
+                                <button class="oc buy" onclick="fxOneClick('buy')"><span>Buy</span><b id="fx-oc-buy">—</b></button>
+                                <button class="oc sell" onclick="fxOneClick('sell')"><span>Sell</span><b id="fx-oc-sell">—</b></button>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Tabs -->
+                    <!-- ═══ Positions / orders / history ═══ -->
                     <div class="fx-tabs2" id="fx-tabs">
                         <button data-ft="positions" onclick="setForexTab('positions')">Positions<span class="cnt" id="fx-pos-badge">0</span></button>
-                        <button data-ft="orders" onclick="setForexTab('orders')">Orders<span class="cnt" id="fx-ord-badge">0</span></button>
+                        <button data-ft="orders" onclick="setForexTab('orders')">Open orders<span class="cnt" id="fx-ord-badge">0</span></button>
                         <button data-ft="history" onclick="setForexTab('history')">History</button>
                         <button class="icon" onclick="refreshForexLists()" title="Refresh"><i class="fas fa-rotate-right"></i></button>
                     </div>
-                    <div class="flex items-center justify-end gap-2 -mt-1">
+                    <div class="flex items-center justify-end gap-2 -mt-1.5">
                         <button id="fx-closeall-btn" onclick="closeAllForexPositions()" class="hidden px-3 py-1.5 rounded-lg text-[11px] font-bold" style="background:rgba(246,70,93,.14);color:#f6465d;border:1px solid rgba(246,70,93,.35);">Close all</button>
                         <button id="fx-cancelall-btn" onclick="cancelAllForexOrders()" class="hidden px-3 py-1.5 rounded-lg text-[11px] font-bold" style="background:var(--surfaceL);color:var(--text);border:1px solid var(--border);">Cancel all</button>
                     </div>
@@ -3516,7 +3564,7 @@
             forexPending: [],
             forexTimer: null,
             forexFeedTimer: null,
-            forexChartTf: '15',
+            forexChartTf: '1',
             forexChartType: 'candles',
             forexOrderType: 'Market',
             forexLeverage: 2000,
@@ -4925,8 +4973,8 @@
                 showToast('Reset link sent — check your Gmail inbox or Spam folder.', 'success');
                 setTimeout(() => { closeForgotPasswordModal(); toggleAuthMode('login'); }, 1600);
             } catch (error) {
-                let msg = 'Reset link nahi bheja ja saka';
-                if (error.code === 'auth/user-not-found') msg = 'Is email ka account nahi mila.';
+                let msg = 'Could not send the reset link';
+                if (error.code === 'auth/user-not-found') msg = 'No account found for this email.';
                 else if (error.code === 'auth/too-many-requests') msg = 'Too many attempts. Please try again later.';
                 else if (error.code === 'auth/invalid-email') msg = 'Invalid email address.';
                 else if (error.code === 'auth/network-request-failed') msg = 'Network problem. Please try again.';
@@ -5507,13 +5555,6 @@
                     </div>`;
             };
 
-            const cfdBal = Number(state.userData?.cfdBalance !== undefined ? state.userData?.cfdBalance : state.userData?.futuresBalance) || 0;
-            const cfdBanner = document.getElementById('insufficient-balance-cfd');
-            if (cfdBanner) {
-                if (cfdBal > 0) { cfdBanner.classList.add('hidden'); cfdBanner.innerHTML = ''; }
-                else { cfdBanner.classList.remove('hidden'); cfdBanner.innerHTML = smartBanner(1, 'CFD trading', "navigateTo('forex')"); }
-            }
-
             const cheapestPlan = state.investPlans.length > 0 ? Math.min(...state.investPlans.map(p => Number(p.min) || Infinity)) : Infinity;
             const investBanner = document.getElementById('insufficient-balance-invest');
             if (investBanner) {
@@ -5698,7 +5739,7 @@
 
         function shareReferral(platform) {
             const code = state.referralCode || '';
-            const text = `🚀 Treding Store pe join karo! Crypto trade, Forex/CFD & invest sab ek jagah.\nMera referral code use karo: ${code}\nFirst deposit pe 15% EXTRA bonus milega! Aur main bhi har deposit pe 10% kamaata hoon!`;
+            const text = `Join Treding Store — crypto, Forex/CFD & investing in one app.\nUse my referral code: ${code}\nGet 15% EXTRA bonus on your first deposit, plus 10% forever on my deposits!`;
             const url = window.location.origin;
 
             if (platform === 'whatsapp') {
@@ -8699,7 +8740,7 @@
             if (t && !t.dataset.done) { t.dataset.done = '1'; }
             if (guest) {
                 const box = document.getElementById('previous-reports');
-                if (box) box.innerHTML = '<p class="text-textGray text-center py-4">Login karne par aapki purani reports yahan dikhengi.</p>';
+                if (box) box.innerHTML = '<p class="text-textGray text-center py-4">Sign in to view your previous reports here.</p>';
             } else {
                 loadPreviousReports();
             }
@@ -8816,7 +8857,7 @@
         async function loadPreviousReports() { 
             const container = document.getElementById('previous-reports'); 
             if (!container) return;
-            if (!state.user) { container.innerHTML = '<p class="text-textGray text-center py-4">Login karne par aapki purani reports yahan dikhengi.</p>'; return; }
+            if (!state.user) { container.innerHTML = '<p class="text-textGray text-center py-4">Sign in to view your previous reports here.</p>'; return; }
             try { 
                 // CRITICAL FIX: orderBy hata diya — JS mein sort
                 const snapshot = await db.collection('reports').where('uid', '==', state.user.uid).limit(20).get(); 
@@ -10373,7 +10414,7 @@
                     .limit(50).get();
                 const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 if (!docs.length) {
-                    container.innerHTML = `<p class="text-textGray text-center py-8">Koi open CFD position nahi.
+                    container.innerHTML = `<p class="text-textGray text-center py-8">No open CFD positions.
                         <br><button onclick="navigateTo('forex')" class="mt-3 px-4 py-2 bg-primary text-black rounded-lg text-xs font-bold">Open Forex / CFD</button></p>`;
                     return;
                 }
@@ -11271,6 +11312,8 @@
             const setPx = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
             setPx('fx-buy-px', px > 0 ? fmtPx(inst, px) : '—');
             setPx('fx-sell-px', px > 0 ? fmtPx(inst, px) : '—');
+            setPx('fx-oc-buy', px > 0 ? fmtPx(inst, px) : '—');
+            setPx('fx-oc-sell', px > 0 ? fmtPx(inst, px) : '—');
 
             const chgEl = document.getElementById('fx-chg');
             if (chgEl) {
@@ -11372,18 +11415,33 @@
 
         function renderChartTFs() {
             const wrap = document.getElementById('fx-chart-tfs');
-            if (!wrap) return;
-            if (wrap.dataset.done !== '1') {
+            if (wrap && wrap.dataset.done !== '1') {
                 wrap.innerHTML = FX_TIMEFRAMES.map(t =>
                     `<button data-tf="${t.id}" onclick="setForexChartTF('${t.id}')">${t.label}</button>`).join('');
                 wrap.dataset.done = '1';
             }
-            wrap.querySelectorAll('button').forEach(b =>
+            if (wrap) wrap.querySelectorAll('button').forEach(b =>
                 b.classList.toggle('active', b.dataset.tf === state.forexChartTf));
+            const cur = FX_TIMEFRAMES.find(t => t.id === state.forexChartTf);
+            const lab = document.getElementById('fx-tf-chip-label');
+            if (lab) lab.textContent = cur ? cur.label : state.forexChartTf;
+            const chip = document.getElementById('fx-tf-chip');
+            if (chip) chip.classList.toggle('on', !!(wrap && !wrap.classList.contains('hidden')));
+        }
+
+        // TF selector default band — sirf current TF chip dikhta hai, click pe scroll list
+        function toggleFxTFs() {
+            const wrap = document.getElementById('fx-chart-tfs');
+            if (!wrap) return;
+            wrap.classList.toggle('hidden');
+            const chip = document.getElementById('fx-tf-chip');
+            if (chip) chip.classList.toggle('on', !wrap.classList.contains('hidden'));
         }
 
         function setForexChartTF(tf) {
             state.forexChartTf = tf;
+            const wrap = document.getElementById('fx-chart-tfs');
+            if (wrap) wrap.classList.add('hidden');
             renderChartTFs();
             state._tvKey = null; state._tvRetry = 0;
             buildForexChart();
@@ -11487,7 +11545,11 @@
             const limWrap = document.getElementById('fx-limit-wrap');
             if (limWrap) limWrap.classList.toggle('hidden', t === 'Market');
             const mkt = document.getElementById('fx-market-note');
-            if (mkt) mkt.classList.toggle('hidden', t !== 'Market');
+            if (mkt) {
+                const on = t === 'Market';
+                mkt.classList.toggle('hidden', !on);
+                if (on && !mkt.textContent) mkt.textContent = 'Market order · Fills at the live chart price';
+            }
             updateForexOrderPreview();
         }
 
@@ -11631,7 +11693,7 @@
             const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
             set('fx-notional', U(notionalUSDT, 2) + ' USDT');
             set('fx-margin', U(marginUSDT, 2) + ' USDT');
-            set('fx-fee', `${U(feeUSDT, 2)} USDT  (${feePct}%)`);
+            set('fx-fee', `${U(feeUSDT, 2)} USDT (${feePct}%)`);
             set('fx-total', U(totalUSDT, 2) + ' USDT');
             set('fx-avail', U(availUSDT, 2) + ' USDT');
             set('fx-liq', liq > 0 ? fmtPx(inst, liq) : '—');
@@ -11953,7 +12015,7 @@
             const list = state.forexPending.filter(o => fxFilterMatch(o.symbol));
             if (!list.length) {
                 wrap.innerHTML = '<p class="text-textGray text-sm text-center py-8">' +
-                    (state.forexPending.length ? 'Is pair ka koi open order nahi.' : 'Koi open limit/stop order nahi.') + '</p>';
+                    (state.forexPending.length ? 'No open order for this pair.' : 'No open limit/stop orders.') + '</p>';
                 const cb = document.getElementById('fx-cancelall-btn');
                 if (cb) cb.classList.add('hidden');
                 return;
@@ -12006,7 +12068,7 @@
             try {
                 await db.runTransaction(async (t) => {
                     const oDoc = await t.get(orderRef);
-                    if (!oDoc.exists) throw new Error('Order nahi mili');
+                    if (!oDoc.exists) throw new Error('Order not found');
                     if (oDoc.data().status !== 'pending') throw new Error('This order was already processed');
                     const refundINR = Number(oDoc.data().marginINR) || toINR(Number(oDoc.data().marginUSDT) || 0);
                     const feeINR = Number(oDoc.data().feeINR) || toINR(Number(oDoc.data().feeUSDT) || 0);
@@ -12140,13 +12202,13 @@
             const eq = cfd + pnl;
             const avail = Math.max(0, cfd - used);
             const ratio = eq > 0 ? (used / eq) * 100 : 0;
-            set('fx-upnl', (pnl >= 0 ? '+' : '') + U(pnl, 2));
+            set('fx-upnl', (pnl >= 0 ? '+' : '') + U(pnl, 2) + ' USDT');
             const u = document.getElementById('fx-upnl');
             if (u) u.style.color = pnl > 0 ? '#00c853' : pnl < 0 ? '#f6465d' : '#eaecef';
-            set('fx-marg-avail', U(avail, 2));
-            set('fx-marg-used', U(used, 2));
-            set('fx-marg-eq', U(eq, 2));
-            const ba = document.getElementById('fx-bal'); if (ba) ba.textContent = U(cfd, 2);
+            set('fx-mratio', used > 0 ? ratio.toFixed(2) + '%' : '—');
+            set('fx-marg-avail', U(avail, 2) + ' USDT');
+            set('fx-marg-used', U(used, 2) + ' USDT');
+            set('fx-marg-eq', U(eq, 2) + ' USDT');
         }
 
         // ── Positions ─────────────────────────────────────────────────
@@ -12195,8 +12257,15 @@
             const ca = document.getElementById('fx-closeall-btn');
             if (ca) ca.classList.toggle('hidden', state.forexTab !== 'positions' || !list.length);
             if (!list.length) {
-                wrap.innerHTML = '<p class="text-textGray text-sm text-center py-8">' +
-                    (all.length ? 'No open positions for this pair.' : 'No open CFD positions yet.') + '</p>';
+                wrap.innerHTML = `<div class="fx-empty">
+                    <i class="fas fa-inbox"></i>
+                    <b style="display:block;color:var(--text,#eaecef);font-size:13px;margin-bottom:3px;">Available margin: ${U(Math.max(0, (Number((state.userData||{}).cfdBalance !== undefined ? state.userData.cfdBalance : (state.userData||{}).futuresBalance)) || 0) , 2)} USDT</b>
+                    <span style="display:block;margin-bottom:14px;">${all.length ? 'No open positions for this pair.' : 'Transfer funds to your CFD account to start trading.'}</span>
+                    <span style="display:flex;gap:8px;justify-content:center;">
+                        <button onclick="openFxTransfer('toCfd')" class="fx-mini-btn">Transfer</button>
+                        <button onclick="openPay()" class="fx-mini-btn primary">Deposit</button>
+                    </span>
+                </div>`;
                 renderForexPosBadge();
                 updateFxAccountCard();
                 return;
@@ -12555,16 +12624,29 @@
         function toggleFxChart() {
             state.fxChartOpen = state.fxChartOpen === false;
             syncFxChartShell();
+            const tfl = document.getElementById('fx-chart-tfs');
+            if (tfl) tfl.classList.add('hidden');
             if (state.fxChartOpen) { state._tvKey = null; state._tvRetry = 0; renderChartTFs(); setTimeout(buildForexChart, 60); }
         }
         function syncFxChartShell() {
             const open = state.fxChartOpen !== false;
-            const card = document.getElementById('fx-chart-card');
+            const order = document.getElementById('fx-order-mode');
+            const chart = document.getElementById('fx-chart-mode');
             const sh = document.getElementById('fx-chart-shell');
             const btn = document.getElementById('fx-chart-toggle');
-            if (card) card.classList.toggle('hidden', !open);
+            if (order) order.classList.toggle('hidden', open);
+            if (chart) chart.classList.toggle('hidden', !open);
             if (sh) sh.classList.toggle('closed', !open);
             if (btn) btn.classList.toggle('on', open);
+        }
+
+        // Chart page — ek tap me market order
+        function fxOneClick(side) {
+            const inst = state.currentForex;
+            if (!inst) return;
+            state.oneTapSide = side === 'sell' ? 'sell' : 'buy';
+            updateOrderSideUI();
+            placeForexOrder(side);
         }
 
         // ── Order side (Bitget: Buy box / Sell box → ek bada button) ──
@@ -12737,7 +12819,7 @@
                     type: 'internal', status: 'completed',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 }).catch(() => {});
-                showToast(`${moneyPlain(toUSDT(inr))} CFD account me transfer ho gaya`);
+                showToast(`${moneyPlain(toUSDT(inr))} USDT transferred to CFD account`);
                 return true;
             } catch (e) { showToast(e.message, 'error'); return false; }
         }
@@ -12764,7 +12846,7 @@
                     type: 'internal', status: 'completed',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 }).catch(() => {});
-                showToast(`${moneyPlain(toUSDT(inr))} Spot wallet me transfer ho gaya`);
+                showToast(`${moneyPlain(toUSDT(inr))} USDT transferred to Spot wallet`);
                 return true;
             } catch (e) { showToast(e.message, 'error'); return false; }
         }
