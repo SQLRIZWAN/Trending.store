@@ -135,9 +135,13 @@
             } else {
                 // iOS / already installed fallback
                 if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
-                    alert('📲 To install on iOS:\n\nTap the Share button in Safari, then choose "Add to Home Screen".');
+                    alert('📲 Install on iOS\n\nTap the Share button in Safari, then choose "Add to Home Screen".');
+                } else if (/android/i.test(navigator.userAgent)) {
+                    alert('📲 Install on Android\n\nTap the ⋮ menu in the top-right corner, then choose "Add to Home screen".');
+                } else if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
+                    alert('✅ The app is already installed.');
                 } else {
-                    alert('✅ App already installed or browser does not support installation.');
+                    alert('📲 To install this app:\n\nOpen the browser menu (⋮ or ⋯) and choose "Install app" / "Add to Home screen".');
                 }
             }
         }
@@ -1076,7 +1080,7 @@
                 <button onclick="navigateTo('referral'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-users w-5 text-secondary"></i><span>Refer & Earn</span></button>
                 <button onclick="navigateTo('report'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-exclamation-triangle w-5 text-danger"></i><span>Report Issue</span></button>
                 <button onclick="navigateTo('profile'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-user w-5"></i><span>Profile</span></button>
-                <button id="pwa-menu-install-btn" onclick="triggerPWAInstall(); closeSideMenu();" class="pwa-install-btn w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left" style="display:none;">
+                <button id="pwa-menu-install-btn" onclick="triggerPWAInstall(); closeSideMenu();" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left">
                     <i class="fas fa-download w-5 text-yellow-400"></i>
                     <span>Install App</span>
                     <span class="ml-auto text-xs px-2 py-0.5 rounded-full font-bold" style="background:rgba(212,175,55,0.2);color:#d4af37;">PWA</span>
@@ -4119,7 +4123,7 @@
                     }
                     
                     const userRef = db.collection('users').doc(state.user.uid);
-                    const balanceKey = position.mode === 'margin' ? 'marginBalance' : 'futuresBalance';
+                    const balanceKey = position.mode === 'margin' ? 'marginBalance' : 'cfdBalance';
                     
                     transaction.update(posRef, {
                         status: 'liquidated',
@@ -4207,8 +4211,12 @@
             }
             
             const userRef = db.collection('users').doc(state.user.uid);
-            const fromKey = fromAccount + 'Balance';
-            const toKey = toAccount + 'Balance';
+            // Futures aur CFD/Forex ek hi wallet hain → dono cfdBalance par jaate hain
+            const wKey = (a) => ((a === 'futures' ? 'cfd' : a) + 'Balance');
+            const fromKey = wKey(fromAccount);
+            const toKey = wKey(toAccount);
+            // futures aur cfd ab ek hi wallet hain — dono same ho gaye to ye transfer fake hai
+            if (fromKey === toKey) throw new Error("Cannot transfer to the same account");
             
             // Check KYC for large transfers
             if (amount > 100000 && state.userData.kycStatus !== 'verified') {
@@ -4656,6 +4664,9 @@
                             state.userData = doc.data();
                             // ── NEGATIVE BALANCE IMMEDIATE REPAIR (display level + DB level)
                             repairNegativeBalances(state.userData);
+                            // ── Purani futuresBalance → cfdBalance (CFD/Forex/Futures = ek hi wallet)
+                            const mergePatch = mergeCfdWallet(state.userData);
+                            if (mergePatch) db.collection('users').doc(state.user.uid).update(mergePatch).catch(() => {});
                             updateUI();
                             if (state.userData.spotBalance > prevBalance) {
                                 processReferralRewardIfEligible();
@@ -5399,7 +5410,7 @@
             }
             const data = repairNegativeBalances(state.userData);
             const spot   = Math.max(0, Number(data.spotBalance) || 0);
-            const cfd    = Math.max(0, Number(data.cfdBalance !== undefined ? data.cfdBalance : data.futuresBalance) || 0);
+            const cfd    = Math.max(0, cfdBalanceInr(data));
             const futures= cfd;
             const margin = Math.max(0, Number(data.marginBalance) || 0);
             const invest = Math.max(0, Number(data.investBalance) || 0);
@@ -5480,7 +5491,7 @@
             calculateTradingTotal();
             updateForexBalances();
             renderHomeForexWidget();
-            if (state.currentView === 'forex') renderForexPositionsLive();
+            if (state.currentView === 'forex') { updateFxAccountCard(); renderForexPositionsLive(); }
         }
 
         function updateDailyLimits(kycStatus) {
@@ -5513,7 +5524,7 @@
         function checkBalanceForSections(spotBalance) {
             const spot = Number(spotBalance) || 0;
             const margin = Number(state.userData?.marginBalance) || 0;
-            const futures = Number(state.userData?.futuresBalance) || 0;
+            const futures = cfdBalanceInr(state.userData);
             const refBal = Number(state.userData?.referralBalance) || 0;
             // Spendable balance = money that can be moved to spot and used to buy
             // (investBalance is locked in assets, NOT spendable)
@@ -6582,8 +6593,7 @@
             const availCurr = document.getElementById('avail-currency');
             
             const from = document.getElementById('transfer-from').value;
-            const balanceKey = from + 'Balance';
-            const balance = state.userData[balanceKey] || 0;
+            const balance = from === 'futures' ? cfdBalanceInr(state.userData) : Math.max(0, Number(state.userData?.[from + 'Balance']) || 0);
             
             if (currency === 'USDT') {
                 const usdtBalance = balance / state.usdtToInr;
@@ -7507,7 +7517,7 @@
             const spotBalance = Number(state.userData?.spotBalance) || 0;
             const investBalance = Number(state.userData?.investBalance) || 0;
             const marginBalance = Number(state.userData?.marginBalance) || 0;
-            const futuresBalance = Number(state.userData?.futuresBalance) || 0;
+            const futuresBalance = cfdBalanceInr(state.userData);
             const referralBalance = Number(state.userData?.referralBalance) || 0;
             // Free invest balance (not locked in active investments)
             const lockedInvest = (state.userInvestments || [])
@@ -7807,7 +7817,7 @@
 
             // Check all accounts for available balance
             const spotBal = Number(state.userData?.spotBalance) || 0;
-            const futuresBal = Number(state.userData?.futuresBalance) || 0;
+            const futuresBal = cfdBalanceInr(state.userData);
             const marginBal = Number(state.userData?.marginBalance) || 0;
             const refBal = Number(state.userData?.referralBalance) || 0;
             const totalOtherBalance = (target === 'futures' ? spotBal + marginBal : spotBal + futuresBal) + refBal;
@@ -9257,7 +9267,7 @@
             }
 
             const leverage = mode === 'spot' ? 1 : state.currentLeverage;
-            const balanceINR = mode === 'futures' ? (state.userData?.futuresBalance || 0) : mode === 'margin' ? (state.userData?.marginBalance || 0) : (state.userData?.spotBalance || 0);
+            const balanceINR = mode === 'futures' ? cfdBalanceInr(state.userData) : mode === 'margin' ? (state.userData?.marginBalance || 0) : (state.userData?.spotBalance || 0);
             const balanceUSDT = balanceINR / (state.usdtToInr || 103);
             if (price > 0) {
                 const maxQty = (balanceUSDT * leverage) / price;
@@ -9314,7 +9324,7 @@
                 const totalValue = executionPrice * qty; 
                 const leverage = state.currentTradingMode === 'spot' ? 1 : state.currentLeverage; 
                 const margin = totalValue / leverage; 
-                const balanceKey = state.currentTradingMode === 'futures' ? 'futuresBalance' : state.currentTradingMode === 'margin' ? 'marginBalance' : 'spotBalance'; 
+                const balanceKey = state.currentTradingMode === 'futures' ? 'cfdBalance' : state.currentTradingMode === 'margin' ? 'marginBalance' : 'spotBalance'; 
                 
                 // Trading fee (0.1%)
                 const tradingFee = totalValue * 0.001;
@@ -9481,7 +9491,7 @@
             const sellCost = document.getElementById('sell-cost-display'); 
             const estMargin = document.getElementById('est-margin-display'); 
             const maxDisplay = document.getElementById('max-order-display'); 
-            const available = state.userData?.[state.currentTradingMode === 'futures' ? 'futuresBalance' : state.currentTradingMode === 'margin' ? 'marginBalance' : 'spotBalance'] || 0; 
+            const available = state.currentTradingMode === 'futures' ? cfdBalanceInr(state.userData) : (state.userData?.[state.currentTradingMode === 'margin' ? 'marginBalance' : 'spotBalance'] || 0); 
             const availableUSDT = available / (state.usdtToInr || 103);
             // Max qty: account for fee (margin + fee <= available)
             const maxQty = price > 0 ? (availableUSDT * leverage * 0.999) / price : 0; 
@@ -10218,7 +10228,7 @@
             const price = parseFloat(document.getElementById('trade-price-input').value) || state.currentPrice;
             const leverage = state.currentTradingMode === 'spot' ? 1 : state.currentLeverage;
             const mode = state.currentTradingMode;
-            const balanceINR = mode === 'futures' ? (state.userData?.futuresBalance || 0) : mode === 'margin' ? (state.userData?.marginBalance || 0) : (state.userData?.spotBalance || 0);
+            const balanceINR = mode === 'futures' ? cfdBalanceInr(state.userData) : mode === 'margin' ? (state.userData?.marginBalance || 0) : (state.userData?.spotBalance || 0);
             const balanceUSDT = balanceINR / (state.usdtToInr || 103);
             // BAL-09 FIX: Account for 0.1% trading fee so slider at 100% doesn't cause "Insufficient balance"
             // maxAfterFee = balance / (1/leverage + 0.001)
@@ -10969,6 +10979,27 @@
         }
 
         // ═══════════════════════════════════════════════════════════════════
+        // 💱 CFD / FUTURES WALLET — ek hi paisa, do naam. Hamesha cfdBalance.
+        // ═══════════════════════════════════════════════════════════════════
+        function cfdBalanceInr(ud) {
+            ud = ud || state.userData || {};
+            const c = Number(ud.cfdBalance);
+            if (Number.isFinite(c)) return Math.max(0, c);
+            return Math.max(0, Number(ud.futuresBalance) || 0);
+        }
+        // Purani IDs ka paisa futuresBalance me pada ho to ek baar cfdBalance me le aao
+        function mergeCfdWallet(ud) {
+            if (!ud) return null;
+            const fut = Math.max(0, Number(ud.futuresBalance) || 0);
+            if (!(fut > 0)) return null;
+            const cfd = Math.max(0, Number(ud.cfdBalance) || 0);
+            ud.cfdBalance = cfd + fut;
+            ud.futuresBalance = 0;
+            // increment se likho — do tab ke beech race me paisa kabhi galat na ho
+            return { cfdBalance: firebase.firestore.FieldValue.increment(fut), futuresBalance: 0, cfdWalletMergedAt: firebase.firestore.FieldValue.serverTimestamp() };
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
         // 🛡️  NEGATIVE BALANCE GUARD  —  kabhi bhi balance negative nahi hoga
         // ═══════════════════════════════════════════════════════════════════
         const BALANCE_KEYS = ['spotBalance', 'cfdBalance', 'futuresBalance', 'marginBalance', 'investBalance', 'referralBalance'];
@@ -11640,7 +11671,7 @@
         function setForexQtyPct(pct) {
             const inst = state.currentForex, px = state.forexPrice;
             if (!inst || px <= 0) return;
-            const balUSDT = toUSDT(fxAvailableUSDT());
+            const balUSDT = fxAvailableUSDT();
             const feePct = (Number(state.forexConfig.brokerFeeOpenPct) || 0);
             const lev = Number(state.forexLeverage) || 1;
             const mm = Math.max(1, Number(state.forexConfig.maintenanceMarginPct) || 50) / 100;
@@ -11654,18 +11685,9 @@
             updateForexOrderPreview();
         }
 
-        // Available: CFD balance + Spot balance (internal transfer se attached)
-        function fxAvailableUSDT() {
-            const ud = state.userData || {};
-            const cfd = Number(ud.cfdBalance !== undefined ? ud.cfdBalance : ud.futuresBalance) || 0;
-            return cfd;
-        }
-        function fxAvailableAllUSDT() {
-            const ud = state.userData || {};
-            const cfd = Number(ud.cfdBalance !== undefined ? ud.cfdBalance : ud.futuresBalance) || 0;
-            const spot = Number(ud.spotBalance) || 0;
-            return cfd + spot;
-        }
+        // Available (USDT me) — storage INR me hai, isliye hamesha convert karo
+        function fxAvailableUSDT() { return toUSDT(cfdBalanceInr()); }
+        function fxAvailableAllUSDT() { return toUSDT(cfdBalanceInr() + (Number(state.userData?.spotBalance) || 0)); }
 
         function updateForexOrderPreview() {
             const inst = state.currentForex;
@@ -11691,11 +11713,11 @@
             const liq = calcLiqPrice(inst, px, state.oneTapSide, lev);
 
             const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
-            set('fx-notional', U(notionalUSDT, 2) + ' USDT');
-            set('fx-margin', U(marginUSDT, 2) + ' USDT');
-            set('fx-fee', `${U(feeUSDT, 2)} USDT (${feePct}%)`);
-            set('fx-total', U(totalUSDT, 2) + ' USDT');
-            set('fx-avail', U(availUSDT, 2) + ' USDT');
+            set('fx-notional', fxAmt(notionalUSDT, 2));
+            set('fx-margin', fxAmt(marginUSDT, 2));
+            set('fx-fee', `${fxAmt(feeUSDT, 2)} (${feePct}%)`);
+            set('fx-total', fxAmt(totalUSDT, 2));
+            set('fx-avail', fxAmt(availUSDT, 2));
             set('fx-liq', liq > 0 ? fmtPx(inst, liq) : '—');
 
             const insuf = totalUSDT > availUSDT + 1e-9;
@@ -11707,16 +11729,18 @@
             const warn = document.getElementById('fx-insufficient');
             if (warn) {
                 warn.classList.toggle('hidden', !insuf);
-                warn.textContent = insuf ? `Insufficient margin — required ${U(totalUSDT, 2)} USDT` : '';
+                warn.textContent = insuf ? `Insufficient margin — required ${money(toINR(totalUSDT))}` : '';
             }
         }
 
         function calcLiqPrice(inst, entryPx, side, leverage) {
             if (!inst || !entryPx) return 0;
-            const mm = Math.max(1, Number(state.forexConfig.maintenanceMarginPct) || 50) / 100;
             const lev = Math.max(1, Number(leverage) || 1);
-            // Liquidation = entry ∓ (1/lev - mm)  — 0 margin-widening fake
-            const off = Math.max(0.0001, (1 / lev) - mm);
+            // maintenanceMarginPct = margin me se kitna % maintenance me bacha rehna chahiye (0-99).
+            // Loss budget = margin ka (100 - mm)%. Liquidation tab jab price itna move kar jaye.
+            const raw = Number(state.forexConfig.maintenanceMarginPct);
+            const mm = Math.min(0.99, Math.max(0, Number.isFinite(raw) ? raw : 50)) / 100;
+            const off = Math.max(1e-7, (1 / lev) * (1 - mm));
             return side === 'buy' ? entryPx * (1 - off) : entryPx * (1 + off);
         }
 
@@ -11853,7 +11877,7 @@
             const userRef = db.collection('users').doc(state.user.uid);
             const posRef = db.collection('cfdPositions').doc();
             const orderRef = db.collection('cfdOrders').doc();
-            const balKey = (state.userData && state.userData.cfdBalance !== undefined) ? 'cfdBalance' : 'futuresBalance';
+            const balKey = 'cfdBalance';
             const isPending = o.ot !== 'Market';
 
             try {
@@ -12064,7 +12088,7 @@
             if (!od) { state._fxOrdBusy = false; return; }
             const userRef = db.collection('users').doc(state.user.uid);
             const orderRef = db.collection('cfdOrders').doc(id);
-            const balKey = (state.userData && state.userData.cfdBalance !== undefined) ? 'cfdBalance' : 'futuresBalance';
+            const balKey = 'cfdBalance';
             try {
                 await db.runTransaction(async (t) => {
                     const oDoc = await t.get(orderRef);
@@ -12184,7 +12208,7 @@
         // ── Account card (Bitget-style summary) ───────────────────────
         function updateFxAccountCard() {
             const ud = state.userData || {};
-            const cfd = Number(ud.cfdBalance !== undefined ? ud.cfdBalance : ud.futuresBalance) || 0;
+            const cfd = cfdBalanceInr(ud);
             const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
             let pnl = 0, used = 0;
             const list = state.forexPositions || [];
@@ -12199,16 +12223,16 @@
                 pnl += posPnl(pos, px).net;
                 used += Number(pos.marginUSDT) || 0;
             }
-            const eq = cfd + pnl;
-            const avail = Math.max(0, cfd - used);
+            const cfdU = toUSDT(cfd);
+            const eq = cfdU + pnl;
+            const avail = Math.max(0, cfdU - used);
             const ratio = eq > 0 ? (used / eq) * 100 : 0;
-            set('fx-upnl', (pnl >= 0 ? '+' : '') + U(pnl, 2) + ' USDT');
-            const u = document.getElementById('fx-upnl');
-            if (u) u.style.color = pnl > 0 ? '#00c853' : pnl < 0 ? '#f6465d' : '#eaecef';
+            const setH = (id, v) => { const e = document.getElementById(id); if (e) e.innerHTML = v; };
+            setH('fx-upnl', pnlHTML(toINR(pnl)));
             set('fx-mratio', used > 0 ? ratio.toFixed(2) + '%' : '—');
-            set('fx-marg-avail', U(avail, 2) + ' USDT');
-            set('fx-marg-used', U(used, 2) + ' USDT');
-            set('fx-marg-eq', U(eq, 2) + ' USDT');
+            setH('fx-marg-avail', moneyHTML(toINR(avail), 2));
+            setH('fx-marg-used', moneyHTML(toINR(used), 2));
+            setH('fx-marg-eq', moneyHTML(toINR(eq), 2));
         }
 
         // ── Positions ─────────────────────────────────────────────────
@@ -12259,7 +12283,7 @@
             if (!list.length) {
                 wrap.innerHTML = `<div class="fx-empty">
                     <i class="fas fa-inbox"></i>
-                    <b style="display:block;color:var(--text,#eaecef);font-size:13px;margin-bottom:3px;">Available margin: ${U(Math.max(0, (Number((state.userData||{}).cfdBalance !== undefined ? state.userData.cfdBalance : (state.userData||{}).futuresBalance)) || 0) , 2)} USDT</b>
+                    <b style="display:block;color:var(--text,#eaecef);font-size:13px;margin-bottom:3px;">Available margin: ${moneyHTML(cfdBalanceInr(state.userData), 2)}</b>
                     <span style="display:block;margin-bottom:14px;">${all.length ? 'No open positions for this pair.' : 'Transfer funds to your CFD account to start trading.'}</span>
                     <span style="display:flex;gap:8px;justify-content:center;">
                         <button onclick="openFxTransfer('toCfd')" class="fx-mini-btn">Transfer</button>
@@ -12366,7 +12390,7 @@
                     closePx = (inst ? (await getForexPrice(inst)) : 0) || pos.entryPrice;
                 }
                 const r = posPnl(pos, closePx);
-                const balKey = (state.userData && state.userData.cfdBalance !== undefined) ? 'cfdBalance' : 'futuresBalance';
+                const balKey = 'cfdBalance';
                 const posRef = db.collection('cfdPositions').doc(id);
                 const userRef = db.collection('users').doc(state.user.uid);
                 const marginINR = toINR(pos.marginUSDT);
@@ -12417,7 +12441,7 @@
                 await loadForexPositions();
                 showToast(`Position closed — P&L ${r.net >= 0 ? '+' : ''}${U(r.net, 2)} USDT (₹${U(pnlINR, 2)})`);
             } catch (e) {
-                showToast(e.message || 'Close fail hua', 'error');
+                showToast(e.message || 'Could not close the position', 'error');
                 loadForexPositions();
             } finally {
                 state.closingPositions.delete(id);
@@ -12445,12 +12469,14 @@
             const pos = state.forexPositions.find(p => p.id === id);
             if (!pos || state.closingPositions.has(id)) return;
             state.closingPositions.add(id);
-            const balKey = (state.userData && state.userData.cfdBalance !== undefined) ? 'cfdBalance' : 'futuresBalance';
+            const balKey = 'cfdBalance';
             try {
                 const r = posPnl(pos, px);
                 const marginINR = toINR(pos.marginUSDT);
                 const netINR = marginINR + toINR(r.net);
-                const creditINR = Math.max(0, netINR);
+                // Liquidation = pura margin use ho jata hai (maintenance margin engine ke paas).
+                // Sirf tab wapas jab position actually profitable ho.
+                const creditINR = type === 'liquidation' ? Math.max(0, toINR(r.net)) : Math.max(0, netINR);
                 const posRef = db.collection('cfdPositions').doc(id);
                 const userRef = db.collection('users').doc(state.user.uid);
                 await db.runTransaction(async (t) => {
@@ -12739,8 +12765,8 @@
         function fxTransferKeys() {
             const ud = state.userData || {};
             return {
-                fromKey: fxTransferState().dir === 'toCfd' ? 'spotBalance' : (ud.cfdBalance !== undefined ? 'cfdBalance' : 'futuresBalance'),
-                toKey:   fxTransferState().dir === 'toCfd' ? (ud.cfdBalance !== undefined ? 'cfdBalance' : 'futuresBalance') : 'spotBalance'
+                fromKey: fxTransferState().dir === 'toCfd' ? 'spotBalance' : 'cfdBalance',
+                toKey:   fxTransferState().dir === 'toCfd' ? 'cfdBalance' : 'spotBalance'
             };
         }
         function openFxTransfer(dir) {
@@ -12778,7 +12804,8 @@
             const av = fxTransferAvailableUSDT();
             const avEl = document.getElementById('fx-tr-avail'); if (avEl) avEl.textContent = U(av, 2);
             const amt = parseFloat(document.getElementById('fx-tr-amount')?.value) || 0;
-            const inr = document.getElementById('fx-tr-inr'); if (inr) inr.textContent = '≈ ' + moneyPlain(amt);
+            const inr = document.getElementById('fx-tr-inr');
+            if (inr) inr.textContent = '≈ ' + (isUSDT() ? '₹' + U(toINR(amt), 2) : U(amt, 2) + ' USDT');
             const btn = document.getElementById('fx-tr-confirm');
             if (btn) {
                 const bad = !(amt > 0) || amt > av + 1e-9;
@@ -12802,14 +12829,14 @@
             if (!Number.isFinite(amt) || amt <= 0) { showToast('Enter a valid amount', 'error'); return false; }
             const inr = toINR(amt);
             const userRef = db.collection('users').doc(state.user.uid);
-            const balKey = (state.userData && state.userData.cfdBalance !== undefined) ? 'cfdBalance' : 'futuresBalance';
+            const balKey = 'cfdBalance';
             try {
                 await db.runTransaction(async (t) => {
                     const d = await t.get(userRef);
                     if (!d.exists) throw new Error('User not found');
                     const spot = Math.max(0, Number(d.data().spotBalance) || 0);
                     const debit = Math.min(inr, spot);
-                    if (debit <= 0) throw new Error('Spot balance khaali hai');
+                    if (debit <= 0) throw new Error('Spot balance is empty — deposit or transfer funds first');
                     const cfd = Math.max(0, Number(d.data()[balKey]) || 0);
                     t.update(userRef, { spotBalance: spot - debit, [balKey]: cfd + debit });
                 });
@@ -12829,14 +12856,14 @@
             if (!Number.isFinite(amt) || amt <= 0) { showToast('Enter a valid amount', 'error'); return false; }
             const inr = toINR(amt);
             const userRef = db.collection('users').doc(state.user.uid);
-            const balKey = (state.userData && state.userData.cfdBalance !== undefined) ? 'cfdBalance' : 'futuresBalance';
+            const balKey = 'cfdBalance';
             try {
                 await db.runTransaction(async (t) => {
                     const d = await t.get(userRef);
                     if (!d.exists) throw new Error('User not found');
                     const cfd = Math.max(0, Number(d.data()[balKey]) || 0);
                     const debit = Math.min(inr, cfd);
-                    if (debit <= 0) throw new Error('CFD balance khaali hai');
+                    if (debit <= 0) throw new Error('CFD balance is empty');
                     const spot = Math.max(0, Number(d.data().spotBalance) || 0);
                     t.update(userRef, { [balKey]: cfd - debit, spotBalance: spot + debit });
                 });
@@ -12934,7 +12961,7 @@
         // ── CFD balance updater (called from updateUI) ────────────────
         function updateForexBalances() {
             const ud = state.userData || {};
-            const inr = Math.max(0, Number(ud.cfdBalance !== undefined ? ud.cfdBalance : ud.futuresBalance) || 0);
+            const inr = Math.max(0, cfdBalanceInr(ud));
             const usdt = inr / rate();
             const el = document.getElementById('fx-cfd-balance');
             const el2 = document.getElementById('fx-cfd-balance-inr');
