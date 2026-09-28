@@ -55,9 +55,12 @@
     <!-- SweetAlert2 (dialogs: OTP, SL/TP, internal transfer) -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Backward-compat alias — purana code `swal(...)` use karta hai
-        if (typeof window.swal === 'undefined' && typeof window.Swal !== 'undefined') {
-            window.swal = window.Swal;
+        // SweetAlert2 v11 export is a class — calling `swal({...})` directly throws.
+        // Wrap it so the legacy `swal({...})` / `await swal({...})` call sites keep working.
+        if (typeof window.Swal !== 'undefined') {
+            window.swal = function () {
+                return window.Swal.fire.apply(window.Swal, arguments);
+            };
         }
     </script>
     
@@ -201,7 +204,7 @@
         .side-menu.open { right: 0; visibility: visible; pointer-events: all; }
         .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 999; opacity: 0; visibility: hidden; transition: all 0.3s; }
         .menu-overlay.open { opacity: 1; visibility: visible; }
-        .input-trade { background: #0b0e11; border: 1px solid #2b3139; color: #eaecef; padding: 8px 12px; border-radius: 4px; width: 100%; font-family: 'JetBrains Mono', monospace; transition: all 0.2s; }
+        .input-trade { background: #0b0e11; border: 1px solid #2b3139; color: #eaecef; padding: 8px 12px; border-radius: 4px; width: 100%; font-family: 'JetBrains Mono', 'Roboto Mono', Inter, monospace; transition: all 0.2s; }
         .input-trade:focus { outline: none; border-color: #00c853; }
         .input-trade:disabled { background: #1e2329; color: #848e9c; cursor: not-allowed; }
         .mobile-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #151a21; border-top: 1px solid #2b3139; display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; }
@@ -318,7 +321,7 @@
         .border-primary-green { border-color: #00c853; }
         .btn-disabled { opacity: 0.5; pointer-events: none; position: relative; }
         .btn-disabled::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.3); border-radius: inherit; }
-        .referral-code { background: linear-gradient(135deg, #1e2329, #151a21); border: 2px dashed #00c853; border-radius: 12px; padding: 16px; text-align: center; font-family: 'Roboto Mono', 'Courier New', monospace; font-size: 1.2rem; font-weight: bold; color: #00c853; letter-spacing: 2px; }
+        .referral-code { background: linear-gradient(135deg, #1e2329, #151a21); border: 2px dashed #00c853; border-radius: 12px; padding: 16px; text-align: center; font-family: 'Roboto Mono', Inter, 'Courier New', monospace; font-size: 1.2rem; font-weight: bold; color: #00c853; letter-spacing: 2px; }
         
         #forgot-password-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10002; display: none; align-items: center; justify-content: center; padding: 20px; }
         .forgot-box { background: #151a21; border: 1px solid #2b3139; border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
@@ -368,7 +371,7 @@
         /* ── UI POLISH ── */
         * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         /* Fix: Zero dot (nukta) - use plain monospace without slashed zero */
-        .font-mono { font-family: 'Roboto Mono', 'Courier New', monospace !important; font-feature-settings: "zero" 0; -webkit-font-feature-settings: "zero" 0; }
+        .font-mono { font-family: 'Roboto Mono', Inter, 'Courier New', monospace !important; font-feature-settings: "zero" 0; -webkit-font-feature-settings: "zero" 0; }
         /* Fix: ₹ symbol size in balance displays */
         .font-mono::first-letter { font-size: 1em; }
         .feature-card { transition: all .3s cubic-bezier(.4,0,.2,1); }
@@ -425,8 +428,8 @@
         }
         .fx-chip:active { transform: scale(.985); }
         .fx-chip.active { border-color: var(--primary, #00c853); background: rgba(0,200,83,.08); }
-        .fx-sym { font-weight: 800; font-family: 'JetBrains Mono', monospace; font-size: 13px; min-width: 74px; }
-        .fx-px { font-family: 'JetBrains Mono', monospace; font-size: 13px; text-align: right; }
+        .fx-sym { font-weight: 800; font-family: 'JetBrains Mono', 'Roboto Mono', Inter, monospace; font-size: 13px; min-width: 74px; }
+        .fx-px { font-family: 'JetBrains Mono', 'Roboto Mono', Inter, monospace; font-size: 13px; text-align: right; }
         .fx-cat-pill { font-size: 9px; padding: 1px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
         .cat-forex { background: rgba(33,150,243,.16); color: #64b5f6; }
         .cat-metals { background: rgba(212,175,55,.16); color: #d4af37; }
@@ -474,17 +477,17 @@
         .fx-pair-inline { display:inline-flex; align-items:center; gap:7px; padding:5px 6px; border-radius:9px;
             background:transparent; border:0; min-width:0; }
         .fx-pair-inline:active { background:var(--surfaceL,#22282f); }
-        .fx-pair-inline .sym { font-size:17px; font-weight:800; font-family:'JetBrains Mono',monospace; letter-spacing:-.3px; }
+        .fx-pair-inline .sym { font-size:17px; font-weight:800; font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; letter-spacing:-.3px; }
         .fx-pair-inline .caret { font-size:10px; color:var(--textGray,#848e9c); }
         .fx-lev-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 8px; border-radius:7px; font-size:11.5px;
             background:var(--surface,#151a21); border:1px solid var(--border,#2b3139); color:var(--textGray,#848e9c); }
-        .fx-lev-btn b { color:var(--primary,#00c853); font-weight:800; font-family:'JetBrains Mono',monospace; }
+        .fx-lev-btn b { color:var(--primary,#00c853); font-weight:800; font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; }
         .fx-lev-btn i { font-size:9px; }
         .fx-subrow { display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
         .fx-subrow > span:first-child { font-size:12px; color:var(--textGray,#848e9c); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .fx-subrow .rt { display:flex; align-items:center; gap:7px; flex-shrink:0; }
-        .fx-subrow .rt b { font-size:16px; font-weight:800; font-family:'JetBrains Mono',monospace; }
-        .fx-subrow .rt span#fx-chg { font-size:12px; font-weight:700; font-family:'JetBrains Mono',monospace; }
+        .fx-subrow .rt b { font-size:16px; font-weight:800; font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; }
+        .fx-subrow .rt span#fx-chg { font-size:12px; font-weight:700; font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; }
 
         /* ── compact order-type segmented ── */
         .fx-seg-sm { display:inline-flex; gap:3px; padding:3px; background:var(--surfaceL,#22282f); border-radius:9px; }
@@ -496,7 +499,7 @@
         .fx-side { flex:1; padding:9px 12px; border-radius:10px; border:1.5px solid var(--border,#2b3139);
             background:var(--surface,#151a21); text-align:left; transition:.15s; }
         .fx-side .t { font-size:11px; font-weight:700; color:var(--textGray,#848e9c); text-transform:uppercase; }
-        .fx-side .p { display:block; font-size:19px; font-weight:800; font-family:'JetBrains Mono',monospace; margin-top:1px; }
+        .fx-side .p { display:block; font-size:19px; font-weight:800; font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; margin-top:1px; }
         .fx-side.on-buy { border-color:#00c853; background:rgba(0,200,83,.10); }
         .fx-side.on-buy .p, .fx-side.on-buy .t { color:#00c853; }
         .fx-side.on-sell { border-color:#f6465d; background:rgba(246,70,93,.10); }
@@ -505,7 +508,7 @@
         .fx-lot { display:flex; align-items:center; gap:8px; background:var(--surface,#151a21);
             border:1px solid var(--border,#2b3139); border-radius:10px; padding:6px 8px; }
         .fx-lot input { flex:1; min-width:0; background:transparent; border:0; outline:0; color:var(--text,#eaecef);
-            font-size:17px; font-weight:700; font-family:'JetBrains Mono',monospace; padding:6px 2px; }
+            font-size:17px; font-weight:700; font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; padding:6px 2px; }
         .fx-step { width:34px; height:34px; border-radius:8px; background:var(--surfaceL,#22282f); color:var(--text,#eaecef);
             font-size:17px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
         .fx-quick { display:flex; gap:6px; margin-top:8px; }
@@ -517,12 +520,14 @@
         .fx-sum .r { display:flex; justify-content:space-between; align-items:center; padding:7px 0; font-size:12px; border-bottom:1px dashed rgba(255,255,255,.05); }
         .fx-sum .r:last-child { border-bottom:0; }
         .fx-sum .r span { color:var(--textGray,#848e9c); }
-        .fx-sum .r b { font-family:'JetBrains Mono',monospace; font-weight:700; }
+        .fx-sum .r b { font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; font-weight:700; }
 
         .fx-main-btn { width:100%; padding:15px; border-radius:12px; font-size:16px; font-weight:800; letter-spacing:.2px; transition:.15s; }
         .fx-main-btn.buy { background:#00c853; color:#000; }
         .fx-main-btn.sell { background:#f6465d; color:#fff; }
         .fx-main-btn:disabled { opacity:.5; }
+        .fx-main-btn.closed { background:var(--surfaceL,#1e2329) !important; color:#5e6673 !important;
+            border:1px solid var(--border,#2b3139) !important; box-shadow:none !important; opacity:1; }
         .fx-main-btn:active { transform: scale(.99); }
 
         .fx-acct { background:var(--surface,#151a21); border:1px solid var(--border,#2b3139); border-radius:14px; padding:12px 14px; }
@@ -531,7 +536,7 @@
         .fx-acct .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; padding-top:10px; }
         .fx-acct .grid > div { text-align:center; }
         .fx-acct .grid .k { font-size:10px; color:var(--textGray,#848e9c); margin-bottom:3px; }
-        .fx-acct .grid .v { font-size:13px; font-weight:700; font-family:'JetBrains Mono',monospace; }
+        .fx-acct .grid .v { font-size:13px; font-weight:700; font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; }
 
         .fx-tabs2 { display:flex; align-items:center; gap:14px; border-bottom:1px solid var(--border,#2b3139); padding:0 2px; }
         .fx-tabs2 button { padding:11px 2px; font-size:13px; font-weight:700; color:var(--textGray,#848e9c); position:relative; white-space:nowrap; }
@@ -548,9 +553,9 @@
             border-radius:10px; padding:11px 12px; margin-bottom:9px; }
         .fx-ocard.short { border-left-color:#f6465d; }
         .fx-ocard .hd { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; }
-        .fx-ocard .pnl { text-align:right; font-family:'JetBrains Mono',monospace; font-weight:800; font-size:14px; }
+        .fx-ocard .pnl { text-align:right; font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; font-weight:800; font-size:14px; }
         .fx-ocard .kv { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; font-size:10.5px; color:var(--textGray,#848e9c); }
-        .fx-ocard .kv b { display:block; color:var(--text,#eaecef); font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:700; margin-top:2px; }
+        .fx-ocard .kv b { display:block; color:var(--text,#eaecef); font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; font-size:11.5px; font-weight:700; margin-top:2px; }
         .fx-ocard .acts { display:flex; gap:7px; margin-top:9px; }
         .fx-ocard .acts button { flex:1; padding:8px; border-radius:8px; font-size:11.5px; font-weight:700;
             background:var(--surfaceL,#22282f); color:var(--text,#eaecef); border:1px solid var(--border,#2b3139); }
@@ -593,15 +598,15 @@
             background:var(--surface,#151a21); border:1px solid var(--border,#2b3139); color:var(--textGray,#848e9c); font-size:15px; }
         .fx-icon-btn.on { color:var(--primary,#00c853); border-color:rgba(0,200,83,.5); background:rgba(0,200,83,.1); }
         .fx-icon-btn.sm { width:28px; height:28px; font-size:12px; border-radius:8px; }
-        .fx-big { font-size:30px; line-height:1.05; font-weight:800; font-family:'JetBrains Mono',monospace; letter-spacing:-.6px; }
-        .fx-chg { font-size:12.5px; font-weight:700; font-family:'JetBrains Mono',monospace; margin-top:3px; }
+        .fx-big { font-size:30px; line-height:1.05; font-weight:800; font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; letter-spacing:-.6px; }
+        .fx-chg { font-size:12.5px; font-weight:700; font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; margin-top:3px; }
         .fx-tfrow { display:flex; align-items:center; gap:6px; padding:8px 10px; border-bottom:1px solid var(--border,#2b3139); }
         .fx-tfrow .flex-1 { min-width:0; }
         .fx-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; background:var(--surface,#151a21);
             border:1px solid var(--border,#2b3139); border-radius:12px; padding:9px 6px; }
         .fx-strip > div { text-align:center; min-width:0; }
         .fx-strip span { display:block; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--textGray,#848e9c); }
-        .fx-strip b { display:block; font-size:12.5px; font-weight:800; font-family:'JetBrains Mono',monospace; margin-top:3px;
+        .fx-strip b { display:block; font-size:12.5px; font-weight:800; font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; margin-top:3px;
             overflow:hidden; text-overflow:ellipsis; }
         .fx-switch { width:40px; height:23px; border-radius:20px; background:var(--surfaceL,#22282f); border:1px solid var(--border,#2b3139);
             position:relative; transition:.16s; flex-shrink:0; }
@@ -616,7 +621,7 @@
         .fx-lot { gap:6px; padding:5px 6px 5px 10px; }
         .fx-lot .fx-lbl { flex:none; }
         .fx-lot .fx-min { flex:none; font-size:10.5px; color:var(--textGray,#848e9c); white-space:nowrap; }
-        .fx-lot .fx-min b { color:var(--text,#eaecef); font-family:'JetBrains Mono',monospace; font-weight:700; }
+        .fx-lot .fx-min b { color:var(--text,#eaecef); font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; font-weight:700; }
         .fx-lot input { flex:1; min-width:0; text-align:right; font-size:16px; padding:6px 4px; }
         .fx-lot .fx-step { width:32px; height:32px; font-size:16px; background:var(--surfaceL,#22282f); }
         .fx-quick { gap:6px; }
@@ -624,7 +629,7 @@
 
         .fx-info { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px;
             color:var(--textGray,#848e9c); padding:0 2px; }
-        .fx-info b { color:var(--text,#eaecef); font-family:'JetBrains Mono',monospace; font-weight:700; }
+        .fx-info b { color:var(--text,#eaecef); font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; font-weight:700; }
         .fx-info.dim { font-size:11px; opacity:.75; }
         .fx-info .l { display:flex; align-items:center; gap:7px; min-width:0; }
         .fx-plus { width:20px; height:20px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center;
@@ -638,12 +643,12 @@
         .fx-acct2 { background:var(--surface,#151a21); border:1px solid var(--border,#2b3139); border-radius:12px; padding:11px 12px; }
         .fx-acct2 .r1 { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12px;
             color:var(--textGray,#848e9c); padding-bottom:9px; border-bottom:1px solid rgba(255,255,255,.06); }
-        .fx-acct2 .r1 b { color:var(--text,#eaecef); font-family:'JetBrains Mono',monospace; font-weight:800; margin-left:4px; }
+        .fx-acct2 .r1 b { color:var(--text,#eaecef); font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; font-weight:800; margin-left:4px; }
         .fx-acct2 .r2 { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; padding-top:9px; }
         .fx-acct2 .r2 > div:nth-child(2) { text-align:center; }
         .fx-acct2 .r2 > div:nth-child(3) { text-align:right; }
         .fx-acct2 .r2 span { display:block; font-size:10px; color:var(--textGray,#848e9c); }
-        .fx-acct2 .r2 b { display:block; font-size:13px; font-weight:800; font-family:'JetBrains Mono',monospace; margin-top:3px; }
+        .fx-acct2 .r2 b { display:block; font-size:13px; font-weight:800; font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; margin-top:3px; }
 
         /* ── Chart mode ── */
         .fx-tfbar { display:flex; align-items:center; gap:8px; padding:8px 8px 8px 10px; border-bottom:1px solid var(--border,#2b3139); }
@@ -658,7 +663,7 @@
         .fx-oneclick-bar .oc { display:flex; flex-direction:column; align-items:center; gap:2px; padding:9px 6px; border-radius:10px;
             font-weight:800; }
         .fx-oneclick-bar .oc span { font-size:11px; font-weight:700; opacity:.85; }
-        .fx-oneclick-bar .oc b { font-size:16px; font-family:'JetBrains Mono',monospace; }
+        .fx-oneclick-bar .oc b { font-size:16px; font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; }
         .fx-oneclick-bar .oc.buy { background:#00c853; color:#000; }
         .fx-oneclick-bar .oc.sell { background:#f6465d; color:#fff; }
         .fx-oneclick-bar .oc:active { transform:scale(.985); }
@@ -667,6 +672,37 @@
         .swal2-confirm { background:var(--surfaceL,#1e2329) !important; color:var(--text,#eaecef) !important;
             border:1px solid var(--border,#2b3139) !important; border-radius:8px !important; padding:8px 12px !important;
             margin:0 !important; font-size:12px !important; font-weight:700 !important; cursor:pointer; }
+        .swal2-confirm.fx-danger { background:#f6465d !important; color:#fff !important; border-color:#f6465d !important; }
+        /* SweetAlert2 — app ke dark theme ke saath */
+        .swal2-popup { background:var(--surface,#151a21) !important; color:var(--text,#eaecef) !important; border:1px solid var(--border,#2b3139) !important; }
+        .swal2-title { color:var(--text,#eaecef) !important; font-size:18px !important; font-weight:800 !important; }
+        .swal2-html-container { color:var(--textGray,#848e9c) !important; font-size:13.5px !important; }
+        .swal2-backdrop { background:rgba(0,0,0,.78) !important; }
+        .swal2-icon { border-color:#4a90d9 !important; }
+        .swal2-icon .swal2-icon-content { color:#4a90d9 !important; }
+        .swal2-icon.swal2-warning, .swal2-icon.swal2-warning .swal2-icon-content { border-color:#f0b90b !important; color:#f0b90b !important; }
+        .swal2-icon.swal2-success, .swal2-icon.swal2-success .swal2-icon-content { border-color:#00c853 !important; color:#00c853 !important; }
+        .swal2-icon.swal2-error, .swal2-icon.swal2-error .swal2-icon-content { border-color:#f6465d !important; color:#f6465d !important; }
+        .swal2-success-ring { border-color:rgba(0,200,83,.35) !important; }
+        .swal2-success-line { border-color:#00c853 !important; }
+        .swal2-cancel { background:var(--surfaceL,#1e2329) !important; color:var(--text,#eaecef) !important; border:1px solid var(--border,#2b3139) !important; border-radius:8px !important; padding:8px 12px !important; margin:0 !important; font-size:12px !important; font-weight:700 !important; }
+        .swal2-input, .swal2-textarea { background:var(--surfaceL,#1e2329) !important; color:var(--text,#eaecef) !important; border:1px solid var(--border,#2b3139) !important; border-radius:8px !important; }
+        .swal2-input:focus, .swal2-textarea:focus { border-color:#00c853 !important; box-shadow:0 0 0 3px rgba(0,200,83,.15) !important; }
+        .swal2-input::placeholder, .swal2-textarea::placeholder { color:#5e6673 !important; }
+        .swal2-actions { gap:8px !important; }
+        .swal2-footer { color:var(--textGray,#848e9c) !important; font-size:12px !important; }
+
+        /* ── Indicators ── */
+        .fx-ind-sheet { display:flex; flex-direction:column; gap:4px; padding:9px 10px; border-bottom:1px solid var(--border,#2b3139); }
+        .fx-ind-sheet.hidden { display:none; }
+        .fx-ind-sheet .ttl { font-size:10px; letter-spacing:.7px; text-transform:uppercase; color:var(--textGray,#848e9c); }
+        .fx-ind-item { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; padding:7px 9px;
+            border-radius:8px; font-size:12.5px; font-weight:700; background:var(--surfaceL,#22282f);
+            border:1px solid var(--border,#2b3139); color:var(--text,#eaecef); cursor:pointer; text-align:left; }
+        .fx-ind-item.on { border-color:rgba(0,200,83,.45); background:rgba(0,200,83,.1); color:#00c853; }
+        .fx-ind-item .dot { width:8px; height:8px; border-radius:50%; display:inline-block; flex-shrink:0; }
+        .fx-ind-item .st { font-size:10.5px; font-weight:800; letter-spacing:.4px; opacity:.7; }
+        .fx-ind-item .lbl { display:inline-flex; align-items:center; gap:8px; }
     </style>
 </head>
 <body>
@@ -1544,7 +1580,11 @@
                         </button>
                         <span class="flex-1"></span>
                         <button id="fx-chart-toggle" class="fx-icon-btn" onclick="toggleFxChart()" title="Chart">
-                            <i class="fas fa-chart-simple"></i>
+                            <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" aria-hidden="true">
+                                <path d="M4.4 1.7v2.1M4.4 12.2v2.1M11.6 2.5v2.2M11.6 11.3v2.2"/>
+                                <rect x="2.8" y="3.8" width="3.2" height="8.4" rx="0.7" fill="currentColor" stroke="currentColor"/>
+                                <rect x="10" y="4.7" width="3.2" height="6.6" rx="0.7"/>
+                            </svg>
                         </button>
                     </div>
 
@@ -1634,6 +1674,7 @@
                         <p id="fx-insufficient" class="hidden text-[11px] text-danger" style="margin:0;"></p>
                         <p id="fx-oneclick-note" class="hidden"></p>
                         <p id="fx-market-note" class="hidden"></p>
+                        <p id="fx-session-note" class="hidden" style="font-size:11.5px;margin:0 2px;"></p>
 
                         <button id="btn-fx-buy" class="fx-main-btn buy" onclick="onFxMainBtn()">Buy</button>
                         <button id="btn-fx-sell" class="hidden" onclick="placeForexOrder('sell')"></button>
@@ -1662,10 +1703,15 @@
                                 <button class="fx-tf-chip" id="fx-tf-chip" onclick="toggleFxTFs()">
                                     <span id="fx-tf-chip-label">1m</span><i class="fas fa-chevron-down"></i>
                                 </button>
+                                <button class="fx-icon-btn sm" id="fx-ind-btn" onclick="toggleFxIndSheet()" title="Indicators"><i class="fas fa-wave-square"></i></button>
                                 <span class="flex-1"></span>
                                 <button class="fx-icon-btn sm" onclick="toggleFxChart()" title="Close chart"><i class="fas fa-xmark"></i></button>
                             </div>
                             <div id="fx-chart-tfs" class="fx-tfscroll hidden"></div>
+                            <div id="fx-ind-sheet" class="fx-ind-sheet hidden">
+                                <div class="ttl">Indicators</div>
+                                <div id="fx-ind-list"></div>
+                            </div>
                             <div class="fx-chart-shell" id="fx-chart-shell"><div id="fx-tradingview"></div></div>
                             <div class="fx-oneclick-bar">
                                 <button class="oc buy" onclick="fxOneClick('buy')"><span>Buy</span><b id="fx-oc-buy">—</b></button>
@@ -4718,6 +4764,7 @@
                     loadTop500Coins().catch(()=>{});
                     connectBinanceWebSocket();
                     startForexPriceFeed();
+                    startFxSessionTicker();
                     if (!isGuest) loadInitialOrderBook();
                 }, 300);
 
@@ -7532,13 +7579,27 @@
             }).join('') || '<p class="text-textGray text-xs text-center py-2">No trade data</p>';
         }
 
+        let _toastTimer = null;
+        function hideToast() {
+            const t = document.getElementById('toast');
+            if (t) t.classList.remove('show');
+            if (_toastTimer) { clearTimeout(_toastTimer); _toastTimer = null; }
+        }
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
+            if (!toast) return;
             toast.textContent = message;
-            toast.className = 'toast ' + (type === 'error' ? 'error' : '');
+            toast.className = 'toast ' + (type === 'error' ? 'error' : type === 'info' ? 'info' : '');
             toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+            if (_toastTimer) clearTimeout(_toastTimer);
+            _toastTimer = setTimeout(hideToast, 2400);
         }
+
+        // Toast: tap anywhere on it to dismiss immediately
+        document.addEventListener('DOMContentLoaded', () => {
+            const t = document.getElementById('toast');
+            if (t) { t.style.cursor = 'pointer'; t.addEventListener('click', hideToast); }
+        });
 
         // Initialize
         window.onload = () => {
@@ -7778,7 +7839,7 @@
                 else if (m === 'auth/phone-number-already-in-use') showToast('This number is already registered — please sign in', 'error');
                 else if (m === 'auth/invalid-verification-code') showToast('Incorrect OTP', 'error');
                 else if (m === 'auth/too-many-requests') showToast('Too many attempts. Please try again later.', 'error');
-                else showToast((error && error.message) || 'Registration fail hua', 'error');
+                else showToast((error && error.message) || 'Registration failed', 'error');
             } finally {
                 btn.innerHTML = 'Create Account';
                 btn.disabled = false;
@@ -11332,6 +11393,85 @@
             } catch (e) { return 0; }
         }
 
+        // ── Forex market session (UTC) ────────────────────────────────
+        // Weekly: Sunday 21:00 UTC open → Friday 21:00 UTC close.
+        // Daily break: Monday–Thursday 21:00 → 22:00 UTC.
+        const FX_DAY = 86400;
+        function fxNextOpenSec(secs) {
+            const SUN = 21 * 3600;
+            return secs < SUN ? SUN : (7 * FX_DAY) + SUN;
+        }
+        function fxNextStopSec(secs) {
+            for (let d = 1; d <= 5; d++) { const stop = d * FX_DAY + 21 * 3600; if (stop > secs) return stop; }
+            return 8 * FX_DAY + 21 * 3600;
+        }
+        function fxSessionNow() {
+            const n = new Date();
+            const dow = n.getUTCDay();
+            const secs = dow * FX_DAY + n.getUTCHours() * 3600 + n.getUTCMinutes() * 60 + n.getUTCSeconds();
+            const t = n.getTime();
+            const SUN = 21 * 3600, FRI = 5 * FX_DAY + 21 * 3600;
+            if (secs < SUN || secs >= FRI) return { open: false, reason: 'weekend', resumeAt: t + (fxNextOpenSec(secs) - secs) * 1000 };
+            if (dow >= 1 && dow <= 4) {
+                const b0 = dow * FX_DAY + 21 * 3600, b1 = b0 + 3600;
+                if (secs >= b0 && secs < b1) return { open: false, reason: 'break', resumeAt: t + (b1 - secs) * 1000 };
+            }
+            const stop = fxNextStopSec(secs);
+            return { open: true, closesAt: t + (stop - secs) * 1000 };
+        }
+        function fxIsOpen(inst) {
+            const i = inst || state.currentForex;
+            if (i && i.category && i.category !== 'forex') return true;
+            return !!(state.fxSession && state.fxSession.open);
+        }
+        function fmtCountdown(ms) {
+            const total = Math.max(0, Math.floor((Number(ms) || 0) / 1000));
+            const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), sec = total % 60;
+            const p = v => String(v).padStart(2, '0');
+            return p(h) + ':' + p(m) + ':' + p(sec);
+        }
+        function updateFxTradeButtons() {
+            const closed = !fxIsOpen();
+            const buy = document.getElementById('btn-fx-buy');
+            const sell = document.getElementById('btn-fx-sell');
+            const inst = state.currentForex;
+            const side = state.oneTapSide === 'sell' ? 'sell' : 'buy';
+            const label = (side === 'buy' ? 'Buy' : 'Sell') + (inst ? ' ' + inst.symbol : '');
+            if (buy) {
+                buy.disabled = closed;
+                buy.textContent = closed ? 'Market closed' : label;
+                buy.style.opacity = closed ? '.6' : '';
+                buy.style.cursor = closed ? 'not-allowed' : '';
+                buy.classList.toggle('closed', closed);
+                if (closed) buy.classList.remove('neg-locked');
+            }
+            if (sell) { sell.disabled = closed; sell.style.opacity = closed ? '.6' : ''; }
+        }
+        function renderFxSessionUI() {
+            const inst = state.currentForex;
+            const isFx = !inst || !inst.category || inst.category === 'forex';
+            state.fxSession = fxSessionNow();
+            const note = document.getElementById('fx-session-note');
+            if (note) {
+                if (!isFx) { note.classList.add('hidden'); note.textContent = ''; }
+                else {
+                    const s = state.fxSession;
+                    note.classList.remove('hidden');
+                    note.style.color = s.open ? '#00c853' : '#f6465d';
+                    note.textContent = s.open
+                        ? ('Market open · closes in ' + fmtCountdown(s.closesAt - Date.now()))
+                        : ((s.reason === 'break' ? 'Daily break' : 'Forex market closed') + ' · resumes in ' + fmtCountdown(s.resumeAt - Date.now()));
+                }
+            }
+            updateFxTradeButtons();
+        }
+        function startFxSessionTicker() {
+            if (state.fxSessionTimer) clearInterval(state.fxSessionTimer);
+            state.fxSession = fxSessionNow();
+            renderFxSessionUI();
+            state.fxSessionTimer = setInterval(renderFxSessionUI, 1000);
+        }
+
         function startForexPriceFeed() {
             if (state.forexFeedTimer) clearInterval(state.forexFeedTimer);
             const tick = async () => {
@@ -11465,6 +11605,10 @@
             state.forexPrice = 0;
             state.forexPriceAt = 0;
             state.forexPrevClose = 0;
+            // Cached quote se turant price seed — isse margin/fee preview kabhi 0 nahi dikhta
+            const seed = (inst.tvSymbol && _fxCache.quotes) ? Number(_fxCache.quotes[inst.tvSymbol]) : 0;
+            if (seed > 0) { state.forexPrice = seed; state.forexPriceAt = Number(_fxCache.ts) || Date.now(); }
+            refreshFxQuotes(false).then(() => { if (state.currentForex && state.currentForex.symbol === sym && !state.forexPrice) { const q = _fxCache.quotes[inst.tvSymbol]; if (q > 0) { state.forexPrice = q; state.forexPriceAt = _fxCache.ts || Date.now(); renderForexPrice(); renderForexInstrumentList(); } } }).catch(() => {});
             const nameEl = document.getElementById('fx-pair-name');
             if (nameEl) nameEl.textContent = inst.symbol;
             const nmEl = document.getElementById('fx-pair-full');
@@ -11490,6 +11634,75 @@
             { id: '60',  label: '1H' },  { id: '240', label: '4H' },  { id: 'D',  label: '1D' },
             { id: 'W',   label: '1W' }
         ];
+
+        // ── Indicators ────────────────────────────────────────────────
+        const FX_IND_DEFS = [
+            { k: 'ema9',  label: 'EMA 9',          color: '#f0b90b', name: 'Moving Average Exponential', inputs: { length: 9 } },
+            { k: 'ema21', label: 'EMA 21',         color: '#2196f3', name: 'Moving Average Exponential', inputs: { length: 21 } },
+            { k: 'ema50', label: 'EMA 50',         color: '#e040fb', name: 'Moving Average Exponential', inputs: { length: 50 } },
+            { k: 'sma20', label: 'SMA 20',         color: '#00c853', name: 'Moving Average',             inputs: { length: 20 } },
+            { k: 'bb',    label: 'Bollinger Bands', color: '#9c27b0', name: 'Bollinger Bands',            inputs: {} },
+            { k: 'rsi',   label: 'RSI 14',         color: '#ff9800', name: 'Relative Strength Index',    inputs: {} }
+        ];
+        let _fxStudyIds = {};
+        function fxIndicators() {
+            if (!Array.isArray(state.fxIndicators)) {
+                try { state.fxIndicators = JSON.parse(localStorage.getItem('ts_fx_inds') || '[]') || []; } catch (e) { state.fxIndicators = []; }
+            }
+            return state.fxIndicators.filter(k => FX_IND_DEFS.some(d => d.k === k));
+        }
+        function renderFxIndicators() {
+            const wrap = document.getElementById('fx-ind-list');
+            if (!wrap) return;
+            const on = fxIndicators();
+            wrap.innerHTML = FX_IND_DEFS.map(d => {
+                const act = on.indexOf(d.k) >= 0;
+                return `<button class="fx-ind-item ${act ? 'on' : ''}" onclick="toggleFxIndicator('${d.k}')">
+                    <span class="lbl"><span class="dot" style="background:${d.color}"></span>${d.label}</span>
+                    <span class="st">${act ? 'ON' : 'OFF'}</span>
+                </button>`;
+            }).join('');
+        }
+        function toggleFxIndSheet() {
+            const sheet = document.getElementById('fx-ind-sheet');
+            const btn = document.getElementById('fx-ind-btn');
+            if (!sheet) return;
+            const willOpen = sheet.classList.contains('hidden');
+            sheet.classList.toggle('hidden', !willOpen);
+            if (btn) btn.classList.toggle('on', willOpen);
+            if (willOpen) renderFxIndicators();
+        }
+        function toggleFxIndicator(k) {
+            const cur = fxIndicators().slice();
+            const i = cur.indexOf(k);
+            if (i >= 0) cur.splice(i, 1); else cur.push(k);
+            state.fxIndicators = cur;
+            try { localStorage.setItem('ts_fx_inds', JSON.stringify(cur)); } catch (e) {}
+            renderFxIndicators();
+            syncFxIndicators();
+        }
+        function syncFxIndicators() {
+            const w = window.tvWidget;
+            if (!w || typeof w.onChartReady !== 'function') return;
+            const active = fxIndicators();
+            try {
+                w.onChartReady(function () {
+                    Object.keys(_fxStudyIds).forEach(k => {
+                        if (active.indexOf(k) >= 0) return;
+                        try { w.removeEntity(_fxStudyIds[k]); } catch (e) {}
+                        delete _fxStudyIds[k];
+                    });
+                    FX_IND_DEFS.forEach(d => {
+                        if (active.indexOf(d.k) < 0 || _fxStudyIds[d.k]) return;
+                        try {
+                            const r = w.createStudy(d.name, true, false, d.inputs);
+                            if (r && typeof r.then === 'function') r.then(id => { if (id) _fxStudyIds[d.k] = id; }).catch(() => {});
+                            else if (r) _fxStudyIds[d.k] = r;
+                        } catch (e) {}
+                    });
+                });
+            } catch (e) {}
+        }
 
         function renderChartTFs() {
             const wrap = document.getElementById('fx-chart-tfs');
@@ -11557,6 +11770,7 @@
 
             try {
                 if (window.tvWidget) { try { window.tvWidget.remove(); } catch(e){} window.tvWidget = null; }
+                _fxStudyIds = {};
                 el.innerHTML = '';
                 window.tvWidget = new TradingView.widget({
                     container_id: 'fx-tradingview',
@@ -11592,6 +11806,7 @@
                         "mainSeriesProperties.candleStyle.downColor": '#ff3d00'
                     }
                 });
+                setTimeout(syncFxIndicators, 900);
                 // iframe ka size 0 raha to ek baar force rebuild
                 setTimeout(() => {
                     if (state.currentView !== 'forex' || state.fxChartOpen === false) return;
@@ -11670,6 +11885,8 @@
             ['fx-limit-price', 'fx-sl', 'fx-tp'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
             const slOn = document.getElementById('fx-sl-toggle');
             if (slOn) slOn.checked = false;
+            const tpOn = document.getElementById('fx-tp-toggle');
+            if (tpOn) tpOn.checked = false;
             ['fx-sl-wrap', 'fx-tp-wrap'].forEach(id => { const e = document.getElementById(id); if (e) e.classList.add('hidden'); });
             const tpsl = document.getElementById('fx-tpsl-toggle');
             if (tpsl) tpsl.setAttribute('aria-checked', 'false');
@@ -11826,6 +12043,11 @@
             const inst = state.currentForex;
             if (!inst) { showToast('Select an instrument first', 'error'); return; }
             if (!fxEnabled(inst)) { showToast('Trading for this instrument is currently disabled', 'error'); return; }
+            if (!fxIsOpen(inst)) {
+                const s = state.fxSession || fxSessionNow();
+                showToast(s.reason === 'break' ? 'Market closed for the daily break' : 'Forex market is closed right now', 'error');
+                return;
+            }
             if (String(state.forexConfig.maintenanceNotice || '').trim()) {
                 showToast(state.forexConfig.maintenanceNotice.trim(), 'error'); return;
             }
@@ -11847,7 +12069,7 @@
 
             // Guard: order type must be enabled by admin
             const allowed = fxOrderTypes().map(t => t.toLowerCase());
-            if (!allowed.includes(ot.toLowerCase())) { showToast(`${ot} order admin ne band kar rakha hai`, 'error'); return; }
+            if (!allowed.includes(ot.toLowerCase())) { showToast(`${ot} orders are disabled by the platform`, 'error'); return; }
 
             const lev = Math.min(Number(state.forexLeverage) || 1, fxMaxLeverage());
             const cfg = state.forexConfig;
@@ -11943,8 +12165,8 @@
                                     (o.side === 'sell' && o.ot === 'Stop'  && o.execPx >= cur);
                         if (bad) {
                             const hint = o.side === 'buy'
-                                ? (o.ot === 'Limit' ? 'market se kam' : 'market se zyada')
-                                : (o.ot === 'Limit' ? 'market se zyada' : 'market se kam');
+                                ? (o.ot === 'Limit' ? 'below the market' : 'above the market')
+                                : (o.ot === 'Limit' ? 'above the market' : 'below the market');
                             throw new Error(`${o.side.toUpperCase()} ${o.ot} price must be ${hint} (market ${fmtPx(o.inst, cur)})`);
                         }
                     }
@@ -12053,7 +12275,7 @@
                 showToast(msg + ' — ' + money(o.totalINR) + ' debited');
                 resetForexOrderForm();
             } catch (e) {
-                showToast(e.message || 'Order fail hua', 'error');
+                showToast(e.message || 'Order could not be placed', 'error');
                 loadForexPositions();
             } finally {
                 setProcessing('trade', false);
@@ -12156,7 +12378,7 @@
                 await loadForexOrders();
                 updateFxAccountCard();
             } catch (e) {
-                showToast(e.message || 'Cancel fail hua', 'error');
+                showToast(e.message || 'Could not cancel the order', 'error');
             } finally { state._fxOrdBusy = false; }
         }
 
@@ -12243,14 +12465,30 @@
 
         async function closeAllForexPositions() {
             if (!requireAuth('Please sign in', () => closeAllForexPositions())) return;
-            const n = state.forexPositions.filter(p => fxFilterMatch(p.symbol)).length;
-            if (!n) return;
-            const res = await swal({ title: `Close ${n} position(s)?`, text: 'Every position will close at the live price.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Close all' });
+            const list = state.forexPositions.filter(p => fxFilterMatch(p.symbol));
+            if (!list.length) return;
+            const res = await swal({
+                title: `Close ${list.length} position(s)?`,
+                html: `<div style="font-size:13px;color:#848e9c;line-height:1.6;">Every position will be closed at the live market price.<br><b style="color:#eaecef;">This cannot be undone.</b></div>`,
+                icon: 'warning', showCancelButton: true, confirmButtonText: 'Close all',
+                cancelButtonText: 'Cancel', confirmButtonColor: '#f6465d', reverseButtons: true,
+                customClass: { confirmButton: 'fx-danger' }
+            });
             if (!res || !res.isConfirmed) return;
-            for (const pos of state.forexPositions.slice()) {
-                if (!fxFilterMatch(pos.symbol)) continue;
-                await closeForexPosition(pos.id);
+            const btn = document.getElementById('fx-closeall-btn');
+            const prev = btn ? btn.textContent : '';
+            if (btn) { btn.disabled = true; btn.textContent = 'Closing…'; btn.style.opacity = '.6'; }
+            let ok = 0;
+            try {
+                for (const pos of list) {
+                    const done = await closeForexPosition(pos.id, null, { noConfirm: true, silent: true });
+                    if (done) ok++;
+                }
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = prev; btn.style.opacity = '1'; }
             }
+            await loadForexPositions();
+            showToast(ok ? `Closed ${ok} of ${list.length} position(s)` : 'No positions were closed', ok ? 'success' : 'error');
         }
 
         // ── Account card (Bitget-style summary) ───────────────────────
@@ -12277,7 +12515,11 @@
             const ratio = eq > 0 ? (used / eq) * 100 : 0;
             const setH = (id, v) => { const e = document.getElementById(id); if (e) e.innerHTML = v; };
             setH('fx-upnl', pnlHTML(toINR(pnl)));
-            set('fx-mratio', used > 0 ? ratio.toFixed(2) + '%' : '—');
+            const mrEl = document.getElementById('fx-mratio');
+            if (mrEl) {
+                mrEl.textContent = used > 0 ? ratio.toFixed(2) + '%' : '—';
+                mrEl.style.color = used <= 0 ? '#848e9c' : (ratio >= 85 ? '#f6465d' : ratio >= 60 ? '#f0b90b' : '#00c853');
+            }
             setH('fx-marg-avail', moneyHTML(toINR(avail), 2));
             setH('fx-marg-used', moneyHTML(toINR(used), 2));
             setH('fx-marg-eq', moneyHTML(toINR(eq), 2));
@@ -12311,14 +12553,33 @@
             if (b) b.textContent = state.forexPositions.length || '0';
         }
 
+        function posCloseFeeUSDT(pos) {
+            const notional = (Number(pos.quantity) || 0) * (Number(pos.contractSize) || 1) * (Number(pos.entryPrice) || 0);
+            return notional * (Number(pos.closeFeePct) || 0) / 100;
+        }
         function posPnl(pos, px) {
             const p = (Number(px) || pos.entryPrice || 0);
             const d = pos.side === 'buy' ? 1 : -1;
             const gross = (p - pos.entryPrice) * pos.quantity * (Number(pos.contractSize) || 1) * d;
             const openFee = Number(pos.openFeeUSDT) || 0;
-            const closeFee = gross >= 0 ? gross * (Number(pos.closeFeePct) || 0) / 100
-                                       : Math.abs(gross) * (Number(pos.closeFeePct) || 0) / 100;
-            return { gross, fees: openFee + closeFee, net: gross - openFee - closeFee };
+            const closeFee = posCloseFeeUSDT(pos);
+            // net = economic P&L (open fee already debited at entry, close fee charged now)
+            return { gross, openFee, closeFee, fees: openFee + closeFee, net: gross - openFee - closeFee };
+        }
+        // Balance returned on close. The open fee was already taken when the position
+        // opened, so only the close fee is deducted here (no double charge).
+        function posCloseCreditUSDT(pos, px) {
+            const r = posPnl(pos, px);
+            return Math.max(0, (Number(pos.marginUSDT) || 0) + r.gross - r.closeFee);
+        }
+        // Live close price: cached quote first (instant), network only as a fallback.
+        async function resolveClosePrice(pos) {
+            const inst = state.forexInstruments.find(i => i.symbol === pos.symbol);
+            let px = 0;
+            if (state.currentForex && state.currentForex.symbol === pos.symbol && state.forexPrice > 0) px = state.forexPrice;
+            if (!(px > 0) && inst && inst.tvSymbol && _fxCache.quotes && _fxCache.quotes[inst.tvSymbol] > 0) px = _fxCache.quotes[inst.tvSymbol];
+            if (!(px > 0) && inst) px = await getForexPrice(inst);
+            return px > 0 ? px : 0;
         }
 
         function renderForexPositionsLive() {
@@ -12372,12 +12633,12 @@
                     </div>
                     <div class="kv">
                         <div><span>Entry</span><b>${fmtPx(inst, pos.entryPrice)}</b></div>
-                        <div><span>Mark</span><b>${fmtPx(inst, live)}</b></div>
+                        <div><span>Mark</span><b style="color:${col};">${fmtPx(inst, live)}</b></div>
                         <div><span>Liq</span><b style="color:#ffd600;">${pos.liqPrice ? fmtPx(inst, pos.liqPrice) : '—'}</b></div>
                         ${pos.tpPrice ? `<div><span>TP</span><b>${fmtPx(inst, pos.tpPrice)}</b></div>` : ''}
                         ${pos.slPrice ? `<div><span>SL</span><b>${fmtPx(inst, pos.slPrice)}</b></div>` : ''}
                         <div><span>Margin</span><b>${U(mrUsed, 2)}</b></div>
-                        <div><span>MR</span><b style="color:${mrRatio > 90 ? '#f6465d' : '#eaecef'};">${mrRatio.toFixed(1)}%</b></div>
+                        <div><span>MR</span><b style="color:${mrRatio >= 85 ? '#f6465d' : mrRatio >= 60 ? '#f0b90b' : '#00c853'};">${mrRatio.toFixed(1)}%</b></div>
                         <div><span>Fee</span><b>${U(pos.openFeeUSDT || 0, 2)}</b></div>
                     </div>
                     <div class="acts">
@@ -12422,29 +12683,50 @@
         }
 
         // ── Close position ────────────────────────────────────────────
-        async function closeForexPosition(id, priceOverride) {
-            if (!requireAuth('Sign in to close this position', () => closeForexPosition(id, priceOverride))) return;
-            if (state.closingPositions.has(id)) return;
-            state.closingPositions.add(id);
+        async function closeForexPosition(id, priceOverride, opts) {
+            opts = opts || {};
+            if (!requireAuth('Sign in to close this position', () => closeForexPosition(id, priceOverride, opts))) return false;
+            if (state.closingPositions.has(id)) return false;
 
             const pos = state.forexPositions.find(p => p.id === id);
-            if (!pos) { state.closingPositions.delete(id); return; }
+            if (!pos) { if (!opts.silent) showToast('Position not found', 'error'); return false; }
 
+            // Live market price (no self-decided price) — cached quote first so it feels instant
+            let closePx = priceOverride;
+            if (!(closePx > 0)) closePx = await resolveClosePrice(pos);
+            if (!(closePx > 0)) closePx = Number(pos.entryPrice) || 0;
+            if (!(closePx > 0)) { showToast('Live price unavailable — please try again', 'error'); return false; }
+
+            // Confirmation is mandatory before a manual close
+            if (!opts.noConfirm) {
+                const inst = state.forexInstruments.find(i => i.symbol === pos.symbol) || { digits: 5 };
+                const preview = posPnl(pos, closePx);
+                const col = preview.net > 0 ? '#00c853' : preview.net < 0 ? '#f6465d' : '#848e9c';
+                const res = await swal({
+                    title: 'Close this position?',
+                    html: `<div style="font-size:13px;line-height:1.7;text-align:left;color:#848e9c;">
+                        <div style="display:flex;justify-content:space-between;"><span>Position</span><b style="color:#eaecef;">${pos.symbol} · ${pos.side.toUpperCase()} · ${pos.quantity} lot</b></div>
+                        <div style="display:flex;justify-content:space-between;"><span>Entry</span><b style="color:#eaecef;">${fmtPx(inst, pos.entryPrice)}</b></div>
+                        <div style="display:flex;justify-content:space-between;"><span>Close price</span><b style="color:#eaecef;">${fmtPx(inst, closePx)}</b></div>
+                        <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(255,255,255,.08);margin-top:6px;padding-top:6px;"><span>Unrealized P&L</span><b style="color:${col};">${preview.net >= 0 ? '+' : ''}${U(preview.net, 2)} USDT</b></div>
+                    </div>`,
+                    icon: 'question', showCancelButton: true,
+                    confirmButtonText: 'Close position', cancelButtonText: 'Keep open',
+                    confirmButtonColor: '#f6465d', reverseButtons: true, customClass: { confirmButton: 'fx-danger' }
+                });
+                if (!res || !res.isConfirmed) return false;
+            }
+
+            state.closingPositions.add(id);
             try {
-                // Live market price (no self-decided price)
-                let closePx = priceOverride;
-                if (!closePx) {
-                    const inst = state.forexInstruments.find(i => i.symbol === pos.symbol);
-                    closePx = (inst ? (await getForexPrice(inst)) : 0) || pos.entryPrice;
-                }
                 const r = posPnl(pos, closePx);
                 const balKey = 'cfdBalance';
                 const posRef = db.collection('cfdPositions').doc(id);
                 const userRef = db.collection('users').doc(state.user.uid);
                 const marginINR = toINR(pos.marginUSDT);
-                // Net return = margin + net PnL. NEVER below 0 → balance negative nahi hoga.
-                const netINR = marginINR + toINR(r.net);
-                const creditINR = Math.max(0, netINR);
+                // Margin + gross P&L − close fee. The open fee was already debited at
+                // entry, so it is NOT taken again here (that was the double charge).
+                const creditINR = toINR(posCloseCreditUSDT(pos, closePx));
                 const pnlINR = toINR(r.net);
 
                 await db.runTransaction(async (t) => {
@@ -12486,11 +12768,17 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                await loadForexPositions();
-                showToast(`Position closed — P&L ${r.net >= 0 ? '+' : ''}${U(r.net, 2)} USDT (₹${U(pnlINR, 2)})`);
+                if (!opts.silent) {
+                    await loadForexPositions();
+                    showToast(`Position closed — P&L ${r.net >= 0 ? '+' : ''}${U(r.net, 2)} USDT (₹${U(pnlINR, 2)})`);
+                }
+                return true;
             } catch (e) {
-                showToast(e.message || 'Could not close the position', 'error');
-                loadForexPositions();
+                if (!opts.silent) {
+                    showToast(e.message || 'Could not close the position', 'error');
+                    loadForexPositions();
+                }
+                return false;
             } finally {
                 state.closingPositions.delete(id);
             }
@@ -12521,10 +12809,12 @@
             try {
                 const r = posPnl(pos, px);
                 const marginINR = toINR(pos.marginUSDT);
-                const netINR = marginINR + toINR(r.net);
-                // Liquidation = pura margin use ho jata hai (maintenance margin engine ke paas).
-                // Sirf tab wapas jab position actually profitable ho.
-                const creditINR = type === 'liquidation' ? Math.max(0, toINR(r.net)) : Math.max(0, netINR);
+                // Liquidation = margin engine ke paas chala jata hai, sirf bacha hua
+                // P&L wapas milta hai. Warnas margin + gross − close fee milta hai.
+                const creditUSDT = type === 'liquidation'
+                    ? Math.max(0, r.gross - r.closeFee)
+                    : posCloseCreditUSDT(pos, px);
+                const creditINR = toINR(creditUSDT);
                 const posRef = db.collection('cfdPositions').doc(id);
                 const userRef = db.collection('users').doc(state.user.uid);
                 await db.runTransaction(async (t) => {
@@ -12738,10 +13028,12 @@
             const btn = document.getElementById('btn-fx-buy');
             const inst = state.currentForex;
             if (btn) {
-                btn.className = 'fx-main-btn ' + (side === 'buy' ? 'buy' : 'sell');
-                const label = (side === 'buy' ? 'Buy' : 'Sell') + (inst ? ' ' + inst.symbol : '');
-                btn.textContent = label;
-                btn.disabled = false;
+                const closed = !fxIsOpen();
+                btn.className = 'fx-main-btn ' + (side === 'buy' ? 'buy' : 'sell') + (closed ? ' closed' : '');
+                btn.textContent = closed ? 'Market closed' : ((side === 'buy' ? 'Buy' : 'Sell') + (inst ? ' ' + inst.symbol : ''));
+                btn.disabled = closed;
+                btn.style.opacity = closed ? '.6' : '';
+                btn.style.cursor = closed ? 'not-allowed' : '';
             }
         }
         function onFxMainBtn() {
@@ -12845,7 +13137,7 @@
         }
         function fxTransferMax() {
             const a = document.getElementById('fx-tr-amount');
-            if (a) a.value = fxTransferAvailableUSDT().toFixed(2);
+            if (a) a.value = (Math.floor((fxTransferAvailableUSDT() - 1e-9) * 100) / 100).toFixed(2);
             fxTransferPreview();
         }
         function fxTransferPreview() {
@@ -12856,16 +13148,17 @@
             if (inr) inr.textContent = '≈ ' + (isUSDT() ? '₹' + U(toINR(amt), 2) : U(amt, 2) + ' USDT');
             const btn = document.getElementById('fx-tr-confirm');
             if (btn) {
-                const bad = !(amt > 0) || amt > av + 1e-9;
+                const over = amt > av + 0.005;
+                const bad = !(amt > 0) || over;
                 btn.disabled = bad;
                 btn.style.opacity = bad ? '.55' : '1';
-                btn.textContent = !av ? 'Insufficient balance' : (amt > av + 1e-9 ? 'Amount exceeds balance' : 'Confirm transfer');
+                btn.textContent = !av ? 'Insufficient balance' : (over ? 'Amount exceeds balance' : 'Confirm transfer');
             }
         }
         function fxTransferConfirm() {
             const amt = parseFloat(document.getElementById('fx-tr-amount')?.value) || 0;
             if (!(amt > 0)) { showToast('Enter an amount', 'error'); return; }
-            if (amt > fxTransferAvailableUSDT() + 1e-9) { showToast('Insufficient balance', 'error'); return; }
+            if (amt > fxTransferAvailableUSDT() + 0.005) { showToast('Insufficient balance', 'error'); return; }
             const dir = fxTransferState().dir;
             const fn = dir === 'toCfd' ? forexTransferToCfd : forexTransferToSpot;
             fn(amt).then(ok => { if (ok !== false) { closeFxSheet('transfer'); fxTransferPreview(); } });
