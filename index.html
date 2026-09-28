@@ -712,6 +712,9 @@
         <span>Reconnecting...</span>
     </div>
 
+    <!-- Platform control banner (set from Admin Panel → Settings) -->
+    <div id="platform-offline-banner" style="display:none;position:sticky;top:0;z-index:9999;background:#7a1f1f;color:#ffd7d7;font-size:13px;font-weight:600;padding:10px 16px;text-align:center;border-bottom:1px solid #a33;"></div>
+
     <!-- Premium Loading Screen -->
     <div id="loader" class="fixed inset-0 z-[10001] flex flex-col items-center justify-center" style="background:#0b0e11;">
         <style>
@@ -4652,6 +4655,7 @@
                     loadForexConfig(),
                     new Promise(r => setTimeout(r, 1500))
                 ]);
+                startPlatformConfigListener();
 
                 setLoaderProgress(45, isGuest ? 'Loading markets...' : 'Setting up your account...');
                 // ── GUEST: sirf public data, koi user doc / personal listener nahi
@@ -4779,10 +4783,49 @@
                     if (state.adminConfig.usdtAddress) {
                         document.getElementById('usdt-address').textContent = state.adminConfig.usdtAddress;
                     }
+                    applyAdminRate();
                 }
             } catch (error) {
                 console.error('Admin config error:', error);
             }
+        }
+
+        // Admin-set USDT/INR rate overrides the platform default
+        function applyAdminRate() {
+            const r = Number(state.adminConfig && state.adminConfig.usdtToInr);
+            if (!(r > 0)) return;
+            state.FIXED_USDT_INR = r;
+            state.usdtToInr = r;
+            try { localStorage.setItem('usdtInrRate', String(r)); } catch(e) {}
+            updateUSDTDisplay();
+        }
+
+        // ── Platform controls (deposits / withdrawals / registration / trading) ──
+        state.platformFlags = {};
+        function platformFlag(key) {
+            const v = state.platformFlags[key];
+            return v === undefined ? true : !!v;
+        }
+        function startPlatformConfigListener() {
+            try {
+                state.platformFlagsListener = db.collection('website').doc('config').onSnapshot(doc => {
+                    state.platformFlags = doc.exists ? (doc.data() || {}) : {};
+                    applyPlatformBanner();
+                }, () => {});
+                state.listeners.push(state.platformFlagsListener);
+            } catch (e) {}
+        }
+        function applyPlatformBanner() {
+            const el = document.getElementById('platform-offline-banner');
+            if (!el) return;
+            const off = [];
+            if (!platformFlag('depositsEnabled')) off.push('deposits');
+            if (!platformFlag('withdrawalsEnabled')) off.push('withdrawals');
+            if (!platformFlag('tradingEnabled')) off.push('trading');
+            if (!platformFlag('registrationEnabled')) off.push('registration');
+            if (!off.length) { el.style.display = 'none'; el.textContent = ''; return; }
+            el.textContent = 'Temporarily paused: ' + off.join(', ');
+            el.style.display = 'block';
         }
 
         // ==========================================
@@ -6271,6 +6314,7 @@
         }
         
         async function submitWithdraw() {
+            if (!platformFlag('withdrawalsEnabled')) { showToast('Withdrawals are temporarily paused', 'error'); return; }
             if (state.processing.withdraw) return;
             
             // ✅ FIX: Set processing EARLY (before any async call) to prevent double-click race condition
@@ -7077,6 +7121,7 @@
         }
 
         async function verifyLogic() {
+            if (!platformFlag('depositsEnabled')) { showToast('Deposits are temporarily paused', 'error'); return; }
             if (state.processing.deposit) return;
             
             // Check daily deposit limit
@@ -7641,6 +7686,7 @@
             const confirmPassword = document.getElementById('reg-confirm-password').value;
             const referralCode = sanitizeInput(document.getElementById('reg-referral').value.trim());
 
+            if (!platformFlag('registrationEnabled')) { showToast('Registration is temporarily paused', 'error'); return; }
             if (!identity) { showToast('Enter your Gmail or phone number', 'error'); return; }
             if (password.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
             if (password !== confirmPassword) { showToast('Passwords do not match', 'error'); return; }
@@ -9277,6 +9323,7 @@
         }
         
         async function placeTradingOrder(side) { 
+            if (!platformFlag('tradingEnabled')) { showToast('Trading is temporarily paused by the platform', 'error'); return; }
             // Rate limiting check
             if (!checkRateLimit()) return;
             
@@ -11774,6 +11821,7 @@
         async function placeForexOrder(side) {
             // ── Guest: login ke baad wapas yahi action chalega
             if (!requireAuth('Sign in to place an order', () => placeForexOrder(side))) return;
+            if (!platformFlag('tradingEnabled')) { showToast('Trading is temporarily paused by the platform', 'error'); return; }
 
             const inst = state.currentForex;
             if (!inst) { showToast('Select an instrument first', 'error'); return; }
