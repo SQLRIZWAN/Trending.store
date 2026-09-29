@@ -672,6 +672,8 @@
         .fx-chart-lot .fx-lotmax:active { border-color:#00c853; color:#00c853; }
         .fx-chart-lot .fx-chart-marg { flex:none; font-size:10px; color:var(--textGray,#848e9c); white-space:nowrap; letter-spacing:-.1px; }
         .fx-chart-lot .fx-chart-marg b { color:var(--text,#eaecef); font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; }
+        .fx-chart-pnl { flex:none; font-size:10.5px; color:var(--textGray,#848e9c); white-space:nowrap; letter-spacing:-.1px; }
+        .fx-chart-pnl b { font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; font-weight:800; color:var(--text,#eaecef); }
         .fx-exec-hint { font-size:11px; color:var(--textGray,#848e9c); margin:-2px 0 8px; }
         .fx-exec-hint b { font-family:'JetBrains Mono','Roboto Mono',Inter,monospace; font-weight:800; }
         .fx-ocard .sltp-chip { display:inline-block; margin-left:5px; padding:1px 6px; border-radius:5px; font-size:9px;
@@ -864,8 +866,8 @@
             </div>
 
             <p class="text-center text-xs tracking-widest" style="color:#848e9c;">LIVE EXCHANGE RATE</p>
-            <h2 class="text-center font-extrabold mt-1" style="font-size:30px;color:#f5d060;">1 USDT = &#8377;103</h2>
-            <p class="text-center text-sm mt-1" style="color:#e6e8ea;">$1 = &#8377;103 &#x2022; Fixed Rate</p>
+            <h2 class="text-center font-extrabold mt-1" id="rate-popup-rate" style="font-size:30px;color:#f5d060;">1 USDT = &#8377;103</h2>
+            <p class="text-center text-sm mt-1" id="rate-popup-sub" style="color:#e6e8ea;">$1 = &#8377;103 &#x2022; Fixed Rate</p>
 
             <div class="my-5" style="height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,0.35),transparent);"></div>
 
@@ -1725,6 +1727,7 @@
                                 </button>
                                 <button class="fx-icon-btn sm" id="fx-ind-btn" onclick="toggleFxIndSheet()" title="Indicators"><i class="fas fa-wave-square"></i></button>
                                 <span class="flex-1"></span>
+                                <span class="fx-chart-pnl" title="Combined unrealized PnL on all open positions">PnL <b id="fx-chart-pnl">—</b></span>
                                 <button class="fx-icon-btn sm" onclick="toggleFxChart()" title="Close chart"><i class="fas fa-xmark"></i></button>
                             </div>
                             <div id="fx-chart-tfs" class="fx-tfscroll hidden"></div>
@@ -4161,9 +4164,11 @@
                 
                 let liquidated = false;
                 
-                if (pos.side === 'long' && currentPrice <= pos.liqPrice) {
+                const lp = Number(pos.liqPrice);
+                if (!(lp > 0)) return;
+                if (pos.side === 'long' && currentPrice <= lp) {
                     liquidated = true;
-                } else if (pos.side === 'short' && currentPrice >= pos.liqPrice) {
+                } else if (pos.side === 'short' && currentPrice >= lp) {
                     liquidated = true;
                 }
                 
@@ -4191,13 +4196,13 @@
                 const remainingMargin = Math.max(0, position.margin - lossAtLiq - insuranceFee);
                 const remainingMarginINR = remainingMargin * (state.usdtToInr || 103);
                 
-                await db.runTransaction(async (transaction) => {
+                const settled = await db.runTransaction(async (transaction) => {
                     const posRef = db.collection('positions').doc(position.id);
                     const posDoc = await transaction.get(posRef);
                     
                     // Double check: already liquidated?
                     if (!posDoc.exists || posDoc.data().status !== 'open') {
-                        return; // Already processed, skip
+                        return false; // Already processed — caller must not toast or write logs
                     }
                     
                     const userRef = db.collection('users').doc(state.user.uid);
@@ -4218,7 +4223,8 @@
                         });
                     }
                 });
-                
+                if (settled === false) return; // already liquidated — no duplicate toast/log
+
                 await db.collection('liquidations').add({
                     uid: state.user.uid,
                     positionId: position.id,
@@ -4683,9 +4689,17 @@
             if (!state.isGuest) setTimeout(initNotifications, 2000);
         }
 
+        function updateRatePopup() {
+            const r = Number(state.usdtToInr || state.FIXED_USDT_INR) || 103;
+            const a = document.getElementById('rate-popup-rate');
+            const b = document.getElementById('rate-popup-sub');
+            if (a) a.textContent = '1 USDT = ₹' + r.toFixed(2);
+            if (b) b.textContent = '$1 = ₹' + r.toFixed(2) + ' • Fixed Rate';
+        }
         function showRatePopup() {
             const el = document.getElementById('rate-popup');
             if (!el) return;
+            updateRatePopup();
             el.classList.remove('hidden');
             el.classList.add('flex');
             try { sessionStorage.setItem('ratePopupShown', '1'); } catch(e) {}
@@ -4841,6 +4855,13 @@
                 try { state.pnlListener(); } catch(e) {}
                 state.pnlListener = null;
             }
+            // Foree realtime listeners + crypto stream logout par band karo
+            try { stopForexRealtimeListeners(); } catch(e) {}
+            if (state.cryptoStream) {
+                try { state.cryptoStream.onclose = null; state.cryptoStream.close(); } catch(e) {}
+                state.cryptoStream = null;
+            }
+            clearTimeout(state._cryptoReconnect);
             // FIX 3 & 7: Stop polling intervals and cleanup all timers
             clearInterval(state.pollingInterval);
             clearInterval(state.liqPollingInterval);
@@ -4874,6 +4895,7 @@
             state.usdtToInr = r;
             try { localStorage.setItem('usdtInrRate', String(r)); } catch(e) {}
             updateUSDTDisplay();
+            updateRatePopup();
         }
 
         // ── Platform controls (deposits / withdrawals / registration / trading) ──
@@ -5188,81 +5210,249 @@
         // 📈 TOP 500 COINS INTEGRATION
         // ==========================================
         
-        async function loadTop500Coins() {
-            try {
-                document.getElementById('market-loading')?.classList.remove('hidden');
-                document.getElementById('market-retry-btn')?.classList.add('hidden');
-                
-                // BUG-T1 FIX: Fetch both pages to get up to 500 coins (was only page 1 = 250)
-                const [res1, res2] = await Promise.all([
-                    fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h'),
-                    fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=2&sparkline=false&price_change_percentage=24h')
-                ]);
-                
-                if (!res1.ok) throw new Error('API limit reached');
-                
-                const [data1, data2] = await Promise.all([
-                    res1.json(),
-                    res2.ok ? res2.json() : []
-                ]);
-                const data = [...data1, ...data2];
-                
-                state.availablePairs = data.map((coin, index) => ({
-                    id: coin.id,
-                    symbol: coin.symbol.toUpperCase() + 'USDT',
-                    name: coin.name,
-                    base: coin.symbol.toUpperCase(),
-                    quote: 'USDT',
-                    image: coin.image,
-                    current_price: coin.current_price,
-                    price_change_24h: coin.price_change_percentage_24h,
-                    total_volume: coin.total_volume,
-                    market_cap: coin.market_cap
-                }));
-                
-                state.marketData = state.availablePairs;
-                
-                renderMarketList();
-                renderTrending();
-                
-                document.getElementById('market-loading')?.classList.add('hidden');
-                
-            } catch (error) {
-                console.error('Failed to load top coins:', error);
-                document.getElementById('market-loading')?.classList.add('hidden');
-                document.getElementById('market-retry-btn')?.classList.remove('hidden');
-                loadFallbackCoins();
-            }
+        // ── Crypto market data ────────────────────────────────────────
+        // CoinGecko (rich data: icon + market cap) is primary; it rate-limits /
+        // blocks CORS without an Access-Control-Allow-Origin header, so Binance
+        // REST is used as the guaranteed fallback.
+        const _coinIconCache = {};
+        function coinIcon(base) {
+            const b = String(base || '?').toUpperCase().slice(0, 4);
+            if (_coinIconCache[b]) return _coinIconCache[b];
+            let h = 0;
+            for (let i = 0; i < b.length; i++) h = (h * 31 + b.charCodeAt(i)) >>> 0;
+            const hue = h % 360;
+            const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">' +
+                '<rect width="64" height="64" rx="32" fill="hsl(' + hue + ',42%,20%)"/>' +
+                '<text x="32" y="41" text-anchor="middle" font-family="Arial,Helvetica,sans-serif"' +
+                ' font-size="21" font-weight="700" fill="hsl(' + hue + ',85%,66%)">' + b + '</text></svg>';
+            const uri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+            _coinIconCache[b] = uri;
+            return uri;
         }
-        
+
+        function mapGeckoCoin(c) {
+            const base = String(c.symbol || '').toUpperCase();
+            return {
+                id: c.id || base.toLowerCase(),
+                symbol: base + 'USDT',
+                name: c.name || base,
+                base: base,
+                quote: 'USDT',
+                image: c.image || coinIcon(base),
+                current_price: Number(c.current_price) || 0,
+                price_change_24h: Number(c.price_change_percentage_24h) || 0,
+                total_volume: Number(c.total_volume) || 0,
+                market_cap: Number(c.market_cap) || 0
+            };
+        }
+
+        function mapBinanceTicker(t) {
+            const sym = String(t && t.symbol || '');
+            const base = sym.replace(/USDT$/, '');
+            return {
+                id: base.toLowerCase(),
+                symbol: sym,
+                name: coinNameOf(base),
+                base: base,
+                quote: 'USDT',
+                image: coinIcon(base),
+                current_price: Number(t.lastPrice) || 0,
+                price_change_24h: Number(t.priceChangePercent) || 0,
+                total_volume: Number(t.quoteVolume) || 0,
+                market_cap: 0
+            };
+        }
+
+        function setCryptoData(list, source) {
+            state.availablePairs = list;
+            state.marketData = list;
+            state.cryptoSource = source || '';
+            renderMarketList();
+            renderTrending();
+        }
+
+        const COIN_NAMES = {
+            BTC:'Bitcoin', ETH:'Ethereum', USDT:'Tether', BNB:'BNB', SOL:'Solana', USDC:'USD Coin',
+            XRP:'XRP', DOGE:'Dogecoin', ADA:'Cardano', TRX:'TRON', LINK:'Chainlink', AVAX:'Avalanche',
+            SHIB:'Shiba Inu', DOT:'Polkadot', LTC:'Litecoin', BCH:'Bitcoin Cash', UNI:'Uniswap',
+            NEAR:'NEAR Protocol', HBAR:'Hedera', XLM:'Stellar', ETC:'Ethereum Classic', XMR:'Monero',
+            TON:'Toncoin', XCN:'Onyxcoin', SUI:'Sui', APT:'Aptos', ARB:'Arbitrum', OP:'Optimism',
+            ATOM:'Cosmos', FIL:'Filecoin', IMX:'Immutable', RENDER:'Render', INJ:'Injective',
+            VET:'VeChain', RNDR:'Render', AAVE:'Aave', MKR:'Maker', ALGO:'Algorand', FTM:'Fantom',
+            GRT:'The Graph', STX:'Stacks', SAND:'The Sandbox', MANA:'Decentraland', AXS:'Axie Infinity',
+            EGLD:'MultiversX', THETA:'Theta Network', FLOW:'Flow', KAS:'Kaspa', ICP:'Internet Computer',
+            PEPE:'Pepe', WIF:'dogwifhat', BONK:'Bonk', TIA:'Celestia', SEI:'Sei', LDO:'Lido DAO',
+            CRV:'Curve DAO', SNX:'Synthetix', COMP:'Compound', ENA:'Ethena', WLD:'Worldcoin',
+            JUP:'Jupiter', PYTH:'Pyth Network', ORDI:'ORDI', RUNE:'THORChain', MINA:'Mina',
+            KAVA:'Kava', ZEC:'Zcash', DASH:'Dash', EOs:'EOS', TRB:'Tellor', CFX:'Conflux'
+        };
+
+        async function loadCoinsFromGecko() {
+            const base = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=';
+            const p1 = fetchJson(base + '1&sparkline=false&price_change_percentage=24h', 6500);
+            const p2 = fetchJson(base + '2&sparkline=false&price_change_percentage=24h', 6500).catch(() => []);
+            const [r1, r2] = await Promise.all([p1, p2]);
+            const list = (Array.isArray(r1) ? r1 : []).concat(Array.isArray(r2) ? r2 : [])
+                .map(mapGeckoCoin)
+                .filter(c => c.current_price > 0);
+            if (!list.length) throw new Error('CoinGecko returned no data');
+            return list;
+        }
+
+        async function loadCoinsFromBinance() {
+            const rows = await fetchJson('https://api.binance.com/api/v3/ticker/24hr', 9000);
+            const list = (Array.isArray(rows) ? rows : [])
+                .filter(t => t && typeof t.symbol === 'string' && t.symbol.slice(-4) === 'USDT' &&
+                    t.symbol.length > 4 && t.symbol.length <= 14 &&
+                    !/(UP|DOWN|BULL|BEAR)USDT$/.test(t.symbol))
+                .sort((a, b) => (Number(b.quoteVolume) || 0) - (Number(a.quoteVolume) || 0))
+                .slice(0, 300)
+                .map(mapBinanceTicker)
+                .filter(c => c.current_price > 0);
+            if (!list.length) throw new Error('Binance returned no tickers');
+            return list;
+        }
+
+        // Binance se pehle aaye list ko CoinGecko ke naam/icon/market-cap se upgrade karo
+        function upgradeCoinMeta(gecko) {
+            if (!gecko || !gecko.length || !state.marketData || !state.marketData.length) return;
+            const bySym = {};
+            gecko.forEach(c => { bySym[c.symbol] = c; });
+            let dirty = false;
+            state.marketData.forEach(c => {
+                const g = bySym[c.symbol];
+                if (!g) return;
+                if (!c.image || c.image.indexOf('data:') === 0) { c.image = g.image; dirty = true; }
+                if ((!c.name || c.name === c.base) && g.name) { c.name = g.name; dirty = true; }
+                if (!c.market_cap && g.market_cap) { c.market_cap = g.market_cap; dirty = true; }
+                if ((!c.id || c.id === c.base.toLowerCase()) && g.id) { c.id = g.id; }
+            });
+            if (!dirty) return;
+            if (state.currentView === 'market' && (state.marketFilter || 'all') !== 'forex') renderMarketList();
+            if (state.currentView === 'home') renderTrending();
+        }
+
+        function coinNameOf(base) {
+            const b = String(base || '').toUpperCase();
+            if (COIN_NAMES[b]) return COIN_NAMES[b];
+            if (b.length <= 3) return b;
+            return b.charAt(0) + b.slice(1).toLowerCase();
+        }
+
+        function geckoCoolingDown() {
+            try { return Number(sessionStorage.getItem('ts_gecko_down') || 0) > Date.now(); } catch (e) { return false; }
+        }
+        function geckoMarkDown() {
+            try { sessionStorage.setItem('ts_gecko_down', String(Date.now() + 30 * 60 * 1000)); } catch (e) {}
+        }
+
+        async function loadTop500Coins() {
+            document.getElementById('market-loading')?.classList.remove('hidden');
+            document.getElementById('market-retry-btn')?.classList.add('hidden');
+            // Dono source parallel me — jo pehle aaye wo chalao, dusra background me upgrade karega
+            const binP = loadCoinsFromBinance();
+            binP.catch(() => {});
+            // CoinGecko rate-limit / CORS fail hone par 30 min tak dubara mat pucho
+            const geckoP = geckoCoolingDown() ? null : loadCoinsFromGecko().catch(e => { geckoMarkDown(); throw e; });
+            if (geckoP) geckoP.catch(() => {});
+            let list = null;
+            let source = '';
+            try {
+                const racers = [binP.then(l => ({ l: l, s: 'binance' }))];
+                if (geckoP) racers.push(geckoP.then(l => ({ l: l, s: 'coingecko' })));
+                const first = await Promise.race(racers);
+                list = first.l; source = first.s;
+            } catch (e) { /* ek fail hua — abhi dusre ka intezaar */ }
+
+            if (!list || !list.length) {
+                const pend = geckoP ? [geckoP, binP] : [binP];
+                const names = geckoP ? ['coingecko', 'binance'] : ['binance'];
+                const settled = await Promise.allSettled(pend);
+                for (let i = 0; i < settled.length; i++) {
+                    const r = settled[i];
+                    if (r.status === 'fulfilled' && r.value && r.value.length) {
+                        list = r.value;
+                        source = names[i];
+                        break;
+                    }
+                }
+            }
+
+            document.getElementById('market-loading')?.classList.add('hidden');
+            if (!list || !list.length) {
+                document.getElementById('market-retry-btn')?.classList.remove('hidden');
+                if (!state.marketData || !state.marketData.length) {
+                    showToast('Market data temporarily unavailable', 'error');
+                }
+                return false;
+            }
+            setCryptoData(list, source);
+            connectCryptoStream();
+            if (source !== 'coingecko') geckoP.then(upgradeCoinMeta).catch(() => {});
+            return true;
+        }
+
         function refreshMarketData() {
             loadTop500Coins();
         }
-        
+
         async function loadFallbackCoins() {
             try {
-                const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&sparkline=false');
-                const data = await response.json();
-                state.availablePairs = data.map(coin => ({
-                    id: coin.id,
-                    symbol: coin.symbol.toUpperCase() + 'USDT',
-                    name: coin.name,
-                    base: coin.symbol.toUpperCase(),
-                    quote: 'USDT',
-                    image: coin.image,
-                    current_price: coin.current_price,
-                    price_change_24h: coin.price_change_percentage_24h,
-                    total_volume: coin.total_volume,
-                    market_cap: coin.market_cap
-                }));
-                state.marketData = state.availablePairs;
-                renderMarketList();
-                renderTrending();
+                const list = await loadCoinsFromBinance();
                 document.getElementById('market-loading')?.classList.add('hidden');
+                setCryptoData(list, 'binance');
+                connectCryptoStream();
             } catch (error) {
                 console.error('Fallback load failed:', error);
+                document.getElementById('market-loading')?.classList.add('hidden');
+                document.getElementById('market-retry-btn')?.classList.remove('hidden');
                 showToast('Market data temporarily unavailable', 'error');
             }
+        }
+
+        // ── Live crypto prices: one Binance miniTicker stream for all pairs ──
+        function connectCryptoStream() {
+            if (state.cryptoStream && state.cryptoStream.readyState === 1) return;
+            try { if (state.cryptoStream) state.cryptoStream.close(); } catch (e) {}
+            state.cryptoStream = null;
+            clearTimeout(state._cryptoReconnect);
+            try {
+                const ws = new WebSocket('wss://stream.binance.com:9443/ws/!miniTicker@arr');
+                ws.onmessage = ev => {
+                    if (document.hidden) return;
+                    let arr;
+                    try { arr = JSON.parse(ev.data); } catch (e) { return; }
+                    if (!Array.isArray(arr) || !state.marketData || !state.marketData.length) return;
+                    const map = {};
+                    for (let i = 0; i < arr.length; i++) { const t = arr[i]; if (t && t.s) map[t.s] = t; }
+                    let changed = false;
+                    for (let i = 0; i < state.marketData.length; i++) {
+                        const c = state.marketData[i];
+                        const t = map[c.symbol];
+                        if (!t) continue;
+                        const px = Number(t.c);
+                        const chg = Number(t.P);
+                        if (px > 0 && px !== c.current_price) { c.current_price = px; changed = true; }
+                        if (Number.isFinite(chg)) c.price_change_24h = chg;
+                        const vol = Number(t.q);
+                        if (vol > 0) c.total_volume = vol;
+                    }
+                    if (!changed || state._cryptoRenderQ) return;
+                    state._cryptoRenderQ = true;
+                    setTimeout(() => {
+                        state._cryptoRenderQ = false;
+                        if (state.currentView === 'market' && (state.marketFilter || 'all') !== 'forex') renderMarketList();
+                        if (state.currentView === 'home') renderTrending();
+                    }, 800);
+                };
+                ws.onerror = () => {};
+                ws.onclose = () => {
+                    state.cryptoStream = null;
+                    clearTimeout(state._cryptoReconnect);
+                    state._cryptoReconnect = setTimeout(connectCryptoStream, 9000);
+                };
+                state.cryptoStream = ws;
+            } catch (e) { /* streaming is optional */ }
         }
 
         // ==========================================
@@ -5275,7 +5465,7 @@
             const searchTerm = sanitizeInput(document.getElementById('market-search')?.value.toLowerCase() || '');
             const filter = state.marketFilter || 'all';
             
-            let data = state.marketData;
+            let data = state.marketData || [];
             
             if (searchTerm) {
                 data = data.filter(coin => 
@@ -5297,7 +5487,7 @@
             container.innerHTML = data.map(coin => `
                 <div class="market-item" onclick="selectPair('${coin.id}', '${coin.symbol}'); navigateTo('trade');">
                     <div class="flex items-center gap-3 flex-1">
-                        <img src="${coin.image}" alt="${coin.symbol} icon" class="w-8 h-8 rounded-full" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2240%22%20height%3D%2240%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20fill%3D%22%231e2329%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2255%25%22%20text-anchor%3D%22middle%22%20fill%3D%22%23848e9c%22%20font-size%3D%2220%22%3E%3F%3C%2Ftext%3E%3C%2Fsvg%3E'" loading="lazy">
+                        <img src="${coin.image || coinIcon(coin.base)}" alt="${coin.symbol} icon" class="w-8 h-8 rounded-full" loading="lazy">
                         <div>
                             <p class="font-bold text-sm">${coin.symbol.replace('USDT', '')}</p>
                             <p class="text-textGray text-xs">${coin.name}</p>
@@ -5305,12 +5495,12 @@
                     </div>
                     <div class="w-24 text-right">
                         <p class="font-mono font-bold text-sm live-price ${coin.price_change_24h >= 0 ? 'text-primary' : 'text-danger'}">
-                            $${coin.current_price.toLocaleString()}
+                            ${fmtCoinPrice(coin.current_price)}
                         </p>
                     </div>
                     <div class="w-20 text-right">
                         <span class="${coin.price_change_24h >= 0 ? 'text-primary' : 'text-danger'} text-sm font-bold">
-                            ${coin.price_change_24h >= 0 ? '+' : ''}${coin.price_change_24h?.toFixed(2) || 0}%
+                            ${coin.price_change_24h >= 0 ? '+' : ''}${(Number(coin.price_change_24h) || 0).toFixed(2)}%
                         </span>
                     </div>
                 </div>
@@ -5358,21 +5548,32 @@
 
         function renderTrending() {
             const container = document.getElementById('trending-list');
-            const trending = state.marketData.slice(0, 5);
+            if (!container) return;
+            const trending = (state.marketData || []).slice(0, 5);
+            if (!trending.length) { container.innerHTML = ''; return; }
             container.innerHTML = trending.map(coin => `
                 <div class="glass rounded-lg p-3 flex items-center justify-between cursor-pointer" onclick="selectPair('${coin.id}', '${coin.symbol}'); navigateTo('trade');">
                     <div class="flex items-center gap-3">
-                        <img src="${coin.image}" alt="${coin.symbol} icon" class="w-8 h-8 rounded-full" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2240%22%20height%3D%2240%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20fill%3D%22%231e2329%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2255%25%22%20text-anchor%3D%22middle%22%20fill%3D%22%23848e9c%22%20font-size%3D%2220%22%3E%3F%3C%2Ftext%3E%3C%2Fsvg%3E'" loading="lazy">
+                        <img src="${coin.image || coinIcon(coin.base)}" alt="${coin.symbol} icon" class="w-8 h-8 rounded-full" loading="lazy">
                         <div>
                             <p class="font-bold text-sm">${coin.symbol.replace('USDT', '')}</p>
-                            <p class="text-textGray text-xs">$${coin.current_price.toLocaleString()}</p>
+                            <p class="text-textGray text-xs">${fmtCoinPrice(coin.current_price)}</p>
                         </div>
                     </div>
                     <span class="${coin.price_change_24h >= 0 ? 'text-primary' : 'text-danger'} text-sm font-bold">
-                        ${coin.price_change_24h >= 0 ? '+' : ''}${coin.price_change_24h?.toFixed(2) || 0}%
+                        ${coin.price_change_24h >= 0 ? '+' : ''}${(Number(coin.price_change_24h) || 0).toFixed(2)}%
                     </span>
                 </div>
             `).join('');
+        }
+
+        function fmtCoinPrice(p) {
+            const v = Number(p) || 0;
+            if (v <= 0) return '$0.00';
+            if (v < 0.0001) return '$' + v.toFixed(8);
+            if (v < 1) return '$' + v.toFixed(5);
+            if (v < 1000) return '$' + v.toLocaleString(undefined, { maximumFractionDigits: 4 });
+            return '$' + v.toLocaleString(undefined, { maximumFractionDigits: 2 });
         }
 
         function filterMarket(type, evt) {
@@ -7609,19 +7810,53 @@
         }
 
         let _toastTimer = null;
+        let _toastWatch = null;
+        let _toastShownAt = 0;
+        let _toastBlockUntil = 0;
+        let _toastForce = 0;
+        let _toastForceAt = 0;
         function hideToast() {
             const t = document.getElementById('toast');
             if (t) t.classList.remove('show');
             if (_toastTimer) { clearTimeout(_toastTimer); _toastTimer = null; }
+            if (_toastWatch) { clearTimeout(_toastWatch); _toastWatch = null; }
         }
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             if (!toast) return;
+            const now = Date.now();
+            // Flood guard: after the absolute cap the toast pauses briefly so a
+            // repeating caller can never leave it stuck on screen.
+            if (now < _toastBlockUntil) return;
+            if (now - _toastForceAt > 8000) _toastForce = 0;
+            const visible = toast.classList.contains('show');
+            if (visible && now - _toastShownAt < 2200) {
+                // Same episode, inside its normal life — refresh the auto-hide only.
+                if (_toastTimer) clearTimeout(_toastTimer);
+                _toastTimer = setTimeout(hideToast, 2400);
+                return;
+            }
+            if (visible && now - _toastShownAt < 3400) {
+                // Past the refresh window but the watchdog has not fired yet — leave it alone.
+                return;
+            }
+            hideToast();
+            _toastShownAt = now;
             toast.textContent = message;
             toast.className = 'toast ' + (type === 'error' ? 'error' : type === 'info' ? 'info' : '');
             toast.classList.add('show');
-            if (_toastTimer) clearTimeout(_toastTimer);
             _toastTimer = setTimeout(hideToast, 2400);
+            // Watchdog: absolute cap of 3.4s from the moment it first appeared.
+            _toastWatch = setTimeout(() => {
+                const t = document.getElementById('toast');
+                if (t && t.classList.contains('show')) {
+                    hideToast();
+                    // Escalate the pause if a caller keeps re-showing the same toast
+                    _toastForce = Math.min(5, _toastForce + 1);
+                    _toastForceAt = Date.now();
+                    _toastBlockUntil = Date.now() + 1200 * _toastForce;
+                }
+            }, 3400);
         }
 
         // Toast: tap anywhere on it to dismiss immediately
@@ -11318,7 +11553,10 @@
         // Ek hi call me saare instruments ki live price (chart ke source se)
         async function refreshFxQuotes(force) {
             const now = Date.now();
-            const ttl = Math.max(2000, Number(state.forexConfig.quoteTtlMs) || 4500);
+            const fails = Number(_fxCache.fails) || 0;
+            const baseTtl = Math.max(700, Number(state.forexConfig.quoteTtlMs) || 3000);
+            // 429 / network failures → back off instead of hammering the scanner
+            const ttl = baseTtl * (1 + fails * 2);
             if (!force && _fxCache.ts && (now - _fxCache.ts) < ttl && Object.keys(_fxCache.quotes).length) {
                 return _fxCache.quotes;
             }
@@ -11330,6 +11568,7 @@
             const groups = {};
             list.forEach(s => { const m = tvMarket(s); (groups[m] = groups[m] || []).push(s); });
 
+            let ok = 0, bad = 0;
             await Promise.all(Object.keys(groups).map(market => {
                 const body = JSON.stringify({ symbols: { tickers: groups[market] }, columns: ['close', 'change'] });
                 return fetchJson('https://scanner.tradingview.com/' + market + '/scan', 8000, {
@@ -11338,6 +11577,7 @@
                     headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
                     body: body
                 }).then(j => {
+                    ok++;
                     ((j && j.data) || []).forEach(row => {
                         const d = Array.isArray(row.d) ? row.d : [row.d];
                         const px = parseFloat(d[0]);
@@ -11345,11 +11585,38 @@
                         const ch = parseFloat(d[1]);
                         if (row.s && Number.isFinite(ch)) _fxCache.change[row.s] = ch;
                     });
-                }).catch(() => { /* group miss → fallback niche */ });
+                }).catch(() => { bad++; /* group miss → fallback niche */ });
             }));
 
-            if (Object.keys(_fxCache.quotes).length) _fxCache.ts = now;
+            if (Object.keys(_fxCache.quotes).length) _fxCache.ts = Date.now();
+            _fxCache.fails = bad > 0 && ok === 0 ? Math.min(5, fails + 1) : (ok > 0 ? 0 : fails);
             return _fxCache.quotes;
+        }
+
+        // Fast path: sirf currently selected instrument ke liye har tick pe ek
+        // halka single-symbol call — poora group refresh karne se kahi tez.
+        function refreshFxCurrent(inst) {
+            if (!inst || !inst.tvSymbol) return;
+            if (state._fxOneBusy) return;
+            const now = Date.now();
+            if (now - (state._fxOneAt || 0) < 900) return;
+            if (now - (state._fxOneFailAt || 0) < 4000 && (state._fxOneFails || 0) > 0) return;
+            state._fxOneAt = now;
+            state._fxOneBusy = true;
+            const tv = inst.tvSymbol;
+            fetchJson('https://scanner.tradingview.com/symbol?symbol=' + encodeURIComponent(tv) + '&fields=close,change', 6000)
+                .then(j => {
+                    const px = parseFloat(j && j.close);
+                    if (Number.isFinite(px) && px > 0) _fxCache.quotes[tv] = px;
+                    const ch = parseFloat(j && j.change);
+                    if (Number.isFinite(ch)) _fxCache.change[tv] = ch;
+                    state._fxOneFails = 0;
+                })
+                .catch(() => {
+                    state._fxOneFails = (state._fxOneFails || 0) + 1;
+                    state._fxOneFailAt = Date.now();
+                })
+                .then(() => { state._fxOneBusy = false; });
         }
 
         async function getFxRates() {
@@ -11509,32 +11776,38 @@
                     await refreshFxQuotes(false);
                     if (state.currentView === 'market' && state.marketFilter === 'forex') renderMarketForexList();
                 }
-                const inst = state.currentForex;
-                if (!inst || !fxEnabled(inst)) return;
-                // Agar forex view band hai aur koi open position nahi → quota bachao
-                const busy = state.currentView === 'forex'
-                    || (state.user && state.forexPositions && state.forexPositions.length > 0)
-                    || state.currentView === 'home' || state.currentView === 'wallet';
-                if (!busy) return;
-                const px = await getForexPrice(inst);
-                if (px > 0) {
-                    state.forexPrice = px;
-                    state.forexPriceAt = Date.now();
-                    renderForexPrice();
-                }
-                // Pending limit/stop orders ka fill check
+                // Order fill / SL-TP / liquidation must run even when no instrument
+                // is selected — otherwise protection silently stops working.
                 if (state.user && state.forexPending && state.forexPending.length) {
                     checkForexPendingOrders().catch(() => {});
                 }
-                // SL/TP/Liquidation auto-trigger
-                if (state.user && state.forexPositions.length) {
+                if (state.user && state.forexPositions && state.forexPositions.length) {
                     checkForexProtectiveExits().catch(() => {});
                 }
+                const inst = state.currentForex;
+                if (inst && fxEnabled(inst)) {
+                    // Agar forex view band hai aur koi open position nahi → quota bachao
+                    const busy = state.currentView === 'forex'
+                        || (state.user && state.forexPositions && state.forexPositions.length > 0)
+                        || state.currentView === 'home' || state.currentView === 'wallet';
+                    if (busy) {
+                        refreshFxCurrent(inst);
+                        const px = await getForexPrice(inst);
+                        if (px > 0) {
+                            state.forexPrice = px;
+                            state.forexPriceAt = Date.now();
+                            renderForexPrice();
+                        }
+                    }
+                }
                 // Home forex widget live rakho
-                if (state.currentView === 'home') renderHomeForexWidget();
+                if (state.currentView === 'home' && Date.now() - (state._homeFxAt || 0) > 2000) {
+                    state._homeFxAt = Date.now();
+                    renderHomeForexWidget();
+                }
             };
             tick();
-            state.forexFeedTimer = setInterval(tick, 4000);
+            state.forexFeedTimer = setInterval(tick, 1000);
         }
 
         function fxPriceStale() {
@@ -11812,8 +12085,8 @@
                     autosize: true,
                     toolbar_bg: '#151a21',
                     enable_publishing: false,
-                    hide_top_toolbar: true,
-                    hide_side_toolbar: true,
+                    hide_top_toolbar: false,
+                    hide_side_toolbar: false,
                     allow_symbol_change: false,
                     save_image: false,
                     withdateranges: false,
@@ -12036,7 +12309,27 @@
         }
 
         // Available (USDT me) — storage INR me hai, isliye hamesha convert karo
-        function fxAvailableUSDT() { return toUSDT(cfdBalanceInr()); }
+        function fxPosPrice(pos) {
+            if (!pos) return 0;
+            if (state.currentForex && state.currentForex.symbol === pos.symbol && state.forexPrice > 0) return state.forexPrice;
+            const inst = state.forexInstruments.find(i => i.symbol === pos.symbol);
+            const q = inst && inst.tvSymbol && _fxCache.quotes ? _fxCache.quotes[inst.tvSymbol] : 0;
+            if (q > 0) return q;
+            return Number(pos.entryPrice) || 0;
+        }
+        // Unrealized PnL = gross only. Broker fee alag se book hota hai, isliye
+        // trade karte hi loss dikhane ke liye fee adjust nahi ki jati.
+        function fxUnrealizedUSDT() {
+            let t = 0;
+            const list = state.forexPositions || [];
+            for (let i = 0; i < list.length; i++) t += posPnl(list[i], fxPosPrice(list[i])).gross;
+            return t;
+        }
+        function fxAvailableUSDT() {
+            // Margin open karte hi balance se kat chuka hota hai, isliye available
+            // = CFD balance + unrealized PnL (dusri baar margin mat katao).
+            return Math.max(0, toUSDT(cfdBalanceInr()) + fxUnrealizedUSDT());
+        }
         function fxAvailableAllUSDT() { return toUSDT(cfdBalanceInr() + (Number(state.userData?.spotBalance) || 0)); }
 
         function updateForexOrderPreview() {
@@ -12588,35 +12881,40 @@
             let pnl = 0, used = 0;
             const list = state.forexPositions || [];
             for (const pos of list) {
-                let px = pos.entryPrice;
-                if (state.currentForex && state.currentForex.symbol === pos.symbol && state.forexPrice > 0) px = state.forexPrice;
-                else {
-                    const inst = state.forexInstruments.find(i => i.symbol === pos.symbol);
-                    const q = inst && _fxCache.quotes ? _fxCache.quotes[inst.tvSymbol] : 0;
-                    if (q > 0) px = q;
-                }
-                pnl += posPnl(pos, px).net;
+                pnl += posPnl(pos, fxPosPrice(pos)).gross;
                 used += Number(pos.marginUSDT) || 0;
             }
             const cfdU = toUSDT(cfd);
             const eq = cfdU + pnl;
-            const avail = Math.max(0, cfdU - used);
-            const ratio = eq > 0 ? (used / eq) * 100 : 0;
+            // Margin already debited from the balance, so available = balance + unrealized
+            const avail = Math.max(0, cfdU + pnl);
+            const ratio = used > 0 ? (eq > 0 ? (used / eq) * 100 : 99999) : 0;
             const setH = (id, v) => { const e = document.getElementById(id); if (e) e.innerHTML = v; };
             setH('fx-upnl', pnlHTML(toINR(pnl)));
             const mrEl = document.getElementById('fx-mratio');
             if (mrEl) {
-                mrEl.textContent = used > 0 ? ratio.toFixed(2) + '%' : '—';
+                mrEl.textContent = used > 0 ? (Math.min(99999, Math.max(0, ratio))).toFixed(2) + '%' : '—';
                 mrEl.style.color = used <= 0 ? '#848e9c' : (ratio >= 85 ? '#f6465d' : ratio >= 60 ? '#f0b90b' : '#00c853');
             }
             setH('fx-marg-avail', moneyHTML(toINR(avail), 2));
             setH('fx-marg-used', moneyHTML(toINR(used), 2));
             setH('fx-marg-eq', moneyHTML(toINR(eq), 2));
+            const cpEl = document.getElementById('fx-chart-pnl');
+            if (cpEl) {
+                cpEl.textContent = (pnl >= 0 ? '+' : '') + U(pnl, 2);
+                cpEl.style.color = pnl > 0 ? '#00c853' : pnl < 0 ? '#f6465d' : '#848e9c';
+            }
         }
 
         // ── Positions ─────────────────────────────────────────────────
         async function loadForexPositions() {
-            if (!state.user) { state.forexPositions = []; renderForexPositionsLive(); renderForexPosBadge(); return; }
+            if (!state.user) {
+                stopForexRealtimeListeners();
+                state.forexPositions = [];
+                renderForexPositionsLive();
+                renderForexPosBadge();
+                return;
+            }
             try {
                 const open = await db.collection('cfdPositions')
                     .where('uid', '==', state.user.uid)
@@ -12635,6 +12933,52 @@
             }
             renderForexPosBadge();
             updateFxAccountCard();
+            startForexRealtimeListeners();
+        }
+
+        // Realtime sync: doosre device / admin se SL-TP ya status badle to turant aaye
+        function startForexRealtimeListeners() {
+            if (!state.user) { stopForexRealtimeListeners(); return; }
+            if (!state._fxPosUnsub) {
+                try {
+                    state._fxPosUnsub = db.collection('cfdPositions')
+                        .where('uid', '==', state.user.uid)
+                        .where('status', '==', 'open')
+                        .limit(100)
+                        .onSnapshot(snap => {
+                            const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                            docs.sort((a, b) => (b.openedAt?.seconds || 0) - (a.openedAt?.seconds || 0));
+                            state.forexPositions = docs;
+                            if (state.currentView === 'forex') {
+                                renderForexPositionsLive();
+                                if (state.forexTab === 'positions') {
+                                    const ca = document.getElementById('fx-closeall-btn');
+                                    if (ca) ca.classList.toggle('hidden', !state.forexPositions.filter(p => fxFilterMatch(p.symbol)).length);
+                                }
+                            }
+                            renderForexPosBadge();
+                            updateFxAccountCard();
+                        }, () => {});
+                } catch (e) { /* one-shot load still covers us */ }
+            }
+            if (!state._fxOrdUnsub) {
+                try {
+                    state._fxOrdUnsub = db.collection('cfdOrders')
+                        .where('uid', '==', state.user.uid)
+                        .where('status', '==', 'pending')
+                        .limit(50)
+                        .onSnapshot(snap => {
+                            const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                            docs.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                            state.forexPending = docs;
+                            if (state.currentView === 'forex') renderForexOrders();
+                        }, () => {});
+                } catch (e) { /* ignore */ }
+            }
+        }
+        function stopForexRealtimeListeners() {
+            if (state._fxPosUnsub) { try { state._fxPosUnsub(); } catch (e) {} state._fxPosUnsub = null; }
+            if (state._fxOrdUnsub) { try { state._fxOrdUnsub(); } catch (e) {} state._fxOrdUnsub = null; }
         }
 
         function renderForexPosBadge() {
@@ -12703,11 +13047,14 @@
                     if (q > 0) live = q;
                 }
                 const r = posPnl(pos, live);
-                const col = r.net > 0 ? '#00c853' : r.net < 0 ? '#f6465d' : '#848e9c';
+                // Display unrealized PnL = gross (fee is charged at close, not now)
+                const u = r.gross;
+                const col = u > 0 ? '#00c853' : u < 0 ? '#f6465d' : '#848e9c';
                 const buy = pos.side === 'buy';
                 const mrUsed = Number(pos.marginUSDT) || 0;
-                const mrEq = mrUsed + r.net;
-                const mrRatio = mrEq > 0 ? (mrUsed / mrEq) * 100 : 100;
+                const mrEq = mrUsed + u;
+                const mrRatio = mrEq > 0 ? (mrUsed / mrEq) * 100 : 99999;
+                const mrTxt = mrRatio >= 99999 ? '99999%' : mrRatio.toFixed(1) + '%';
                 return `<div class="fx-ocard ${buy ? '' : 'short'}">
                     <div class="hd">
                         <div>
@@ -12717,8 +13064,8 @@
                             <span class="sltp-chip ${(pos.tpPrice || pos.slPrice) ? 'on' : 'off'}">${(pos.tpPrice || pos.slPrice) ? 'SL/TP SET' : 'NO SL/TP'}</span>
                         </div>
                         <div class="pnl" style="color:${col};">
-                            <div>${r.net >= 0 ? '+' : ''}${U(r.net, 2)} USDT</div>
-                            <div class="sub">${r.net >= 0 ? '+' : ''}₹${U(toINR(r.net), 2)}</div>
+                            <div>${u >= 0 ? '+' : ''}${U(u, 2)} USDT</div>
+                            <div class="sub">${u >= 0 ? '+' : ''}₹${U(toINR(u), 2)}</div>
                         </div>
                     </div>
                     <div class="kv">
@@ -12728,7 +13075,7 @@
                         <div><span>TP</span><b style="color:${pos.tpPrice ? '#00c853' : '#5e6673'};">${pos.tpPrice ? fmtPx(inst, pos.tpPrice) : '—'}</b></div>
                         <div><span>SL</span><b style="color:${pos.slPrice ? '#f6465d' : '#5e6673'};">${pos.slPrice ? fmtPx(inst, pos.slPrice) : '—'}</b></div>
                         <div><span>Margin</span><b>${U(mrUsed, 2)}</b></div>
-                        <div><span>MR</span><b style="color:${mrRatio >= 85 ? '#f6465d' : mrRatio >= 60 ? '#f0b90b' : '#00c853'};">${mrRatio.toFixed(1)}%</b></div>
+                        <div><span>MR</span><b style="color:${mrRatio >= 85 ? '#f6465d' : mrRatio >= 60 ? '#f0b90b' : '#00c853'};">${mrTxt}</b></div>
                         <div><span>Fee</span><b>${U(pos.openFeeUSDT || 0, 2)}</b></div>
                     </div>
                     <div class="acts">
@@ -12791,14 +13138,16 @@
             if (!opts.noConfirm) {
                 const inst = state.forexInstruments.find(i => i.symbol === pos.symbol) || { digits: 5 };
                 const preview = posPnl(pos, closePx);
-                const col = preview.net > 0 ? '#00c853' : preview.net < 0 ? '#f6465d' : '#848e9c';
+                const col = preview.gross > 0 ? '#00c853' : preview.gross < 0 ? '#f6465d' : '#848e9c';
                 const res = await swal({
                     title: 'Close this position?',
                     html: `<div style="font-size:13px;line-height:1.7;text-align:left;color:#848e9c;">
                         <div style="display:flex;justify-content:space-between;"><span>Position</span><b style="color:#eaecef;">${pos.symbol} · ${pos.side.toUpperCase()} · ${pos.quantity} lot</b></div>
                         <div style="display:flex;justify-content:space-between;"><span>Entry</span><b style="color:#eaecef;">${fmtPx(inst, pos.entryPrice)}</b></div>
                         <div style="display:flex;justify-content:space-between;"><span>Close price</span><b style="color:#eaecef;">${fmtPx(inst, closePx)}</b></div>
-                        <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(255,255,255,.08);margin-top:6px;padding-top:6px;"><span>Unrealized P&L</span><b style="color:${col};">${preview.net >= 0 ? '+' : ''}${U(preview.net, 2)} USDT</b></div>
+                        <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(255,255,255,.08);margin-top:6px;padding-top:6px;"><span>Unrealized P&L</span><b style="color:${col};">${preview.gross >= 0 ? '+' : ''}${U(preview.gross, 2)} USDT</b></div>
+                        <div style="display:flex;justify-content:space-between;"><span>Close fee</span><b style="color:#f0b90b;">${preview.closeFee >= 0 ? '-' : ''}${U(preview.closeFee, 2)} USDT</b></div>
+                        <div style="display:flex;justify-content:space-between;"><span>You receive</span><b style="color:${col};">${preview.net >= 0 ? '+' : ''}${U(preview.net, 2)} USDT</b></div>
                     </div>`,
                     icon: 'question', showCancelButton: true,
                     confirmButtonText: 'Close position', cancelButtonText: 'Keep open',
@@ -12876,20 +13225,49 @@
 
         // ── SL/TP auto-trigger (called from price feed) ───────────────
         async function checkForexProtectiveExits() {
-            if (!state.user || !state.forexPositions.length) return;
-            for (const pos of state.forexPositions.slice()) {
-                if (state.closingPositions.has(pos.id)) continue;
-                const inst = state.forexInstruments.find(i => i.symbol === pos.symbol);
-                const px = inst ? (await getForexPrice(inst)) : 0;
-                if (!px) continue;
-                const hitTP = pos.tpPrice && (pos.side === 'buy' ? px >= pos.tpPrice : px <= pos.tpPrice);
-                const hitSL = pos.slPrice && (pos.side === 'buy' ? px <= pos.slPrice : px >= pos.slPrice);
-                const hitLiq = pos.liqPrice && (pos.side === 'buy' ? px <= pos.liqPrice : px >= pos.liqPrice);
-                if (hitTP || hitSL || hitLiq) {
-                    const type = hitTP ? 'take_profit' : hitSL ? 'stop_loss' : 'liquidation';
-                    await closeForexPositionByType(pos.id, px, type);
+            if (!state.user || !state.userData) return;
+            if (!state.forexPositions || !state.forexPositions.length) return;
+            const now = Date.now();
+            if (state._fxExitBusy || now - (state._fxExitAt || 0) < 700) return;
+            state._fxExitBusy = true;
+            state._fxExitAt = now;
+            try {
+                const raw = Number(state.forexConfig.maintenanceMarginPct);
+                const mm = Math.min(0.99, Math.max(0, Number.isFinite(raw) ? raw : 50)) / 100;
+                let totalGross = 0;
+                for (const pos of state.forexPositions.slice()) {
+                    if (state.closingPositions.has(pos.id)) continue;
+                    const inst = state.forexInstruments.find(i => i.symbol === pos.symbol);
+                    // Cached quote first so the check keeps running even when the
+                    // live fetch fails — otherwise liquidation never fires.
+                    let px = fxPosPrice(pos);
+                    if (!(px > 0)) px = inst ? (await getForexPrice(inst)) : 0;
+                    if (!(px > 0)) continue;
+                    const r = posPnl(pos, px);
+                    totalGross += r.gross;
+                    const hitTP = pos.tpPrice && (pos.side === 'buy' ? px >= pos.tpPrice : px <= pos.tpPrice);
+                    const hitSL = pos.slPrice && (pos.side === 'buy' ? px <= pos.slPrice : px >= pos.slPrice);
+                    const marginUSDT = Number(pos.marginUSDT) || 0;
+                    let liqP = Number(pos.liqPrice) || 0;
+                    if (!(liqP > 0)) liqP = calcLiqPrice(inst, pos.entryPrice, pos.side, pos.leverage) || 0;
+                    const hitLiq = liqP > 0 && (pos.side === 'buy' ? px <= liqP : px >= liqP);
+                    // Safety net: position equity ne maintenance level chhuk liya
+                    const hitEq = marginUSDT > 0 && (marginUSDT + r.gross) <= marginUSDT * mm;
+                    if (hitTP || hitSL || hitLiq || hitEq) {
+                        const type = hitTP ? 'take_profit' : hitSL ? 'stop_loss' : 'liquidation';
+                        await closeForexPositionByType(pos.id, px, type);
+                    }
                 }
-            }
+                // Account level: equity zero ho chuki hai to baaki sab bhi liquidate
+                if (state.forexPositions.length && (toUSDT(cfdBalanceInr()) + totalGross) <= 0) {
+                    for (const pos of state.forexPositions.slice()) {
+                        if (state.closingPositions.has(pos.id)) continue;
+                        const px = fxPosPrice(pos);
+                        if (px > 0) await closeForexPositionByType(pos.id, px, 'liquidation');
+                    }
+                }
+            } catch (e) { /* next tick will retry */ }
+            finally { state._fxExitBusy = false; }
         }
         async function closeForexPositionByType(id, px, type) {
             const pos = state.forexPositions.find(p => p.id === id);
