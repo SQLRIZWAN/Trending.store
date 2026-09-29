@@ -727,14 +727,13 @@
 
         /* ═══ SQL Ai + Support chat dock ═══ */
         #fx-dock { position: fixed; right: 14px; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 9990; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
-        .fx-fab { width: 50px; height: 50px; border-radius: 50%; border: 1px solid rgba(255,255,255,.16); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; box-shadow: 0 10px 26px rgba(0,0,0,.55); cursor: pointer; position: relative; transition: transform .18s ease; }
-        .fx-fab:active { transform: scale(.93); }
-        .fx-fab.ai { background: linear-gradient(140deg, #00c853, #006b30); }
-        .fx-fab.chat { background: linear-gradient(140deg, #2f6bff, #1436a3); }
-        .fx-fab .dot { position: absolute; top: -2px; right: -2px; min-width: 17px; height: 17px; border-radius: 9px; background: #f6465d; color: #fff; font-size: 10px; font-weight: 800; display: none; align-items: center; justify-content: center; padding: 0 4px; border: 1.5px solid #0b0e11; }
-        .fx-fab .dot.on { display: flex; }
+        .fx-fab { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; box-shadow: 0 8px 22px rgba(0,0,0,.6); cursor: grab; position: relative; transition: transform .16s ease, box-shadow .16s ease; touch-action: none; -webkit-user-select: none; user-select: none; }
+        .fx-fab:active { transform: scale(.92); }
+        .fx-fab.dragging { cursor: grabbing; transform: scale(1.06); box-shadow: 0 14px 34px rgba(0,0,0,.72); transition: none; }
+        .fx-fab.ai { background: radial-gradient(120% 120% at 30% 20%, #0d5c37 0%, #00391f 60%, #002616 100%); }
+        .fx-fab .ai-glyph { display: block; width: 18px; height: 18px; pointer-events: none; filter: drop-shadow(0 1px 3px rgba(0,0,0,.5)); }
 
-        .ai-panel { position: fixed; z-index: 9993; right: 10px; bottom: calc(190px + env(safe-area-inset-bottom, 0px)); width: min(430px, calc(100vw - 20px)); height: min(64vh, 580px); background: #0b0e11; border: 1px solid #2b3139; border-radius: 16px; box-shadow: 0 26px 70px rgba(0,0,0,.78); display: none; flex-direction: column; overflow: hidden; }
+        .ai-panel { position: fixed; z-index: 9993; right: 10px; bottom: calc(128px + env(safe-area-inset-bottom, 0px)); width: min(430px, calc(100vw - 20px)); height: min(64vh, 580px); background: #0b0e11; border: 1px solid #2b3139; border-radius: 16px; box-shadow: 0 26px 70px rgba(0,0,0,.78); display: none; flex-direction: column; overflow: hidden; }
         .ai-panel.open { display: flex; }
         .ai-panel.fs { right: 0; left: 0; top: 0; bottom: 0; width: 100vw; height: 100vh; border-radius: 0; border: 0; }
         .ai-panel.dragged { bottom: auto; }
@@ -761,6 +760,21 @@
         .ai-typing i:nth-child(3) { animation-delay: .4s; }
         @keyframes aiBlink { 0%, 80%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
         .ai-sys { align-self: center; font-size: 11.5px; color: #848e9c; background: #151a21; border: 1px dashed #2b3139; padding: 7px 11px; border-radius: 10px; max-width: 92%; text-align: center; line-height: 1.5; }
+        #view-support { padding: 0; }
+        .sup-wrap { display: flex; flex-direction: column; height: calc(100dvh - 190px); min-height: 440px; max-height: 900px; margin: 0 auto; max-width: 720px; padding: 12px 14px calc(10px + env(safe-area-inset-bottom, 0px)); }
+        .sup-hd { display: flex; align-items: center; gap: 10px; padding: 8px 0 12px; border-bottom: 1px solid #1b2129; flex: none; }
+        .sup-back { width: 34px; height: 34px; border-radius: 10px; background: #1e2329; border: 1px solid #2b3139; color: #eaecef; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; flex: none; }
+        .sup-hd .t { flex: 1; min-width: 0; }
+        .sup-hd .t b { display: block; font-size: 14px; color: #eaecef; line-height: 1.2; }
+        .sup-hd .t span { display: block; font-size: 11px; color: #848e9c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sup-live { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 800; color: #00c853; background: rgba(0,200,83,.12); border: 1px solid rgba(0,200,83,.35); border-radius: 20px; padding: 3px 9px; flex: none; text-transform: uppercase; letter-spacing: .4px; }
+        .sup-live i { width: 6px; height: 6px; border-radius: 50%; background: #00c853; box-shadow: 0 0 0 3px rgba(0,200,83,.22); }
+        .sup-body { flex: 1; min-height: 0; margin-top: 10px; border: 1px solid #1b2129; border-radius: 14px; background: #0b0e11; }
+        .sup-wrap .ai-chips { margin-top: 10px; border: 1px solid #1b2129; border-radius: 22px; background: #0e1116; flex: none; }
+        .sup-wrap .ai-ft { background: transparent; border-top: 0; padding: 10px 0 0; flex: none; }
+        .sup-wrap .ai-note { padding: 6px 0 0; background: transparent; flex: none; }
+        @media (max-width: 768px) { .sup-wrap { height: calc(100dvh - 205px); padding: 10px 12px calc(8px + env(safe-area-inset-bottom, 0px)); } }
+
         .ai-chips { display: flex; gap: 7px; padding: 8px 10px; overflow-x: auto; background: #0e1116; border-top: 1px solid #1b2129; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 26px), transparent 100%); mask-image: linear-gradient(to right, #000 calc(100% - 26px), transparent 100%); }
         .ai-chips::-webkit-scrollbar { display: none; }
         .ai-chip { flex: none; padding: 6px 11px; border-radius: 20px; border: 1px solid #2b3139; background: #151a21; color: #c9d1d9; font-size: 11.5px; font-weight: 700; cursor: pointer; white-space: nowrap; }
@@ -1187,6 +1201,11 @@
                 <button onclick="navigateTo('forex'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-globe w-5"></i><span>Forex / CFD</span></button>
                 <button onclick="navigateTo('wallet'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-wallet w-5"></i><span>Wallet</span></button>
                 <button onclick="navigateTo('referral'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-users w-5 text-secondary"></i><span>Refer & Earn</span></button>
+                <button onclick="openSupportChat()" id="menu-support-btn" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left">
+                    <i class="fas fa-headset w-5 text-secondary"></i>
+                    <span>Live Chat</span>
+                    <span class="ml-auto text-xs px-2 py-0.5 rounded-full font-bold hidden" id="support-badge" style="background:rgba(246,70,93,.18);color:#f6465d;">0</span>
+                </button>
                 <button onclick="navigateTo('report'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-exclamation-triangle w-5 text-danger"></i><span>Report Issue</span></button>
                 <button onclick="navigateTo('profile'); closeSideMenu()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left"><i class="fas fa-user w-5"></i><span>Profile</span></button>
                 <button id="pwa-menu-install-btn" onclick="triggerPWAInstall(); closeSideMenu();" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-surfaceLight transition-colors text-left">
@@ -2592,6 +2611,33 @@
                     </div>
                 </div>
             </div>
+            <!-- Live Chat View (opened from the side menu) -->
+            <div id="view-support" class="view-section hidden animate-fade-in">
+                <div class="sup-wrap">
+                    <div class="sup-hd">
+                        <button onclick="navigateTo('home')" class="sup-back" title="Back"><i class="fas fa-arrow-left"></i></button>
+                        <div class="ai-av sup"><i class="fas fa-headset"></i></div>
+                        <div class="t">
+                            <b>Spot Team Support</b>
+                            <span id="support-sub">Live chat · we usually reply in a few minutes</span>
+                        </div>
+                        <span class="sup-live"><i></i>Online</span>
+                    </div>
+                    <div class="ai-msgs sup-body" id="support-msgs"></div>
+                    <div class="ai-chips" id="support-chips">
+                        <div class="ai-chip" onclick="supportQuick('My deposit is not credited')">Deposit not credited</div>
+                        <div class="ai-chip" onclick="supportQuick('My withdrawal is pending')">Withdrawal pending</div>
+                        <div class="ai-chip" onclick="supportQuick('I need help with KYC')">KYC help</div>
+                        <div class="ai-chip" onclick="supportQuick('I have a trading issue')">Trading issue</div>
+                    </div>
+                    <div class="ai-ft">
+                        <textarea id="support-input" rows="1" placeholder="Type a message…" onkeydown="supportKey(event)" oninput="sqlAiGrow(this)"></textarea>
+                        <button class="ai-send" id="support-send" onclick="sendSupportMsg()" title="Send"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                    <div class="ai-note" id="support-note">Reports and chat are answered by the Spot Team.</div>
+                </div>
+            </div>
+
         </main>
 
         <!-- Mobile Bottom Navigation -->
@@ -3490,14 +3536,19 @@
         </div>
     </div>
 
-    <!-- ══ SQL Ai + Support chat dock ══ -->
+    <!-- ══ SQL Ai bubble (dock) ══ -->
     <div id="fx-dock">
         <button class="fx-fab ai" id="sqlai-fab" onclick="toggleSqlAi()" title="SQL Ai assistant" aria-label="SQL Ai assistant">
-            <i class="fas fa-robot"></i>
-        </button>
-        <button class="fx-fab chat" id="support-fab" onclick="toggleSupportChat()" title="Live support chat" aria-label="Live support chat">
-            <i class="fas fa-comments"></i>
-            <span class="dot" id="support-badge">0</span>
+            <svg class="ai-glyph" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+                <defs>
+                    <linearGradient id="sqlAiSpark" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#ffffff"/>
+                        <stop offset="1" stop-color="#9dffcf"/>
+                    </linearGradient>
+                </defs>
+                <path d="M10.4 1.8l1.72 4.48 4.48 1.72-4.48 1.72L10.4 14.2l-1.72-4.48L4.2 8l4.48-1.72z" fill="url(#sqlAiSpark)"/>
+                <path d="M17.6 13.4l.95 2.5 2.5.95-2.5.95-.95 2.5-.95-2.5-2.5-.95 2.5-.95z" fill="url(#sqlAiSpark)" opacity=".85"/>
+            </svg>
         </button>
     </div>
 
@@ -3522,28 +3573,6 @@
             <button class="ai-send" id="sqlai-send" onclick="sendSqlAi()" title="Send"><i class="fas fa-paper-plane"></i></button>
         </div>
         <div class="ai-note" id="sqlai-note"></div>
-    </div>
-
-    <!-- Support team live chat -->
-    <div class="ai-panel" id="support-panel" role="dialog" aria-label="Support chat">
-        <div class="ai-hd" id="support-hd">
-            <div class="ai-av sup"><i class="fas fa-headset"></i></div>
-            <div class="t"><b>Spot Team Support</b><span id="support-sub">Live chat · we usually reply in a few minutes</span></div>
-            <div class="ai-ic" id="support-fs" onclick="toggleSupportFs()" title="Full screen"><i class="fas fa-expand"></i></div>
-            <div class="ai-ic" onclick="toggleSupportChat()" title="Close"><i class="fas fa-times"></i></div>
-        </div>
-        <div class="ai-msgs" id="support-msgs"></div>
-        <div class="ai-chips">
-            <div class="ai-chip" onclick="supportQuick('My deposit is not credited')">Deposit not credited</div>
-            <div class="ai-chip" onclick="supportQuick('My withdrawal is pending')">Withdrawal pending</div>
-            <div class="ai-chip" onclick="supportQuick('I need help with KYC')">KYC help</div>
-            <div class="ai-chip" onclick="supportQuick('I have a trading issue')">Trading issue</div>
-        </div>
-        <div class="ai-ft">
-            <textarea id="support-input" rows="1" placeholder="Type a message…" onkeydown="supportKey(event)" oninput="sqlAiGrow(this)"></textarea>
-            <button class="ai-send" id="support-send" onclick="sendSupportMsg()" title="Send"><i class="fas fa-paper-plane"></i></button>
-        </div>
-        <div class="ai-note" id="support-note">Reports and chat are answered by the Spot Team.</div>
     </div>
 
     <!-- Toast -->
@@ -4972,8 +5001,7 @@
                 state.support.msgs = [];
                 state.support.unread = 0;
             }
-            const sb = document.getElementById('support-badge');
-            if (sb) { sb.textContent = '0'; sb.classList.remove('on'); }
+            setSupportBadge(0);
             try { setDockVisible(true); } catch(e) {}
             if (state.cryptoStream) {
                 try { state.cryptoStream.onclose = null; state.cryptoStream.close(); } catch(e) {}
@@ -5349,6 +5377,24 @@
             return uri;
         }
 
+        // Real coin logos: CoinCap CDN -> cryptocurrency-icons (jsDelivr) -> generated badge
+        function coinLogo(base) {
+            const b = String(base || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            return b ? 'https://assets.coincap.io/assets/icons/' + b + '@2x.png' : coinIcon(base);
+        }
+        function coinIconErr(img, base) {
+            if (!img) return;
+            const b = String(base || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (!img.dataset.icoStep && b) {
+                img.dataset.icoStep = 'jsd';
+                img.src = 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/' + b + '.svg';
+                return;
+            }
+            img.onerror = null;
+            img.removeAttribute('data-ico-step');
+            img.src = coinIcon(base);
+        }
+
         function mapGeckoCoin(c) {
             const base = String(c.symbol || '').toUpperCase();
             return {
@@ -5357,7 +5403,7 @@
                 name: c.name || base,
                 base: base,
                 quote: 'USDT',
-                image: c.image || coinIcon(base),
+                image: c.image || coinLogo(base),
                 current_price: Number(c.current_price) || 0,
                 price_change_24h: Number(c.price_change_percentage_24h) || 0,
                 total_volume: Number(c.total_volume) || 0,
@@ -5374,7 +5420,7 @@
                 name: coinNameOf(base),
                 base: base,
                 quote: 'USDT',
-                image: coinIcon(base),
+                image: coinLogo(base),
                 current_price: Number(t.lastPrice) || 0,
                 price_change_24h: Number(t.priceChangePercent) || 0,
                 total_volume: Number(t.quoteVolume) || 0,
@@ -5606,7 +5652,7 @@
             container.innerHTML = data.map(coin => `
                 <div class="market-item" onclick="selectPair('${coin.id}', '${coin.symbol}'); navigateTo('trade');">
                     <div class="flex items-center gap-3 flex-1">
-                        <img src="${coin.image || coinIcon(coin.base)}" alt="${coin.symbol} icon" class="w-8 h-8 rounded-full" loading="lazy">
+                        <img src="${coin.image || coinLogo(coin.base)}" alt="${coin.symbol} icon" class="w-8 h-8 rounded-full" loading="lazy" onerror="coinIconErr(this,'${String(coin.base||'').replace(/[^A-Za-z0-9]/g,'')}')">
                         <div>
                             <p class="font-bold text-sm">${coin.symbol.replace('USDT', '')}</p>
                             <p class="text-textGray text-xs">${coin.name}</p>
@@ -5673,7 +5719,7 @@
             container.innerHTML = trending.map(coin => `
                 <div class="glass rounded-lg p-3 flex items-center justify-between cursor-pointer" onclick="selectPair('${coin.id}', '${coin.symbol}'); navigateTo('trade');">
                     <div class="flex items-center gap-3">
-                        <img src="${coin.image || coinIcon(coin.base)}" alt="${coin.symbol} icon" class="w-8 h-8 rounded-full" loading="lazy">
+                        <img src="${coin.image || coinLogo(coin.base)}" alt="${coin.symbol} icon" class="w-8 h-8 rounded-full" loading="lazy" onerror="coinIconErr(this,'${String(coin.base||'').replace(/[^A-Za-z0-9]/g,'')}')">
                         <div>
                             <p class="font-bold text-sm">${coin.symbol.replace('USDT', '')}</p>
                             <p class="text-textGray text-xs">${fmtCoinPrice(coin.current_price)}</p>
@@ -7382,7 +7428,7 @@
 
             // ── GUEST GATE: personal views login ke bina nahi khulte.
             //    Markets / Home / Forex / Investing / Trade sirf dekhne ke liye free hain.
-            const GUEST_BLOCKED = ['wallet', 'history', 'transfer', 'kyc', 'referral', 'profile'];
+            const GUEST_BLOCKED = ['wallet', 'history', 'transfer', 'kyc', 'referral', 'profile', 'support'];
             if (state.isGuest && !state.user && GUEST_BLOCKED.includes(view)) {
                 showToast(`Sign in to open ${view.charAt(0).toUpperCase() + view.slice(1)}`, 'info');
                 setTimeout(() => openAuthModal('login'), 200);
@@ -7418,7 +7464,7 @@
             // BUG-N2 FIX: For secondary views not in bottom nav, highlight the closest parent tab
             const secondaryViewMap = {
                 history: 'wallet', transfer: 'wallet',
-                kyc: 'profile', referral: 'profile', report: 'profile',
+                kyc: 'profile', referral: 'profile', report: 'profile', support: 'home',
                 forex: 'trade'
             };
             if (secondaryViewMap[view]) {
@@ -7469,6 +7515,18 @@
                 loadReferralData();
             } else if (view === 'report') {
                 setupReportView();
+            } else if (view === 'support') {
+                state.support.open = true;
+                setSupportBadge(0);
+                if (state.user) {
+                    startSupportChat().then(() => {
+                        if (state.support.unsubThread) {
+                            chatThreadRef().set({ unreadUser: 0 }, { merge: true }).catch(() => {});
+                        }
+                    });
+                } else {
+                    renderSupportMsgs();
+                }
             } else if (view === 'history') {
                 loadHistory('all');
             } else if (view === 'transfer') {
@@ -10437,7 +10495,7 @@
                             const val = (a.balance || 0) * (a.price || 0);
                             return `<div class="asset-row">
                                 <div class="flex items-center gap-3">
-                                    ${a.image ? `<img src="${a.image}" class="w-8 h-8 rounded-full" onerror="this.style.display='none'">` : '<div class="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-xs font-bold">' + (a.symbol || '?').charAt(0) + '</div>'}
+                                    ${a.image ? `<img src="${a.image}" class="w-8 h-8 rounded-full" onerror="coinIconErr(this,'${String(a.base||a.symbol||'').replace(/[^A-Za-z0-9]/g,'')}')">` : '<div class="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-xs font-bold">' + (a.symbol || '?').charAt(0) + '</div>'}
                                     <div>
                                         <p class="font-bold text-sm">${a.symbol || a.id}</p>
                                         <p class="text-textGray text-xs">${a.name || ''}</p>
@@ -10608,7 +10666,7 @@
                 return ` 
                     <div class="flex items-center justify-between p-3 bg-surface rounded-lg cursor-pointer hover:bg-surfaceLight" onclick="selectPair('${pair.id}', '${pair.symbol}')"> 
                         <div class="flex items-center gap-3"> 
-                            <img src="${coin?.image || ''}" alt="${pair?.name || 'Coin'} icon" class="w-8 h-8 rounded-full" onerror="this.style.display='none'"> 
+                            <img src="${coin?.image || coinLogo((coin&&coin.base)||(pair&&pair.base))}" alt="${pair?.name || 'Coin'} icon" class="w-8 h-8 rounded-full" loading="lazy" onerror="coinIconErr(this,'${String((coin&&coin.base)||(pair&&pair.base)||'').replace(/[^A-Za-z0-9]/g,'')}')"> 
                             <div> 
                                 <div class="font-bold">${pair.symbol}</div> 
                                 <div class="text-xs text-textGray">${pair.name}</div> 
@@ -11304,7 +11362,7 @@
                     html += assets.map(asset => `
                         <div class="flex justify-between items-center p-3 bg-surface rounded-lg mb-2">
                             <div class="flex items-center gap-3">
-                                <img src="${asset.image || 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2240%22%20height%3D%2240%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20fill%3D%22%231e2329%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2255%25%22%20text-anchor%3D%22middle%22%20fill%3D%22%23848e9c%22%20font-size%3D%2220%22%3E%3F%3C%2Ftext%3E%3C%2Fsvg%3E'}" alt="${asset.symbol} asset" class="w-8 h-8 rounded-full" onerror="this.style.display='none'">
+                                <img src="${asset.image || coinLogo(asset.base||asset.symbol) || 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2240%22%20height%3D%2240%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20fill%3D%22%231e2329%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2255%25%22%20text-anchor%3D%22middle%22%20fill%3D%22%23848e9c%22%20font-size%3D%2220%22%3E%3F%3C%2Ftext%3E%3C%2Fsvg%3E'}" alt="${asset.symbol} asset" class="w-8 h-8 rounded-full" loading="lazy" onerror="coinIconErr(this,'${String(asset.base||asset.symbol||'').replace(/[^A-Za-z0-9]/g,'')}')">
                                 <div>
                                     <div class="font-bold">${asset.symbol}</div>
                                     <div class="text-xs text-textGray">${asset.name || 'Crypto'}</div>
@@ -13916,54 +13974,43 @@
             return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
         function setDockVisible(on) {
+            try { if (on) setTimeout(clampFab, 0); } catch (e) {}
             const d = document.getElementById('fx-dock');
             if (d) d.style.display = on ? 'flex' : 'none';
             if (!on) {
                 const a = document.getElementById('sqlai-panel');
-                const b = document.getElementById('support-panel');
                 if (a) a.classList.remove('open');
-                if (b) b.classList.remove('open');
                 if (state.sqlAi) state.sqlAi.open = false;
-                if (state.support) state.support.open = false;
             }
         }
 
         // ── Live support chat ─────────────────────────────────────────
-        state.support = { open: false, msgs: [], unsub: null, busy: false, fs: false };
+        state.support = { msgs: [], unsub: null, unsubThread: null, busy: false, unread: 0 };
 
-        function supportPanel() { return document.getElementById('support-panel'); }
         function chatThreadRef() { return db.collection('chats').doc(state.user.uid); }
         function chatMsgsRef() { return db.collection('chats').doc(state.user.uid).collection('messages'); }
 
+        function setSupportBadge(n) {
+            state.support.unread = Math.max(0, Number(n) || 0);
+            const b = document.getElementById('support-badge');
+            if (!b) return;
+            b.textContent = state.support.unread > 99 ? '99+' : String(state.support.unread);
+            b.classList.toggle('hidden', state.support.unread <= 0);
+        }
+
         function closeSupportChat() {
-            const p = supportPanel();
-            if (p) p.classList.remove('open');
             state.support.open = false;
+            if (state.currentView === 'support') navigateTo('home');
         }
 
-        async function toggleSupportChat() {
-            const p = supportPanel();
-            if (!p) return;
-            if (p.classList.contains('open')) { closeSupportChat(); return; }
-            if (!requireAuth('Sign in to chat with the Spot Team', toggleSupportChat)) return;
+        // Side menu -> Live Chat page (guest pe login gate)
+        function openSupportChat() {
+            if (!requireAuth('Sign in to chat with the Spot Team', openSupportChat)) return;
+            closeSideMenu();
             closeSqlAi();
-            p.classList.add('open');
-            state.support.open = true;
-            requestAnimationFrame(() => clampAiPanel(p, 'support-panel'));
-            const badge = document.getElementById('support-badge');
-            if (badge) badge.classList.remove('on');
-            await startSupportChat();
+            navigateTo('support');
         }
-
-        function toggleSupportFs() {
-            const p = supportPanel();
-            if (!p) return;
-            state.support.fs = !state.support.fs;
-            p.classList.toggle('fs', state.support.fs);
-            if (!state.support.fs) { p.style.left = ''; p.style.top = ''; p.classList.remove('dragged'); }
-            const ic = document.querySelector('#support-fs i');
-            if (ic) ic.className = state.support.fs ? 'fas fa-compress' : 'fas fa-expand';
-        }
+        function toggleSupportChat() { openSupportChat(); }
 
         async function startSupportChat() {
             if (!state.user) return;
@@ -14000,10 +14047,8 @@
                     state.support.unsubThread = chatThreadRef().onSnapshot(doc => {
                         const d = doc.exists ? doc.data() : {};
                         const n = Math.max(0, Number(d.unreadUser) || 0);
-                        state.support.unread = n;
-                        const b = document.getElementById('support-badge');
-                        if (b) { b.textContent = n > 99 ? '99+' : String(n); b.classList.toggle('on', n > 0); }
-                        if (state.support.open && n > 0) {
+                        setSupportBadge(n);
+                        if (state.currentView === 'support' && n > 0) {
                             chatThreadRef().set({ unreadUser: 0 }, { merge: true }).catch(() => {});
                         }
                     }, () => {});
@@ -14019,6 +14064,7 @@
                         docs.sort((a, b) => msOf(a.at) - msOf(b.at));
                         state.support.msgs = docs;
                         renderSupportMsgs();
+                        setTimeout(maybeSupportAiReply, 400);
                     }, err => {
                         console.warn('Support chat messages:', err && err.message);
                         state.support.unsub = null;
@@ -14031,7 +14077,7 @@
             const box = document.getElementById('support-msgs');
             if (!box) return;
             box.innerHTML = '<div class="ai-sys">Live chat is unavailable right now. You can still raise a Support Report — the Spot Team replies there.</div>' +
-                '<div class="ai-row"><div class="ai-bub" style="text-align:center;"><button class="ai-chip" onclick="closeSupportChat();navigateTo(\'report\')">Open Report Issue</button></div></div>';
+                '<div class="ai-row"><div class="ai-bub" style="text-align:center;"><button class="ai-chip" onclick="navigateTo(\'report\')">Open Report Issue</button></div></div>';
         }
 
         function renderSupportMsgs() {
@@ -14077,7 +14123,8 @@
             try {
                 const uid = state.user.uid;
                 const ud = state.userData || {};
-                await chatMsgsRef().add({
+                const mref = chatMsgsRef().doc();
+                await mref.set({
                     uid: uid,
                     from: 'user',
                     text: text,
@@ -14090,6 +14137,8 @@
                     name: String(ud.name || ud.email || 'User').slice(0, 60),
                     contact: String(ud.email || ud.phone || '').slice(0, 80),
                     lastMessage: text.slice(0, 180),
+                    lastFrom: 'user',
+                    lastMsgId: mref.id,
                     lastAt: firebase.firestore.FieldValue.serverTimestamp(),
                     unreadAdmin: firebase.firestore.FieldValue.increment(1),
                     status: 'open',
@@ -14176,7 +14225,6 @@
             const p = document.getElementById('sqlai-panel');
             if (!p) return;
             if (p.classList.contains('open')) { closeSqlAi(); return; }
-            closeSupportChat();
             p.classList.add('open');
             state.sqlAi.open = true;
             requestAnimationFrame(() => clampAiPanel(p, 'sqlai-panel'));
@@ -14214,7 +14262,7 @@
                     escHtml(m.text) + '</div></div>';
             }).join('');
             if (!state.sqlAi.msgs.length) {
-                html = '<div class="ai-sys">Hi, I am <b>SQL Ai</b>. I know every page of this app and I can read your own open trades. Ask me anything.</div>';
+                html = '<div class="ai-sys">Hi, I am <b>SQL Ai</b>. I know every page of this app, I can read your own open trades, and I also answer here in Live Chat. Ask me anything.</div>';
             }
             if (loading) {
                 html += '<div class="ai-row"><div class="ai-bub"><span class="ai-typing"><i></i><i></i><i></i></span></div></div>';
@@ -14275,6 +14323,104 @@
             return rows.join('\n');
         }
 
+        const SUPPORT_AI_SYSTEM = [
+            'You are the official Spot Team support desk of Treding Store (treding.store), answering inside the in-app Live Chat.',
+            'You are replying as the support team. Be warm, short and useful: 2 to 5 lines, or a few bullets. No markdown tables, no essay.',
+            'LANGUAGE: reply in the same language the user writes in. Hinglish (Hindi in Latin letters) is fine, but keep page names, button names and labels in exact English.',
+            'PRIVACY (hard rule): you can only see this one signed-in user own chat and their own account block below. Never ask for, guess or reveal any other account, email, phone or balance.',
+            'NEVER ask for or accept a password, OTP, PIN, card CVV or seed phrase. Say clearly that support will never ask for them.',
+            'Typical issues and how to answer:',
+            '- Deposit not credited: ask for UTR / transaction id, amount, method (UPI or USDT) and time; explain verification usually settles in 10-30 minutes and the team will match it.',
+            '- Withdrawal pending: confirm KYC status, remind them of the 500 INR minimum and daily limit, ask for the withdrawal request time.',
+            '- KYC: tell them exactly Profile -> KYC, which document to upload, and that review takes a few hours.',
+            '- Trading / forex issue: ask for the pair, order id or screenshot; explain liquidation, SL/TP, fees and market hours briefly.',
+            '- Login / password reset: point them to the login screen and Gmail sign-in; never handle credentials yourself.',
+            'If the case needs a human (dispute, large amount, repeated failure), say the Spot Team will follow up here shortly and stop there.',
+            'Never promise a guaranteed refund time or guaranteed profit. Do not invent transaction statuses you cannot see.',
+            'ACCOUNT DATA (this user only):\n' + '{{ACCOUNT}}'
+        ].join('\n\n');
+
+        function sqlAiSupportContext() {
+            const ud = state.userData || {};
+            const money2 = v => (Math.round((Number(v) || 0) * 100) / 100);
+            const rows = [];
+            rows.push('Name: ' + (ud.name || '-'));
+            rows.push('Login: ' + (state.user ? (state.user.email || ud.phone || '-') : '-'));
+            rows.push('Spot wallet: ' + money2(ud.spotBalance) + ' INR');
+            rows.push('CFD wallet: ' + money2(cfdBalanceInr(ud)) + ' INR');
+            rows.push('KYC status: ' + (ud.kycStatus || 'not submitted'));
+            return rows.join('\n');
+        }
+
+        let _supportAiBusy = false;
+        async function maybeSupportAiReply() {
+            if (_supportAiBusy) return;
+            try {
+                if (!state.user) return;
+                if (!sqlAiEnabled() || !sqlAiApiKey()) return;
+                if (state.adminConfig && state.adminConfig.aiAutoReply === false) return;
+                const msgs = (state.support && state.support.msgs) || [];
+                if (msgs.length < 1) return;
+                const last = msgs[msgs.length - 1];
+                if (!last || last.from !== 'user' || !last.id || last._tmp) return;
+                const tid = last.id;
+                const ref = chatThreadRef();
+
+                _supportAiBusy = true;
+                let claim = false;
+                try {
+                    claim = await db.runTransaction(async tx => {
+                        const d = await tx.get(ref);
+                        const th = d.exists ? (d.data() || {}) : {};
+                        if (th.aiRepliedFor === tid) return false;
+                        const claimPatch = {
+                            aiRepliedFor: tid,
+                            aiRunning: true,
+                            aiUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+                        if (d.exists) tx.update(ref, claimPatch);
+                        else tx.set(ref, Object.assign({ uid: state.user.uid, status: 'open', lastFrom: 'user', unreadAdmin: 0 }, claimPatch), { merge: true });
+                        return true;
+                    });
+                } catch (e) { claim = false; }
+                if (!claim) return;
+
+                const history = msgs.slice(-14).map(m => ({
+                    role: m.from === 'user' ? 'user' : 'model',
+                    text: (m.from === 'admin' ? '(support) ' : '') + m.text
+                }));
+                const sys = SUPPORT_AI_SYSTEM.replace('{{ACCOUNT}}', sqlAiSupportContext());
+                const reply = await callGemini(sys, history, 500);
+                await chatMsgsRef().add({
+                    uid: state.user.uid,
+                    from: 'admin',
+                    agent: 'sqlai',
+                    auto: true,
+                    replyTo: tid,
+                    text: reply,
+                    at: firebase.firestore.FieldValue.serverTimestamp(),
+                    read: false,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                await ref.set({
+                    lastMessage: String(reply).slice(0, 180),
+                    lastFrom: 'admin',
+                    lastAgent: 'sqlai',
+                    lastAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    unreadUser: firebase.firestore.FieldValue.increment(1),
+                    aiRunning: false,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            } catch (e) {
+                console.warn('support auto reply:', e && e.message);
+                try {
+                    if (state.user) await chatThreadRef().set({ aiRunning: false }, { merge: true });
+                } catch (e2) {}
+            } finally {
+                _supportAiBusy = false;
+            }
+        }
+
         function sqlAiParseReport(raw) {
             const m = String(raw).match(/\[\[REPORT\]\]\s*subject:\s*([\s\S]*?)\s*\|\s*body:\s*([\s\S]*)/i);
             if (!m) return null;
@@ -14303,35 +14449,59 @@
             return true;
         }
 
-        async function sqlAiCall(messages) {
+        // Models this key/project actually serves. Order = preference order.
+        const SQLAI_MODELS = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-3.5-flash'];
+
+        async function callGemini(systemText, messages, maxTokens) {
             const key = sqlAiApiKey();
             if (!key) throw new Error('no-key');
-            const model = (state.adminConfig && state.adminConfig.geminiModel) || 'gemini-2.0-flash';
-            const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(key);
-            const contents = messages.map(m => ({
+            const preferred = (state.adminConfig && state.adminConfig.geminiModel) || SQLAI_MODELS[0];
+            const chain = [preferred].concat(SQLAI_MODELS.filter(m => m !== preferred));
+            const contents = (messages || []).map(m => ({
                 role: m.role === 'user' ? 'user' : 'model',
-                parts: [{ text: m.text }]
+                parts: [{ text: String(m.text || '') }]
             }));
-            const body = {
-                system_instruction: { parts: [{ text: SQLAI_SYSTEM + '\n\nUSER DATA (signed-in user only):\n' + sqlAiUserData() }] },
-                contents: contents,
-                generationConfig: { temperature: 0.55, maxOutputTokens: 900, topP: 0.95 }
-            };
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-            if (!res.ok) {
-                const t = (await res.text()).slice(0, 160);
-                throw new Error('HTTP ' + res.status + ' ' + t);
+            if (!contents.length) contents.push({ role: 'user', parts: [{ text: 'Hi' }] });
+            let lastErr = null;
+            for (let i = 0; i < chain.length; i++) {
+                const model = chain[i];
+                const url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
+                    encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(key);
+                let res;
+                try {
+                    res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            system_instruction: { parts: [{ text: systemText }] },
+                            contents: contents,
+                            generationConfig: { temperature: 0.55, maxOutputTokens: maxTokens || 900, topP: 0.95 }
+                        })
+                    });
+                } catch (e) {
+                    lastErr = new Error('network ' + (e && e.message));
+                    continue;
+                }
+                if (!res.ok) {
+                    const t = (await res.text()).slice(0, 160);
+                    lastErr = new Error('HTTP ' + res.status + ' ' + t);
+                    // model available hi nahi hai -> agle model pe try karo
+                    if (res.status === 404 || res.status === 500 || res.status === 502 || res.status === 503) continue;
+                    throw lastErr;
+                }
+                const j = await res.json();
+                const cand = j && j.candidates && j.candidates[0];
+                const txt = cand && cand.content && cand.content.parts
+                    ? cand.content.parts.map(x => x.text || '').join('') : '';
+                if (!txt) { lastErr = new Error('empty-reply'); continue; }
+                state.lastAiModel = model;
+                return txt.trim();
             }
-            const j = await res.json();
-            const cand = j && j.candidates && j.candidates[0];
-            const txt = cand && cand.content && cand.content.parts
-                ? cand.content.parts.map(x => x.text || '').join('') : '';
-            if (!txt) throw new Error('empty-reply');
-            return txt.trim();
+            throw lastErr || new Error('no-model');
+        }
+
+        async function sqlAiCall(messages) {
+            return callGemini(SQLAI_SYSTEM + '\n\nUSER DATA (signed-in user only):\n' + sqlAiUserData(), messages, 900);
         }
 
         async function sendSqlAi() {
@@ -14467,8 +14637,88 @@
         }
         window.addEventListener('resize', clampAllAiPanels);
 
+
+        // ── SQL Ai bubble khud drag kar sakte ho ─────────────────────
+        function clampFab() {
+            const dock = document.getElementById('fx-dock');
+            const fab = document.getElementById('sqlai-fab');
+            if (!dock || !fab || !dock.style.left) return;
+            const r = dock.getBoundingClientRect();
+            const maxX = Math.max(4, window.innerWidth - r.width - 4);
+            const maxY = Math.max(4, window.innerHeight - r.height - 4);
+            let x = parseFloat(dock.style.left) || 4;
+            let y = parseFloat(dock.style.top) || 4;
+            x = Math.max(4, Math.min(maxX, x));
+            y = Math.max(4, Math.min(maxY, y));
+            if (x !== parseFloat(dock.style.left) || y !== parseFloat(dock.style.top)) {
+                dock.style.left = x + 'px';
+                dock.style.top = y + 'px';
+                try { localStorage.setItem('ts_fab_pos', JSON.stringify({ x: x, y: y })); } catch (e) {}
+            }
+        }
+
+        (function initFabDrag() {
+            const fab = document.getElementById('sqlai-fab');
+            const dock = document.getElementById('fx-dock');
+            if (!fab || !dock) return;
+            try {
+                const saved = JSON.parse(localStorage.getItem('ts_fab_pos') || 'null');
+                if (saved && isFinite(saved.x) && isFinite(saved.y)) {
+                    dock.style.left = saved.x + 'px';
+                    dock.style.top = saved.y + 'px';
+                    dock.style.right = 'auto';
+                    dock.style.bottom = 'auto';
+                }
+            } catch (e) {}
+
+            let sx = 0, sy = 0, ox = 0, oy = 0, dragging = false;
+            fab.addEventListener('pointerdown', e => {
+                if (e.button !== undefined && e.button !== 0) return;
+                const r = dock.getBoundingClientRect();
+                ox = r.left; oy = r.top;
+                sx = e.clientX; sy = e.clientY;
+                dragging = true;
+                fab._moved = false;
+                try { fab.setPointerCapture(e.pointerId); } catch (err) {}
+            });
+            fab.addEventListener('pointermove', e => {
+                if (!dragging) return;
+                const dx = e.clientX - sx, dy = e.clientY - sy;
+                if (!fab._moved && Math.abs(dx) + Math.abs(dy) < 7) return;
+                if (!fab._moved) {
+                    fab._moved = true;
+                    fab.classList.add('dragging');
+                    dock.style.right = 'auto';
+                    dock.style.bottom = 'auto';
+                }
+                const w = dock.offsetWidth || 40, h = dock.offsetHeight || 40;
+                let x = ox + dx, y = oy + dy;
+                x = Math.max(4, Math.min(window.innerWidth - w - 4, x));
+                y = Math.max(4, Math.min(window.innerHeight - h - 4, y));
+                dock.style.left = x + 'px';
+                dock.style.top = y + 'px';
+                e.preventDefault();
+            });
+            const end = e => {
+                if (!dragging) return;
+                dragging = false;
+                fab.classList.remove('dragging');
+                try { fab.releasePointerCapture(e.pointerId); } catch (err) {}
+                if (fab._moved) {
+                    try { localStorage.setItem('ts_fab_pos', JSON.stringify({ x: parseFloat(dock.style.left), y: parseFloat(dock.style.top) })); } catch (err) {}
+                    setTimeout(() => { fab._moved = false; }, 60);
+                }
+            };
+            fab.addEventListener('pointerup', end);
+            fab.addEventListener('pointercancel', end);
+            // drag hone par click band ho jaye
+            fab.addEventListener('click', e => {
+                if (fab._moved) { e.stopPropagation(); e.preventDefault(); fab._moved = false; }
+            }, true);
+            window.addEventListener('resize', clampFab);
+        })();
+
         makeAiDraggable('sqlai-panel', 'sqlai-hd');
-        makeAiDraggable('support-panel', 'support-hd');
         updateSqlAiNote();
 
     </script>
