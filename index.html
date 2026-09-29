@@ -724,6 +724,55 @@
         .fx-ind-item .dot { width:8px; height:8px; border-radius:50%; display:inline-block; flex-shrink:0; }
         .fx-ind-item .st { font-size:10.5px; font-weight:800; letter-spacing:.4px; opacity:.7; }
         .fx-ind-item .lbl { display:inline-flex; align-items:center; gap:8px; }
+
+        /* ═══ SQL Ai + Support chat dock ═══ */
+        #fx-dock { position: fixed; right: 14px; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 9990; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+        .fx-fab { width: 50px; height: 50px; border-radius: 50%; border: 1px solid rgba(255,255,255,.16); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; box-shadow: 0 10px 26px rgba(0,0,0,.55); cursor: pointer; position: relative; transition: transform .18s ease; }
+        .fx-fab:active { transform: scale(.93); }
+        .fx-fab.ai { background: linear-gradient(140deg, #00c853, #006b30); }
+        .fx-fab.chat { background: linear-gradient(140deg, #2f6bff, #1436a3); }
+        .fx-fab .dot { position: absolute; top: -2px; right: -2px; min-width: 17px; height: 17px; border-radius: 9px; background: #f6465d; color: #fff; font-size: 10px; font-weight: 800; display: none; align-items: center; justify-content: center; padding: 0 4px; border: 1.5px solid #0b0e11; }
+        .fx-fab .dot.on { display: flex; }
+
+        .ai-panel { position: fixed; z-index: 9993; right: 10px; bottom: calc(190px + env(safe-area-inset-bottom, 0px)); width: min(430px, calc(100vw - 20px)); height: min(64vh, 580px); background: #0b0e11; border: 1px solid #2b3139; border-radius: 16px; box-shadow: 0 26px 70px rgba(0,0,0,.78); display: none; flex-direction: column; overflow: hidden; }
+        .ai-panel.open { display: flex; }
+        .ai-panel.fs { right: 0; left: 0; top: 0; bottom: 0; width: 100vw; height: 100vh; border-radius: 0; border: 0; }
+        .ai-panel.dragged { bottom: auto; }
+        .ai-hd { display: flex; align-items: center; gap: 10px; padding: 9px 10px; background: #151a21; border-bottom: 1px solid #2b3139; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+        .ai-hd:active { cursor: grabbing; }
+        .ai-av { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, #00c853, #006b30); color: #fff; font-size: 15px; flex: none; }
+        .ai-av.sup { background: linear-gradient(140deg, #2f6bff, #1436a3); }
+        .ai-hd .t { flex: 1; min-width: 0; }
+        .ai-hd .t b { display: block; font-size: 13px; color: #eaecef; line-height: 1.2; }
+        .ai-hd .t span { display: block; font-size: 10.5px; color: #848e9c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ai-ic { width: 30px; height: 30px; border-radius: 8px; background: #1e2329; border: 1px solid #2b3139; color: #848e9c; display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none; font-size: 13px; }
+        .ai-ic:hover { color: #eaecef; border-color: #00c853; }
+        .ai-msgs { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 9px; background: #0b0e11; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+        .ai-row { display: flex; }
+        .ai-row.me { justify-content: flex-end; }
+        .ai-bub { max-width: 86%; padding: 8px 11px; border-radius: 12px; font-size: 13px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; border: 1px solid #232a33; background: #151a21; color: #eaecef; }
+        .ai-row.me .ai-bub { background: #00c853; border-color: #00c853; color: #04170c; font-weight: 600; }
+        .ai-bub.err { border-color: rgba(246,70,93,.65); color: #ff8a9b; background: rgba(246,70,93,.08); }
+        .ai-meta { font-size: 9.5px; opacity: .65; margin-top: 4px; text-align: right; font-family: 'JetBrains Mono','Roboto Mono',Inter,monospace; }
+        .ai-row.me .ai-meta { color: #04170c; }
+        .ai-typing { display: inline-flex; gap: 4px; align-items: center; }
+        .ai-typing i { width: 6px; height: 6px; border-radius: 50%; background: #848e9c; animation: aiBlink 1.2s infinite both; }
+        .ai-typing i:nth-child(2) { animation-delay: .2s; }
+        .ai-typing i:nth-child(3) { animation-delay: .4s; }
+        @keyframes aiBlink { 0%, 80%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+        .ai-sys { align-self: center; font-size: 11.5px; color: #848e9c; background: #151a21; border: 1px dashed #2b3139; padding: 7px 11px; border-radius: 10px; max-width: 92%; text-align: center; line-height: 1.5; }
+        .ai-chips { display: flex; gap: 7px; padding: 8px 10px; overflow-x: auto; background: #0e1116; border-top: 1px solid #1b2129; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 26px), transparent 100%); mask-image: linear-gradient(to right, #000 calc(100% - 26px), transparent 100%); }
+        .ai-chips::-webkit-scrollbar { display: none; }
+        .ai-chip { flex: none; padding: 6px 11px; border-radius: 20px; border: 1px solid #2b3139; background: #151a21; color: #c9d1d9; font-size: 11.5px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+        .ai-chip:hover { border-color: #00c853; color: #00c853; }
+        .ai-ft { display: flex; gap: 8px; padding: 9px 10px; border-top: 1px solid #1b2129; background: #151a21; align-items: flex-end; }
+        .ai-ft textarea { flex: 1; resize: none; max-height: 96px; min-height: 38px; background: #0b0e11; border: 1px solid #2b3139; border-radius: 10px; color: #eaecef; padding: 9px 10px; font-size: 13px; outline: 0; font-family: inherit; }
+        .ai-ft textarea:focus { border-color: #00c853; }
+        .ai-send { width: 38px; height: 38px; border-radius: 10px; border: 0; background: #00c853; color: #04170c; font-size: 15px; cursor: pointer; flex: none; }
+        .ai-send:disabled { opacity: .45; cursor: default; }
+        .ai-note { font-size: 10.5px; color: #5e6673; padding: 0 12px 8px; background: #151a21; line-height: 1.45; }
+        .ai-note:empty { display: none; }
+
     </style>
 </head>
 <body>
@@ -3441,6 +3490,62 @@
         </div>
     </div>
 
+    <!-- ══ SQL Ai + Support chat dock ══ -->
+    <div id="fx-dock">
+        <button class="fx-fab ai" id="sqlai-fab" onclick="toggleSqlAi()" title="SQL Ai assistant" aria-label="SQL Ai assistant">
+            <i class="fas fa-robot"></i>
+        </button>
+        <button class="fx-fab chat" id="support-fab" onclick="toggleSupportChat()" title="Live support chat" aria-label="Live support chat">
+            <i class="fas fa-comments"></i>
+            <span class="dot" id="support-badge">0</span>
+        </button>
+    </div>
+
+    <!-- SQL Ai panel -->
+    <div class="ai-panel" id="sqlai-panel" role="dialog" aria-label="SQL Ai assistant">
+        <div class="ai-hd" id="sqlai-hd">
+            <div class="ai-av"><i class="fas fa-robot"></i></div>
+            <div class="t"><b>SQL Ai</b><span id="sqlai-sub">Exchange guide · trade analysis</span></div>
+            <div class="ai-ic" id="sqlai-fs" onclick="toggleSqlAiFs()" title="Full screen"><i class="fas fa-expand"></i></div>
+            <div class="ai-ic" onclick="toggleSqlAi()" title="Close"><i class="fas fa-times"></i></div>
+        </div>
+        <div class="ai-msgs" id="sqlai-msgs"></div>
+        <div class="ai-chips" id="sqlai-chips">
+            <div class="ai-chip" onclick="sqlAiQuick('How do I use this app?')">How do I use this app?</div>
+            <div class="ai-chip" onclick="sqlAiQuick('Analyse my open trade')">Analyse my trade</div>
+            <div class="ai-chip" onclick="sqlAiQuick('Explain leverage, margin and liquidation')">Leverage &amp; liquidation</div>
+            <div class="ai-chip" onclick="sqlAiQuick('How do I deposit and withdraw?')">Deposit &amp; withdraw</div>
+            <div class="ai-chip" onclick="sqlAiQuick('Raise a support report')">Raise a report</div>
+        </div>
+        <div class="ai-ft">
+            <textarea id="sqlai-input" rows="1" placeholder="Ask SQL Ai…" onkeydown="sqlAiKey(event)" oninput="sqlAiGrow(this)"></textarea>
+            <button class="ai-send" id="sqlai-send" onclick="sendSqlAi()" title="Send"><i class="fas fa-paper-plane"></i></button>
+        </div>
+        <div class="ai-note" id="sqlai-note"></div>
+    </div>
+
+    <!-- Support team live chat -->
+    <div class="ai-panel" id="support-panel" role="dialog" aria-label="Support chat">
+        <div class="ai-hd" id="support-hd">
+            <div class="ai-av sup"><i class="fas fa-headset"></i></div>
+            <div class="t"><b>Spot Team Support</b><span id="support-sub">Live chat · we usually reply in a few minutes</span></div>
+            <div class="ai-ic" id="support-fs" onclick="toggleSupportFs()" title="Full screen"><i class="fas fa-expand"></i></div>
+            <div class="ai-ic" onclick="toggleSupportChat()" title="Close"><i class="fas fa-times"></i></div>
+        </div>
+        <div class="ai-msgs" id="support-msgs"></div>
+        <div class="ai-chips">
+            <div class="ai-chip" onclick="supportQuick('My deposit is not credited')">Deposit not credited</div>
+            <div class="ai-chip" onclick="supportQuick('My withdrawal is pending')">Withdrawal pending</div>
+            <div class="ai-chip" onclick="supportQuick('I need help with KYC')">KYC help</div>
+            <div class="ai-chip" onclick="supportQuick('I have a trading issue')">Trading issue</div>
+        </div>
+        <div class="ai-ft">
+            <textarea id="support-input" rows="1" placeholder="Type a message…" onkeydown="supportKey(event)" oninput="sqlAiGrow(this)"></textarea>
+            <button class="ai-send" id="support-send" onclick="sendSupportMsg()" title="Send"><i class="fas fa-paper-plane"></i></button>
+        </div>
+        <div class="ai-note" id="support-note">Reports and chat are answered by the Spot Team.</div>
+    </div>
+
     <!-- Toast -->
     <div id="toast" class="toast"></div>
 
@@ -4577,6 +4682,7 @@
             const el = document.getElementById('auth-screen');
             el.classList.remove('hidden', 'guest-hidden');
             el.classList.add('flex');
+            try { setDockVisible(false); } catch (e) {}
             toggleAuthMode(mode || 'login');
             if (mode !== 'register') {
                 const remembered = localStorage.getItem('rememberMe') === 'true';
@@ -4591,6 +4697,7 @@
             const el = document.getElementById('auth-screen');
             el.classList.add('hidden');
             el.classList.remove('flex');
+            try { setDockVisible(true); } catch (e) {}
             if (silent) state.pendingAuthAction = null;
         }
 
@@ -4617,6 +4724,7 @@
                 const el = document.getElementById('auth-screen');
                 el.classList.remove('hidden');
                 el.classList.add('flex');
+                try { setDockVisible(false); } catch (e) {}
                 const app = document.getElementById('app-container');
                 if (app) app.classList.remove('hidden');
                 toggleAuthMode('login');
@@ -4650,6 +4758,7 @@
             document.getElementById('loader').classList.add('hidden');
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-container').classList.remove('hidden');
+            try { setDockVisible(true); } catch (e) {}
             updateGuestUI();
             try { syncCurrencyModeUI(); } catch(e){}
 
@@ -4857,6 +4966,15 @@
             }
             // Foree realtime listeners + crypto stream logout par band karo
             try { stopForexRealtimeListeners(); } catch(e) {}
+            if (state.support) {
+                if (state.support.unsub) { try { state.support.unsub(); } catch(e) {} state.support.unsub = null; }
+                if (state.support.unsubThread) { try { state.support.unsubThread(); } catch(e) {} state.support.unsubThread = null; }
+                state.support.msgs = [];
+                state.support.unread = 0;
+            }
+            const sb = document.getElementById('support-badge');
+            if (sb) { sb.textContent = '0'; sb.classList.remove('on'); }
+            try { setDockVisible(true); } catch(e) {}
             if (state.cryptoStream) {
                 try { state.cryptoStream.onclose = null; state.cryptoStream.close(); } catch(e) {}
                 state.cryptoStream = null;
@@ -4881,6 +4999,7 @@
                         document.getElementById('usdt-address').textContent = state.adminConfig.usdtAddress;
                     }
                     applyAdminRate();
+                    if (typeof updateSqlAiNote === 'function') updateSqlAiNote();
                 }
             } catch (error) {
                 console.error('Admin config error:', error);
@@ -11771,6 +11890,9 @@
         function startForexPriceFeed() {
             if (state.forexFeedTimer) clearInterval(state.forexFeedTimer);
             const tick = async () => {
+                // Auth screen khula ho to dock + panels neeche chhupa do
+                const authEl = document.getElementById('auth-screen');
+                if (authEl) setDockVisible(authEl.classList.contains('hidden'));
                 // Markets → Forex tab live prices
                 if (state.currentView === 'market' && state.marketFilter === 'forex') {
                     await refreshFxQuotes(false);
@@ -13775,6 +13897,579 @@
             updateForexOrderPreview();
             updateFxAccountCard();
         }
+
+        // ══════════════════════════════════════════════════════════════
+        // 💬 SPOT TEAM LIVE CHAT  +  🤖 SQL AI ASSISTANT
+        // ══════════════════════════════════════════════════════════════
+        function escHtml(v) {
+            return String(v === null || v === undefined ? '' : v)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+        function msOf(t) {
+            return t && t.toMillis ? t.toMillis() : (t && t.seconds ? t.seconds * 1000 : 0);
+        }
+        function timeOf(t) {
+            const ms = msOf(t);
+            if (!ms) return '';
+            const d = new Date(ms);
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        function setDockVisible(on) {
+            const d = document.getElementById('fx-dock');
+            if (d) d.style.display = on ? 'flex' : 'none';
+            if (!on) {
+                const a = document.getElementById('sqlai-panel');
+                const b = document.getElementById('support-panel');
+                if (a) a.classList.remove('open');
+                if (b) b.classList.remove('open');
+                if (state.sqlAi) state.sqlAi.open = false;
+                if (state.support) state.support.open = false;
+            }
+        }
+
+        // ── Live support chat ─────────────────────────────────────────
+        state.support = { open: false, msgs: [], unsub: null, busy: false, fs: false };
+
+        function supportPanel() { return document.getElementById('support-panel'); }
+        function chatThreadRef() { return db.collection('chats').doc(state.user.uid); }
+        function chatMsgsRef() { return db.collection('chats').doc(state.user.uid).collection('messages'); }
+
+        function closeSupportChat() {
+            const p = supportPanel();
+            if (p) p.classList.remove('open');
+            state.support.open = false;
+        }
+
+        async function toggleSupportChat() {
+            const p = supportPanel();
+            if (!p) return;
+            if (p.classList.contains('open')) { closeSupportChat(); return; }
+            if (!requireAuth('Sign in to chat with the Spot Team', toggleSupportChat)) return;
+            closeSqlAi();
+            p.classList.add('open');
+            state.support.open = true;
+            requestAnimationFrame(() => clampAiPanel(p, 'support-panel'));
+            const badge = document.getElementById('support-badge');
+            if (badge) badge.classList.remove('on');
+            await startSupportChat();
+        }
+
+        function toggleSupportFs() {
+            const p = supportPanel();
+            if (!p) return;
+            state.support.fs = !state.support.fs;
+            p.classList.toggle('fs', state.support.fs);
+            if (!state.support.fs) { p.style.left = ''; p.style.top = ''; p.classList.remove('dragged'); }
+            const ic = document.querySelector('#support-fs i');
+            if (ic) ic.className = state.support.fs ? 'fas fa-compress' : 'fas fa-expand';
+        }
+
+        async function startSupportChat() {
+            if (!state.user) return;
+            if (state.support.unsub) return;
+            const uid = state.user.uid;
+            const ud = state.userData || {};
+            renderSupportMsgs();
+            try {
+                const ref = chatThreadRef();
+                const snap = await ref.get();
+                if (!snap.exists) {
+                    await ref.set({
+                        uid: uid,
+                        name: String(ud.name || ud.displayName || ud.email || 'User').slice(0, 60),
+                        contact: String(ud.email || ud.phone || '').slice(0, 80),
+                        lastMessage: '',
+                        lastAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        unreadAdmin: 0, unreadUser: 0,
+                        status: 'open',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } else {
+                    const d = snap.data() || {};
+                    const patch = {};
+                    if (d.status === 'closed') patch.status = 'open';
+                    if (!d.name && ud.name) patch.name = String(ud.name).slice(0, 60);
+                    if (Object.keys(patch).length) await ref.set(patch, { merge: true });
+                }
+            } catch (e) { console.warn('Support chat thread:', e && e.message); }
+
+            // Unread admin replies -> red badge on the chat bubble
+            try {
+                if (!state.support.unsubThread) {
+                    state.support.unsubThread = chatThreadRef().onSnapshot(doc => {
+                        const d = doc.exists ? doc.data() : {};
+                        const n = Math.max(0, Number(d.unreadUser) || 0);
+                        state.support.unread = n;
+                        const b = document.getElementById('support-badge');
+                        if (b) { b.textContent = n > 99 ? '99+' : String(n); b.classList.toggle('on', n > 0); }
+                        if (state.support.open && n > 0) {
+                            chatThreadRef().set({ unreadUser: 0 }, { merge: true }).catch(() => {});
+                        }
+                    }, () => {});
+                }
+            } catch (e) { console.warn('Support chat badge:', e && e.message); }
+
+            try {
+                state.support.unsub = chatMsgsRef()
+                    .where('uid', '==', uid)
+                    .limit(100)
+                    .onSnapshot(snap => {
+                        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        docs.sort((a, b) => msOf(a.at) - msOf(b.at));
+                        state.support.msgs = docs;
+                        renderSupportMsgs();
+                    }, err => {
+                        console.warn('Support chat messages:', err && err.message);
+                        state.support.unsub = null;
+                        showSupportFallback();
+                    });
+            } catch (e) { showSupportFallback(); }
+        }
+
+        function showSupportFallback() {
+            const box = document.getElementById('support-msgs');
+            if (!box) return;
+            box.innerHTML = '<div class="ai-sys">Live chat is unavailable right now. You can still raise a Support Report — the Spot Team replies there.</div>' +
+                '<div class="ai-row"><div class="ai-bub" style="text-align:center;"><button class="ai-chip" onclick="closeSupportChat();navigateTo(\'report\')">Open Report Issue</button></div></div>';
+        }
+
+        function renderSupportMsgs() {
+            const box = document.getElementById('support-msgs');
+            if (!box) return;
+            const msgs = state.support.msgs || [];
+            if (!msgs.length) {
+                box.innerHTML = '<div class="ai-sys">You are chatting with the Spot Team. Ask about deposits, withdrawals, KYC, trading or your account.</div>';
+                box.scrollTop = box.scrollHeight;
+                return;
+            }
+            box.innerHTML = msgs.map(m => {
+                const me = m.from === 'user';
+                return '<div class="ai-row ' + (me ? 'me' : '') + '"><div class="ai-bub">' +
+                    escHtml(m.text) +
+                    '<div class="ai-meta">' + (me ? 'You' : 'Spot Team') + ' · ' + timeOf(m.at) + '</div></div></div>';
+            }).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function supportQuick(t) {
+            const ta = document.getElementById('support-input');
+            if (ta) { ta.value = t; ta.focus(); }
+        }
+        function supportKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendSupportMsg(); }
+        }
+
+        async function sendSupportMsg() {
+            const ta = document.getElementById('support-input');
+            const btn = document.getElementById('support-send');
+            if (!ta) return;
+            const text = sanitizeInput(ta.value).slice(0, 1000);
+            if (!text) return;
+            if (!requireAuth('Sign in to chat with the Spot Team', null)) return;
+            if (state.support.busy) return;
+            state.support.busy = true;
+            if (btn) btn.disabled = true;
+            ta.value = '';
+            ta.style.height = '';
+            state.support.msgs.push({ from: 'user', text: text, at: { toMillis: function () { return Date.now(); } }, _tmp: true });
+            renderSupportMsgs();
+            try {
+                const uid = state.user.uid;
+                const ud = state.userData || {};
+                await chatMsgsRef().add({
+                    uid: uid,
+                    from: 'user',
+                    text: text,
+                    at: firebase.firestore.FieldValue.serverTimestamp(),
+                    read: false,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                await chatThreadRef().set({
+                    uid: uid,
+                    name: String(ud.name || ud.email || 'User').slice(0, 60),
+                    contact: String(ud.email || ud.phone || '').slice(0, 80),
+                    lastMessage: text.slice(0, 180),
+                    lastAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    unreadAdmin: firebase.firestore.FieldValue.increment(1),
+                    status: 'open',
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            } catch (e) {
+                showToast('Message could not be sent', 'error');
+                showSupportFallback();
+            } finally {
+                state.support.busy = false;
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        // ── SQL Ai ────────────────────────────────────────────────────
+        state.sqlAi = { open: false, fs: false, busy: false, msgs: [], sentAt: 0 };
+
+        const SQLAI_MAP = [
+            '## PAGES AND WHAT THEY DO',
+            '- Home: balance cards, trending coins, quick links, market overview.',
+            '- Markets: search and filter coins (All / Forex / Top Gainers / Top Losers / Volume). Tap a row to open its chart and order ticket.',
+            '- Trade: futures / spot / margin tabs, order book, order ticket, open positions and order history.',
+            '- Invest: investment plans grouped by Long Term / Short Term / Mid Term / Daily. Pick a plan, an amount and a duration, then confirm. Earnings are credited per the plan schedule.',
+            '- Forex (CFD): the leveraged instrument trading screen. Choose pair, leverage and lot size, then Market / Limit / Stop order with optional Take Profit and Stop Loss.',
+            '- Wallet: deposit, withdraw, transfer between Spot and CFD wallet, transaction history.',
+            '- Profile: personal details, avatar, security, KYC, referral and settings.',
+            '- Report Issue: opens a support ticket (one every 24 hours).',
+            '',
+            '## MONEY AND WALLETS',
+            '- Balances are held in rupees (INR). The app shows a USDT figure using the platform rate (1 USDT = Rs.103 by default, the admin can change it).',
+            '- Two main balances: Spot wallet (coins) and CFD / Futures wallet (forex trading). Use Wallet -> Transfer to move money between them.',
+            '- Deposits: UPI screenshot upload, or USDT (TRC20 / BEP20). Verification usually settles in 10 to 30 minutes. First deposit with a referral ID earns a bonus.',
+            '- Withdrawals: minimum Rs.500, KYC required, daily limit applies, a small network fee is deducted.',
+            '- Transfers between wallets are instant and free.',
+            '',
+            '## FOREX / CFD TRADING',
+            '- Lot size controls position size. Margin = (lots x contract size x price) / leverage.',
+            '- Leverage can go up to the platform maximum (for example 2000x). Higher leverage means a smaller margin but a much closer liquidation price.',
+            '- Available margin = CFD balance + unrealized profit/loss. Margin already used by open positions is not available again.',
+            '- Margin ratio = used margin / equity. It turns amber near 60% and red near 85%; at 99999% the account is wiped out.',
+            '- Broker fee is charged on open and again on close, as a percentage of notional value. Unrealized profit shown on screen is the gross price move; fees are deducted when you close.',
+            '- Liquidation happens when the position equity falls to the maintenance level (maintenance margin defaults to 50% of the margin). At 100x leverage price only has to move about 0.5% against you.',
+            '- Take Profit and Stop Loss are price triggers and can be edited any time from the position card.',
+            '- Order types: Market fills immediately at the live chart price; Limit waits for your price in the favourable direction; Stop waits for your price in the unfavourable direction.',
+            '- Market hours: crypto trades 24/7. Forex and metals follow market sessions and close for the weekend plus a short daily break — the Buy / Sell buttons show "Market closed" when it is shut.',
+            '- Charts are TradingView: pick a timeframe, add indicators (EMA, SMA, Bollinger Bands, RSI) and use the drawing tools on the left edge of the chart.',
+            '',
+            '## OTHER FEATURES',
+            '- Referral: share your code, earn from your referrals and transfer the earnings to the Spot wallet.',
+            '- KYC: upload an ID document from Profile. It is required before a withdrawal.',
+            '- Notifications: enable them for trade alerts and deposit updates.',
+            '- The app can be installed as a home-screen app and works offline once cached.'
+        ].join('\n');
+
+        const SQLAI_SYSTEM = [
+            'You are SQL Ai, the official in-app assistant of Treding Store (treding.store).',
+            'Your job is to explain how the app works, help users find features, and analyse the signed-in user own trades using the data block provided with this conversation.',
+            'LANGUAGE: answer in the same language the user writes in. Hinglish (Hindi written in Latin letters) is welcome, but every UI label, button name and page name you quote must stay exactly in English.',
+            'PRIVACY (hard rule): the USER DATA block contains only the currently signed-in user own account. Never ask for, guess, invent or reveal any other account, email, phone, uid or balance. If asked about another user, say you can only see the account that is signed in.',
+            'You cannot place, edit or cancel orders. Always tell the user the exact page and button to tap instead, for example: "Forex -> choose the pair -> Positions -> SL/TP".',
+            'Never promise guaranteed profit and never advise an exact guaranteed trade. Keep risk warnings short, not preachy.',
+            'Be brief: 3 to 6 short lines, or a few bullet points. No markdown tables, no long essays, no emoji spam.',
+            'If a value is missing from USER DATA, say you do not have it rather than guessing.',
+            'REPORT TOOL: only when the user clearly asks to raise a support report / complaint / ticket, reply with nothing but this token on its own line:',
+            '[[REPORT]] subject: short subject | body: full message in English',
+            'Otherwise never output that token. After the report is filed the app tells you so in a follow-up message.',
+            'APP REFERENCE:\n' + SQLAI_MAP
+        ].join('\n\n');
+
+        function sqlAiApiKey() { return (state.adminConfig && state.adminConfig.geminiApiKey) || ''; }
+        function sqlAiEnabled() { return !(state.adminConfig && state.adminConfig.aiEnabled === false); }
+
+        function updateSqlAiNote() {
+            try {
+                const n = document.getElementById('sqlai-note');
+                if (!n) return;
+                if (!sqlAiEnabled()) { n.textContent = 'SQL Ai is switched off by the platform right now.'; return; }
+                if (!sqlAiApiKey()) { n.textContent = 'SQL Ai is not activated yet — add the Gemini key in the admin panel.'; return; }
+                n.textContent = 'Answers come from your own account data only. SQL Ai never sees anyone else.';
+            } catch (e) { console.warn('sqlai note:', e && e.message); }
+        }
+
+        function toggleSqlAi() {
+            const p = document.getElementById('sqlai-panel');
+            if (!p) return;
+            if (p.classList.contains('open')) { closeSqlAi(); return; }
+            closeSupportChat();
+            p.classList.add('open');
+            state.sqlAi.open = true;
+            requestAnimationFrame(() => clampAiPanel(p, 'sqlai-panel'));
+            updateSqlAiNote();
+            renderSqlAi();
+            const ta = document.getElementById('sqlai-input');
+            if (ta && window.innerWidth > 700) ta.focus();
+        }
+        function closeSqlAi() {
+            const p = document.getElementById('sqlai-panel');
+            if (p) p.classList.remove('open');
+            state.sqlAi.open = false;
+        }
+        function toggleSqlAiFs() {
+            const p = document.getElementById('sqlai-panel');
+            if (!p) return;
+            state.sqlAi.fs = !state.sqlAi.fs;
+            p.classList.toggle('fs', state.sqlAi.fs);
+            if (!state.sqlAi.fs) { p.style.left = ''; p.style.top = ''; p.classList.remove('dragged'); }
+            const ic = document.querySelector('#sqlai-fs i');
+            if (ic) ic.className = state.sqlAi.fs ? 'fas fa-compress' : 'fas fa-expand';
+        }
+
+        function pushSqlAi(role, text) {
+            state.sqlAi.msgs.push({ role: role, text: String(text || '') });
+            if (state.sqlAi.msgs.length > 30) state.sqlAi.msgs.splice(0, state.sqlAi.msgs.length - 30);
+            renderSqlAi();
+        }
+        function renderSqlAi(loading) {
+            const box = document.getElementById('sqlai-msgs');
+            if (!box) return;
+            let html = state.sqlAi.msgs.map(m => {
+                const me = m.role === 'user';
+                return '<div class="ai-row ' + (me ? 'me' : '') + '"><div class="ai-bub' + (m.err ? ' err' : '') + '">' +
+                    escHtml(m.text) + '</div></div>';
+            }).join('');
+            if (!state.sqlAi.msgs.length) {
+                html = '<div class="ai-sys">Hi, I am <b>SQL Ai</b>. I know every page of this app and I can read your own open trades. Ask me anything.</div>';
+            }
+            if (loading) {
+                html += '<div class="ai-row"><div class="ai-bub"><span class="ai-typing"><i></i><i></i><i></i></span></div></div>';
+            }
+            box.innerHTML = html;
+            box.scrollTop = box.scrollHeight;
+        }
+        function sqlAiQuick(t) {
+            const ta = document.getElementById('sqlai-input');
+            if (ta) { ta.value = t; sendSqlAi(); }
+        }
+        function sqlAiKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendSqlAi(); }
+        }
+        function sqlAiGrow(ta) {
+            ta.style.height = 'auto';
+            ta.style.height = Math.min(96, ta.scrollHeight) + 'px';
+        }
+
+        function sqlAiUserData() {
+            const ud = state.userData || {};
+            const money2 = v => (Math.round((Number(v) || 0) * 100) / 100);
+            const rows = [];
+            rows.push('Name: ' + (ud.name || '-'));
+            rows.push('Login: ' + (state.user ? (state.user.email || ud.phone || '-') : 'guest, not signed in'));
+            rows.push('Spot wallet: ' + money2(ud.spotBalance) + ' INR');
+            rows.push('CFD/Futures wallet: ' + money2(cfdBalanceInr(ud)) + ' INR (= ' + money2(toUSDT(cfdBalanceInr(ud))) + ' USDT)');
+            rows.push('Referral balance: ' + money2(ud.referralBalance) + ' INR');
+            rows.push('KYC status: ' + (ud.kycStatus || 'not submitted'));
+            if (state.currentForex) {
+                rows.push('Screen: Forex / ' + state.currentForex.symbol + ' at ' + (state.forexPrice || '-'));
+            }
+            const pos = state.forexPositions || [];
+            if (pos.length) {
+                rows.push('OPEN POSITIONS (' + pos.length + '):');
+                pos.forEach(p => {
+                    const r = posPnl(p, fxPosPrice(p));
+                    rows.push('- ' + p.symbol + ' ' + String(p.side).toUpperCase() + ' ' + p.quantity + ' lot @ ' + p.entryPrice +
+                        ' | lev ' + p.leverage + 'x | margin ' + money2(p.marginUSDT) + ' USDT | liq ' + (p.liqPrice || '-') +
+                        ' | SL ' + (p.slPrice || 'none') + ' | TP ' + (p.tpPrice || 'none') +
+                        ' | unrealised ' + money2(r.gross) + ' USDT | fee on close ' + money2(r.closeFee) + ' USDT');
+                });
+                rows.push('Total unrealised: ' + money2(fxUnrealizedUSDT()) + ' USDT');
+            } else {
+                rows.push('Open positions: none');
+            }
+            const ord = state.forexPending || [];
+            if (ord.length) {
+                rows.push('PENDING ORDERS (' + ord.length + '):');
+                ord.forEach(o => rows.push('- ' + o.symbol + ' ' + String(o.side).toUpperCase() + ' ' + o.type + ' ' + o.quantity + ' lot @ ' + o.price));
+            }
+            const hist = (state.forexTrades || []).slice(0, 8);
+            if (hist.length) {
+                rows.push('RECENT CLOSED TRADES:');
+                hist.forEach(h => rows.push('- ' + h.symbol + ' ' + String(h.side).toUpperCase() + ' exit ' + (h.exitPrice || '-') +
+                    ' | realised ' + money2(h.realizedPnl !== undefined ? h.realizedPnl : h.pnl) + ' USDT | ' + (h.closeType || 'manual')));
+            }
+            return rows.join('\n');
+        }
+
+        function sqlAiParseReport(raw) {
+            const m = String(raw).match(/\[\[REPORT\]\]\s*subject:\s*([\s\S]*?)\s*\|\s*body:\s*([\s\S]*)/i);
+            if (!m) return null;
+            return { subject: sanitizeInput(m[1]).slice(0, 120), body: sanitizeInput(m[2]).slice(0, 1500) };
+        }
+
+        async function sqlAiRaiseReport(r) {
+            if (!r || !r.subject) return false;
+            if (!requireAuth('Sign in to raise a support report', null)) return false;
+            const ud = state.userData || {};
+            await db.collection('reports').add({
+                uid: state.user.uid,
+                userName: String(ud.name || ''),
+                userEmail: String(ud.email || ''),
+                contact: String(ud.email || ud.phone || ''),
+                guest: false,
+                type: 'SQL Ai',
+                subject: r.subject || 'SQL Ai report',
+                description: (r.body || ''),
+                fileUrl: '', fileType: '',
+                status: 'open',
+                ip: state.userIP,
+                userAgent: navigator.userAgent,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            return true;
+        }
+
+        async function sqlAiCall(messages) {
+            const key = sqlAiApiKey();
+            if (!key) throw new Error('no-key');
+            const model = (state.adminConfig && state.adminConfig.geminiModel) || 'gemini-2.0-flash';
+            const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(key);
+            const contents = messages.map(m => ({
+                role: m.role === 'user' ? 'user' : 'model',
+                parts: [{ text: m.text }]
+            }));
+            const body = {
+                system_instruction: { parts: [{ text: SQLAI_SYSTEM + '\n\nUSER DATA (signed-in user only):\n' + sqlAiUserData() }] },
+                contents: contents,
+                generationConfig: { temperature: 0.55, maxOutputTokens: 900, topP: 0.95 }
+            };
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) {
+                const t = (await res.text()).slice(0, 160);
+                throw new Error('HTTP ' + res.status + ' ' + t);
+            }
+            const j = await res.json();
+            const cand = j && j.candidates && j.candidates[0];
+            const txt = cand && cand.content && cand.content.parts
+                ? cand.content.parts.map(x => x.text || '').join('') : '';
+            if (!txt) throw new Error('empty-reply');
+            return txt.trim();
+        }
+
+        async function sendSqlAi() {
+            const ta = document.getElementById('sqlai-input');
+            const btn = document.getElementById('sqlai-send');
+            const raw = ta ? ta.value : '';
+            const text = sanitizeInput(raw).slice(0, 1500);
+            if (!text) return;
+            if (state.sqlAi.busy) return;
+            const now = Date.now();
+            if (now - state.sqlAi.sentAt < 1200) return;
+            state.sqlAi.sentAt = now;
+            if (ta) { ta.value = ''; ta.style.height = ''; }
+            pushSqlAi('user', text);
+
+            if (!sqlAiEnabled()) { pushSqlAi('ai', 'SQL Ai is switched off by the platform right now. You can still use the support chat.'); return; }
+            if (!sqlAiApiKey()) {
+                pushSqlAi('ai', 'SQL Ai is not activated yet. Ask the platform admin to add the Gemini API key in the admin panel, or open the support chat and the Spot Team will help.');
+                return;
+            }
+
+            state.sqlAi.busy = true;
+            if (btn) btn.disabled = true;
+            renderSqlAi(true);
+            try {
+                const history = state.sqlAi.msgs.slice(-12).map(m => ({ role: m.role, text: m.text }));
+                let out = await sqlAiCall(history);
+                const report = sqlAiParseReport(out);
+                if (report) {
+                    try {
+                        await sqlAiRaiseReport(report);
+                        pushSqlAi('ai', 'Report raised. The Spot Team has it:\n\nSubject: ' + report.subject + '\n\n' + report.body + '\n\nYou can track it under Report Issue.');
+                    } catch (e) {
+                        pushSqlAi('ai', 'I could not file the report — ' + (e && e.message ? e.message : 'permission denied') + '. Please open Report Issue and send it there.');
+                    }
+                } else {
+                    pushSqlAi('ai', out);
+                }
+            } catch (e) {
+                const msg = String((e && e.message) || e);
+                if (msg.indexOf('no-key') >= 0) {
+                    pushSqlAi('ai', 'SQL Ai is not activated yet — no API key is configured.');
+                } else if (msg.indexOf('429') >= 0) {
+                    pushSqlAi('ai', 'I am getting rate limited right now. Please wait a few seconds and try again.');
+                } else {
+                    pushSqlAi('ai', 'I could not answer that just now (' + msg.slice(0, 90) + '). Please try again.');
+                }
+            } finally {
+                state.sqlAi.busy = false;
+                if (btn) btn.disabled = false;
+                renderSqlAi(false);
+            }
+        }
+
+        // ── Dragging (pointer based, works on touch and mouse) ────────
+        function makeAiDraggable(panelId, handleId) {
+            const panel = document.getElementById(panelId);
+            const handle = document.getElementById(handleId);
+            if (!panel || !handle) return;
+            let sx = 0, sy = 0, ox = 0, oy = 0, dragging = false;
+            handle.addEventListener('pointerdown', e => {
+                if (e.target.closest && e.target.closest('.ai-ic')) return;
+                if (panel.classList.contains('fs')) return;
+                if (e.button !== undefined && e.button !== 0) return;
+                const r = panel.getBoundingClientRect();
+                ox = r.left; oy = r.top;
+                sx = e.clientX; sy = e.clientY;
+                dragging = true;
+                panel.classList.add('dragged');
+                panel.style.left = ox + 'px';
+                panel.style.top = oy + 'px';
+                panel.style.right = 'auto';
+                panel.style.bottom = 'auto';
+                try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+                e.preventDefault();
+            });
+            handle.addEventListener('pointermove', e => {
+                if (!dragging) return;
+                let nx = ox + (e.clientX - sx);
+                let ny = oy + (e.clientY - sy);
+                const maxX = Math.max(4, window.innerWidth - panel.offsetWidth - 4);
+                const maxY = Math.max(4, window.innerHeight - panel.offsetHeight - 4);
+                nx = Math.max(4, Math.min(maxX, nx));
+                ny = Math.max(4, Math.min(maxY, ny));
+                panel.style.left = nx + 'px';
+                panel.style.top = ny + 'px';
+            });
+            const end = e => {
+                if (!dragging) return;
+                dragging = false;
+                try { handle.releasePointerCapture(e.pointerId); } catch (err) {}
+                try { localStorage.setItem('ts_ai_pos_' + panelId, JSON.stringify({ l: panel.style.left, t: panel.style.top })); } catch (err) {}
+            };
+            handle.addEventListener('pointerup', end);
+            handle.addEventListener('pointercancel', end);
+            try {
+                const saved = JSON.parse(localStorage.getItem('ts_ai_pos_' + panelId) || 'null');
+                if (saved && saved.l && saved.t) {
+                    panel.classList.add('dragged');
+                    panel.style.left = saved.l;
+                    panel.style.top = saved.t;
+                    panel.style.right = 'auto';
+                    panel.style.bottom = 'auto';
+                    clampAiPanel(panel, panelId);
+                }
+            } catch (err) {}
+        }
+
+        function clampAiPanel(panel, panelId) {
+            if (!panel || !panel.classList.contains('dragged')) return;
+            if (panel.classList.contains('fs')) return;
+            // Panel bandha ho to offsetWidth 0 aata hai — tab clamp mat karo
+            if (!panel.offsetWidth) return;
+            const w = panel.offsetWidth, h = panel.offsetHeight;
+            let x = parseFloat(panel.style.left) || 0;
+            let y = parseFloat(panel.style.top) || 0;
+            const maxX = Math.max(4, window.innerWidth - w - 4);
+            const maxY = Math.max(4, window.innerHeight - h - 4);
+            x = Math.max(4, Math.min(maxX, x));
+            y = Math.max(4, Math.min(maxY, y));
+            if (x !== parseFloat(panel.style.left) || y !== parseFloat(panel.style.top)) {
+                panel.style.left = x + 'px';
+                panel.style.top = y + 'px';
+                if (panelId) {
+                    try { localStorage.setItem('ts_ai_pos_' + panelId, JSON.stringify({ l: x + 'px', t: y + 'px' })); } catch (err) {}
+                }
+            }
+        }
+
+        function clampAllAiPanels() {
+            clampAiPanel(document.getElementById('sqlai-panel'), 'sqlai-panel');
+            clampAiPanel(document.getElementById('support-panel'), 'support-panel');
+        }
+        window.addEventListener('resize', clampAllAiPanels);
+
+        makeAiDraggable('sqlai-panel', 'sqlai-hd');
+        makeAiDraggable('support-panel', 'support-hd');
+        updateSqlAiNote();
 
     </script>
 </body>
