@@ -4789,6 +4789,9 @@
             document.getElementById('app-container').classList.remove('hidden');
             try { setDockVisible(true); } catch (e) {}
             updateGuestUI();
+            // Guest ke waqt admin/config padhna deny hota hai — login ke baad dobara load taake
+            // SQL Ai (Gemini key/model) aur payment addresses mil jaayein.
+            if (state.user && typeof loadAdminConfig === 'function') loadAdminConfig().catch(()=>{});
             try { syncCurrencyModeUI(); } catch(e){}
 
             // FIX REFRESH: User jis page pe tha wahan wapas le jao
@@ -14355,6 +14358,10 @@
         let _supportAiBusy = false;
         async function maybeSupportAiReply() {
             if (_supportAiBusy) return;
+            if (!state.support) state.support = { msgs: [] };
+            const tried = state.support._aiTried || (state.support._aiTried = {});
+            const retries = state.support._aiRetries || (state.support._aiRetries = {});
+            let tid = null, answered = false;
             try {
                 if (!state.user) return;
                 if (!sqlAiEnabled() || !sqlAiApiKey()) return;
@@ -14363,10 +14370,12 @@
                 if (msgs.length < 1) return;
                 const last = msgs[msgs.length - 1];
                 if (!last || last.from !== 'user' || !last.id || last._tmp) return;
-                const tid = last.id;
+                tid = last.id;
                 const ref = chatThreadRef();
+                if (tried[tid]) return;
 
                 _supportAiBusy = true;
+                answered = false;
                 let claim = false;
                 try {
                     claim = await db.runTransaction(async tx => {
@@ -14411,6 +14420,8 @@
                     aiRunning: false,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
+                tried[tid] = true;
+                answered = true;
             } catch (e) {
                 console.warn('support auto reply:', e && e.message);
                 try {
@@ -14418,6 +14429,20 @@
                 } catch (e2) {}
             } finally {
                 _supportAiBusy = false;
+                if (!answered) {
+                    // transient failure (rate limit / 5xx): ek aur chance, max 2 tries
+                    retries[tid] = (retries[tid] || 0) + 1;
+                    if (retries[tid] >= 2) tried[tid] = true; else delete tried[tid];
+                }
+                // busy ke dauran bheja gaya naya message drop na ho — usko abhi try karo
+                const ms = (state.support && state.support.msgs) || [];
+                for (let i = ms.length - 1; i >= 0; i--) {
+                    const m = ms[i];
+                    if (m && m.from === 'user' && m.id && !m._tmp) {
+                        if (!tried[m.id]) setTimeout(maybeSupportAiReply, 500);
+                        break;
+                    }
+                }
             }
         }
 
