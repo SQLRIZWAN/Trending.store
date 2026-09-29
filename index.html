@@ -428,6 +428,8 @@
         }
         .fx-chip:active { transform: scale(.985); }
         .fx-chip.active { border-color: var(--primary, #00c853); background: rgba(0,200,83,.08); }
+        .fx-ico { width:34px; height:34px; border-radius:10px; flex:none; display:block; }
+        .fx-ico.sm { width:26px; height:26px; border-radius:8px; }
         .fx-sym { font-weight: 800; font-family: 'JetBrains Mono', 'Roboto Mono', Inter, monospace; font-size: 13px; min-width: 74px; }
         .fx-px { font-family: 'JetBrains Mono', 'Roboto Mono', Inter, monospace; font-size: 13px; text-align: right; }
         .fx-cat-pill { font-size: 9px; padding: 1px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
@@ -1660,8 +1662,9 @@
                     <!-- ── Pair header (compact) ── -->
                     <div class="flex items-center gap-2">
                         <button class="fx-pair-inline" onclick="openFxSheet('pair')">
-                            <span class="sym" id="fx-pair-name">EURUSD</span>
-                            <span class="fx-cat-pill cat-forex" id="fx-pair-cat">forex</span>
+                            <img id="fx-pair-icon" class="fx-ico sm" alt="" width="26" height="26">
+                            <span class="sym" id="fx-pair-name">XAUUSD</span>
+                            <span class="fx-cat-pill cat-metals" id="fx-pair-cat">metals</span>
                             <i class="fas fa-chevron-down caret"></i>
                         </button>
                         <button class="fx-lev-btn" onclick="openFxSheet('lev')" title="Leverage">
@@ -1789,20 +1792,6 @@
                     <!-- ═══ CHART MODE (candle icon) ═══ -->
                     <div id="fx-chart-mode" class="hidden">
                         <div class="fx-card">
-                            <div class="fx-tfbar">
-                                <button class="fx-tf-chip" id="fx-tf-chip" onclick="toggleFxTFs()">
-                                    <span id="fx-tf-chip-label">1m</span><i class="fas fa-chevron-down"></i>
-                                </button>
-                                <button class="fx-icon-btn sm" id="fx-ind-btn" onclick="toggleFxIndSheet()" title="Indicators"><i class="fas fa-wave-square"></i></button>
-                                <span class="flex-1"></span>
-                                <span class="fx-chart-pnl" title="Combined unrealized PnL on all open positions">PnL <b id="fx-chart-pnl">—</b></span>
-                                <button class="fx-icon-btn sm" onclick="toggleFxChart()" title="Close chart"><i class="fas fa-xmark"></i></button>
-                            </div>
-                            <div id="fx-chart-tfs" class="fx-tfscroll hidden"></div>
-                            <div id="fx-ind-sheet" class="fx-ind-sheet hidden">
-                                <div class="ttl">Indicators</div>
-                                <div id="fx-ind-list"></div>
-                            </div>
                             <div class="fx-chart-shell" id="fx-chart-shell"><div id="fx-tradingview"></div></div>
                             <div class="fx-chart-lot">
                                 <span class="fx-lbl">Lots</span>
@@ -5696,9 +5685,7 @@
                 const hasChg = typeof chg === 'number' && isFinite(chg);
                 return `<div class="market-item" onclick="goForex('${i.symbol}')">
                     <div class="flex items-center gap-3 flex-1 min-w-0">
-                        <div class="w-8 h-8 rounded-full bg-blue-500/15 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-globe text-blue-400 text-xs"></i>
-                        </div>
+                        <img src="${fxPairIcon(i)}" alt="" class="w-8 h-8 rounded-lg flex-shrink-0">
                         <div class="min-w-0">
                             <p class="font-bold text-sm flex items-center gap-2">${i.symbol} ${catLabel(i)}</p>
                             <p class="text-textGray text-xs truncate">${i.name || ''}</p>
@@ -11685,9 +11672,10 @@
             } catch (e) {
                 state.forexInstruments = FX_DEFAULT_INSTRUMENTS.map((x) => ({ ...x, id: 'def_' + x.symbol, isDefault: true }));
             }
-            // Ensure a selected instrument
+            // Ensure a selected instrument — default hamesha Gold (XAUUSD)
             if (!state.currentForex) {
-                const first = state.forexInstruments.find(i => i.enabled !== false);
+                const gold = state.forexInstruments.find(i => i.enabled !== false && i.symbol === 'XAUUSD');
+                const first = gold || state.forexInstruments.find(i => i.enabled !== false);
                 if (first) state.currentForex = first;
             }
             if (state.currentView === 'forex') renderForexView();
@@ -12041,6 +12029,30 @@
             updateFxAccountCard();
         }
 
+        // ── Pair icon (har forex/CFD pair ke liye ek hi jagah se badge) ──
+        const FX_ICON_COLORS = { forex:'#64b5f6', metals:'#d4af37', indices:'#a78bfa', crypto:'#00c853', energy:'#ff8a65' };
+        function fxPairIcon(inst, size) {
+            const s = size || 34;
+            const sym = String((inst && inst.symbol) || '').toUpperCase();
+            const cat = String((inst && inst.category) || 'forex').toLowerCase();
+            let lab = String((inst && inst.base) || sym).toUpperCase().replace(/[^A-Z0-9]/g, '');
+            if (!lab) lab = sym.replace(/[^A-Z0-9]/g, '').slice(0, 3);
+            if (lab.length > 4) lab = lab.slice(0, 4);
+            if (!lab) lab = '?';
+            const c = FX_ICON_COLORS[cat] || FX_ICON_COLORS.forex;
+            const fs = lab.length > 3 ? 10.5 : 13;
+            const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + s + '" height="' + s + '" viewBox="0 0 34 34">' +
+                '<rect width="34" height="34" rx="10" fill="' + c + '" fill-opacity="0.16"/>' +
+                '<rect x="0.6" y="0.6" width="32.8" height="32.8" rx="9.5" fill="none" stroke="' + c + '" stroke-opacity="0.55" stroke-width="1.2"/>' +
+                '<text x="17" y="21.6" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="' + fs + '" font-weight="700" fill="' + c + '">' + lab + '</text>' +
+                '</svg>';
+            return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        }
+        function setFxHeaderIcon(inst) {
+            const hi = document.getElementById('fx-pair-icon');
+            if (hi && inst) hi.src = fxPairIcon(inst, 26);
+        }
+
         // ── Instrument list UI ─────────────────────────────────────────
         function forexFiltered() {
             const c = state.forexCategory;
@@ -12063,6 +12075,7 @@
                 const active = state.currentForex && state.currentForex.symbol === i.symbol;
                 const px = (state.currentForex && state.currentForex.symbol === i.symbol) ? state.forexPrice : null;
                 return `<div class="fx-chip ${active ? 'active' : ''}" onclick="selectForexInstrument('${i.symbol}')">
+                    <img src="${fxPairIcon(i)}" alt="" class="fx-ico" width="34" height="34">
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
                             <span class="fx-sym">${i.symbol}</span>
@@ -12094,6 +12107,7 @@
             const seed = (inst.tvSymbol && _fxCache.quotes) ? Number(_fxCache.quotes[inst.tvSymbol]) : 0;
             if (seed > 0) { state.forexPrice = seed; state.forexPriceAt = Number(_fxCache.ts) || Date.now(); }
             refreshFxQuotes(false).then(() => { if (state.currentForex && state.currentForex.symbol === sym && !state.forexPrice) { const q = _fxCache.quotes[inst.tvSymbol]; if (q > 0) { state.forexPrice = q; state.forexPriceAt = _fxCache.ts || Date.now(); renderForexPrice(); renderForexInstrumentList(); } } }).catch(() => {});
+            setFxHeaderIcon(inst);
             const nameEl = document.getElementById('fx-pair-name');
             if (nameEl) nameEl.textContent = inst.symbol;
             const nmEl = document.getElementById('fx-pair-full');
@@ -13546,6 +13560,7 @@
                 const f = document.getElementById('fx-pair-full'); if (f) f.textContent = inst.name || '';
                 const c = document.getElementById('fx-pair-cat');
                 if (c) { c.textContent = inst.category || 'forex'; c.className = 'fx-cat-pill cat-' + (inst.category || 'forex'); }
+                setFxHeaderIcon(inst);
                 const lo = document.getElementById('fx-lot-min'); if (lo) lo.textContent = state.forexConfig.minLot || 0.01;
                 state.forexQty = fxSnapQty(fxQtyValue());
                 syncFxQtyInputs();
@@ -13879,6 +13894,7 @@
                     chgTxt = `<span style="font-size:11px;font-weight:700;color:${chg >= 0 ? '#00c853' : '#f6465d'};">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</span>`;
                 }
                 return `<div class="fx-chip" onclick="goForex('${i.symbol}')">
+                    <img src="${fxPairIcon(i)}" alt="" class="fx-ico" width="34" height="34">
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
                             <span class="fx-sym">${i.symbol}</span>
@@ -13932,6 +13948,7 @@
                 const active = state.currentForex && state.currentForex.symbol === i.symbol;
                 const px = active ? state.forexPrice : null;
                 return `<div class="fx-chip ${active ? 'active' : ''}" onclick="selectForexInstrument('${i.symbol}')">
+                    <img src="${fxPairIcon(i)}" alt="" class="fx-ico" width="34" height="34">
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
                             <span class="fx-sym">${i.symbol}</span>
