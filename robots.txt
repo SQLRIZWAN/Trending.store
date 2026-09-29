@@ -1,9 +1,13 @@
 # robots.txt — Treding Store (https://treding.store)
 
+# NOTE: admin paths are deliberately NOT listed here. A "Disallow: /admin"
+# line is not access control — it just advertises the panel to anyone who
+# reads this file. The panel is protected by Firebase Auth + Firestore
+# rules, and search engines have no business indexing it anyway
+# (no sitemap entry either).
+
 User-agent: *
 Allow: /
-Disallow: /admin
-Disallow: /admin-panel
 Crawl-delay: 2
 
 User-agent: Googlebot
