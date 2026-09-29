@@ -5075,6 +5075,32 @@
             return 'p' + d + '@phone.treding.store';
         }
 
+        // ── refCodes: referral code → uid index ──────────────────────
+        // Security rules `users` ki list (cross-user PII) block rakhte hain, isliye
+        // referral-code lookup ke liye alag chhota index. Public read / owner write.
+        async function lookupRefCode(code) {
+            const c = String(code || '').trim().toUpperCase();
+            if (!c) return null;
+            try {
+                const snap = await db.collection('refCodes').doc(c).get();
+                return snap.exists ? (snap.data() || null) : null;
+            } catch (e) { return null; }
+        }
+        async function syncRefCodeIndex() {
+            try {
+                if (!state.user) return;
+                const ud = state.userData || {};
+                const code = ud.referralCode || state.referralCode;
+                if (!code) return;
+                await db.collection('refCodes').doc(String(code).toUpperCase()).set({
+                    uid: state.user.uid,
+                    name: String(ud.name || '').slice(0, 60),
+                    referredBy: ud.referredBy || null,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            } catch (e) {}
+        }
+
         async function phoneOtpLogin(phone, password) {
             const holder = document.getElementById('recaptcha-holder');
             if (holder) { holder.style.display = 'block'; holder.innerHTML = ''; }
@@ -6069,6 +6095,7 @@
             } else {
                 state.referralCode = state.userData.referralCode;
             }
+            await syncRefCodeIndex();
 
             // Show code immediately
             const codeDisplay = document.getElementById('referral-code-display');
@@ -6094,17 +6121,14 @@
 
         async function loadLevel2Referrals() {
             try {
-                const l1Ids = (state.referrals || []).map(r => r.referredId).filter(Boolean);
-                if (l1Ids.length === 0) return [];
-                // Firestore `in` operator supports max 10 values — chunk if needed.
-                const chunks = [];
-                for (let i = 0; i < l1Ids.length; i += 10) chunks.push(l1Ids.slice(i, i + 10));
-                const results = [];
-                for (const chunk of chunks) {
-                    const snap = await db.collection('referrals').where('referrerId', 'in', chunk).get();
-                    snap.docs.forEach(d => results.push({ id: d.id, ...d.data() }));
-                }
-                return results;
+                // Rules kehta hai: referral sirf tab read ho sakta hai jab caller uska
+                // referrerId / referredId / level2ReferrerId ho. L2 team ke liye apna hi
+                // level2ReferrerId filter kaafi hai — purana `referrerId in [l1Ids]`
+                // rules ke under provable nahi tha (aur ye chhota, faster query bhi hai).
+                const snap = await db.collection('referrals')
+                    .where('level2ReferrerId', '==', state.user.uid)
+                    .get();
+                return snap.docs.map(d => ({ id: d.id, ...d.data() }));
             } catch (e) {
                 console.log('Level 2 referrals load error (non-critical):', e.message);
                 return [];
@@ -6297,23 +6321,16 @@
                 if (unrewarded.length === 0) return;
 
                 // Resolve L1 referrer
-                const l1Snap = await db.collection('users')
-                    .where('referralCode', '==', state.userData.referredBy)
-                    .limit(1)
-                    .get();
-                if (l1Snap.empty) return;
-                const l1Id = l1Snap.docs[0].id;
-                const l1Data = l1Snap.docs[0].data() || {};
+                const l1Data = await lookupRefCode(state.userData.referredBy);
+                if (!l1Data || !l1Data.uid) return;
+                const l1Id = l1Data.uid;
 
                 // Resolve L2 referrer (L1's referrer)
                 let l2Id = state.userData.level2ReferrerId || null;
                 if (!l2Id && l1Data.referredBy) {
                     try {
-                        const l2Snap = await db.collection('users')
-                            .where('referralCode', '==', l1Data.referredBy)
-                            .limit(1)
-                            .get();
-                        if (!l2Snap.empty) l2Id = l2Snap.docs[0].id;
+                        const l2 = await lookupRefCode(l1Data.referredBy);
+                        if (l2 && l2.uid) l2Id = l2.uid;
                     } catch(e) {}
                 }
 
@@ -8202,12 +8219,10 @@
                     user = cred.user;
                 } else {
                     // Phone = profile field. Koi SMS/OTP nahi — pseudo-email + password se account banta hai.
-                    const already = await db.collection('users').where('phone', '==', phone).limit(1).get();
-                    if (!already.empty) {
-                        btn.innerHTML = 'Create Account'; btn.disabled = false;
-                        showToast('This number is already registered — please sign in', 'error');
-                        return;
-                    }
+                    // Duplicate check ab Firestore query se nahi hota: security rules `users` ko
+                    // owner/admin tak seemit rakhte hain. Pseudo-email unique hota hi hai, isliye
+                    // pehle se registered number pe createUserWithEmailAndPassword
+                    // `auth/email-already-in-use` throw karta hai — catch wahi handle karta hai.
                     const cred = await auth.createUserWithEmailAndPassword(phonePseudoEmail(phone), password);
                     user = cred.user;
                     phoneVerified = false;
@@ -8266,7 +8281,7 @@
             } catch (error) {
                 console.error('Register error:', error);
                 const m = (error && error.code) || '';
-                if (m === 'auth/email-already-in-use') showToast('An account with this Gmail/phone already exists — please sign in', 'error');
+                if (m === 'auth/email-already-in-use') showToast(useEmail ? 'An account with this Gmail already exists — please sign in' : 'This number is already registered — please sign in', 'error');
                 else if (m === 'auth/phone-number-already-in-use') showToast('This number is already registered — please sign in', 'error');
                 else if (m === 'auth/invalid-verification-code') showToast('Incorrect OTP', 'error');
                 else if (m === 'auth/too-many-requests') showToast('Too many attempts. Please try again later.', 'error');
@@ -11408,34 +11423,24 @@
             if (!code) return;
 
             try {
-                const snapshot = await db.collection('users')
-                    .where('referralCode', '==', code.toUpperCase())
-                    .limit(1)
-                    .get();
+                const refData = await lookupRefCode(code);
 
-                if (!snapshot.empty) {
-                    const referrer = snapshot.docs[0];
-                    const refData = referrer.data() || {};
+                if (refData && refData.uid) {
+                    const referrerId = refData.uid;
 
                     // Level 2: referrer's own referrer
                     let lvl2Id = null;
                     let lvl2Code = null;
                     if (refData.referredBy) {
                         try {
-                            const l2Snap = await db.collection('users')
-                                .where('referralCode', '==', refData.referredBy)
-                                .limit(1)
-                                .get();
-                            if (!l2Snap.empty) {
-                                lvl2Id = l2Snap.docs[0].id;
-                                lvl2Code = refData.referredBy;
-                            }
+                            const l2 = await lookupRefCode(refData.referredBy);
+                            if (l2 && l2.uid) { lvl2Id = l2.uid; lvl2Code = refData.referredBy; }
                         } catch(e) {}
                     }
 
                     // Create referral record (level 1)
                     await db.collection('referrals').add({
-                        referrerId: referrer.id,
+                        referrerId: referrerId,
                         referredId: state.user.uid,
                         referredName: state.userData.name,
                         code: code.toUpperCase(),
@@ -11449,7 +11454,7 @@
 
                     await db.collection('users').doc(state.user.uid).update({
                         referredBy: code.toUpperCase(),
-                        referredById: referrer.id,
+                        referredById: referrerId,
                         level2ReferrerId: lvl2Id,
                         referredAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
