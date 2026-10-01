@@ -8076,17 +8076,21 @@
                     return false;
                 })();
 
-                const ua = String(navigator.userAgent || '').slice(0, 200);
-                const w = window.innerWidth || 0;
-                const device = (/Mobi|Android/i.test(ua)) ? 'mobile'
-                             : (/iPad|Tablet/i.test(ua) || (w && w < 820)) ? 'tablet' : 'desktop';
+                const ua = String(navigator.userAgent || '');
+                const touch = (navigator.maxTouchPoints || 0);
+                // UA se decide karo — sirf window width se nahi, warna 390px
+                // resize kiya hua normal desktop bhi "tablet" ban jata hai.
+                const device = (/Mobi|Android/i.test(ua))
+                    ? 'mobile'
+                    : (/iPad|Tablet|PlayBook|Silk|Kindle/i.test(ua) || (/Macintosh/i.test(ua) && touch > 1))
+                        ? 'tablet' : 'desktop';
 
                 db.collection('pageVisits').doc(day + '_' + cid).set({
                     day: day,
                     ts: firebase.firestore.FieldValue.serverTimestamp(),
                     path: String(location.pathname || '/').slice(0, 200),
                     ref: String(document.referrer || '').slice(0, 200),
-                    ua: ua,
+                    ua: ua.slice(0, 200),
                     device: device,
                     first: first
                 }).then(() => {
