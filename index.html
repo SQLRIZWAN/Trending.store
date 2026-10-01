@@ -8049,9 +8049,56 @@
             if (t) { t.style.cursor = 'pointer'; t.addEventListener('click', hideToast); }
         });
 
+        // ── VISITOR TRACKING (admin panel me dikhta hai) ──────────────
+        //  Ek browser = ek visit per day (localStorage client id se).
+        //  Doc ban jaata hai to dobara same din try nahi karta.
+        //  pageVisits sirf admin padh sakta hai, aur koi non-admin
+        //  update/delete nahi kar sakta — data admiya rahega.
+        function trackVisit() {
+            try {
+                const day = (() => {
+                    const d = new Date();
+                    const p = n => String(n).padStart(2, '0');
+                    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+                })();
+
+                let cid = null;
+                try { cid = localStorage.getItem('tv_cid'); } catch(e) {}
+                if (!cid) {
+                    cid = (Date.now().toString(36) + Math.random().toString(36).slice(2, 10));
+                    try { localStorage.setItem('tv_cid', cid); } catch(e) {}
+                }
+                // ek browser, ek din, ek count
+                try { if (localStorage.getItem('tv_last') === day) return; } catch(e) {}
+
+                const first = (() => {
+                    try { if (!localStorage.getItem('tv_firstDay')) { localStorage.setItem('tv_firstDay', day); return true; } } catch(e) {}
+                    return false;
+                })();
+
+                const ua = String(navigator.userAgent || '').slice(0, 200);
+                const w = window.innerWidth || 0;
+                const device = (/Mobi|Android/i.test(ua)) ? 'mobile'
+                             : (/iPad|Tablet/i.test(ua) || (w && w < 820)) ? 'tablet' : 'desktop';
+
+                db.collection('pageVisits').doc(day + '_' + cid).set({
+                    day: day,
+                    ts: firebase.firestore.FieldValue.serverTimestamp(),
+                    path: String(location.pathname || '/').slice(0, 200),
+                    ref: String(document.referrer || '').slice(0, 200),
+                    ua: ua,
+                    device: device,
+                    first: first
+                }).then(() => {
+                    try { localStorage.setItem('tv_last', day); } catch(e) {}
+                }).catch(() => { /* already exists / offline — silently ignore */ });
+            } catch (e) { /* tracking kabhi app ko nahi todega */ }
+        }
+
         // Initialize
         window.onload = () => {
             loadLocalAvatar();
+            trackVisit();
             // BUG #13 FIX: initializeUSDTINRRate() yahaan se HATA DIYA
             // Ab sirf initializeApp() ke andar se call hogi - duplicate timers band
             
